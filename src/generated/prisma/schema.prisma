@@ -1,0 +1,187 @@
+datasource db {
+  url      = env("DATABASE_URL")
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String? // Hashed password, nullable for OAuth users
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts         Account[]
+  sessions         Session[]
+  groups           Group[]       @relation("GroupCreator")
+  groupMemberships GroupMember[]
+  scoreRecords     ScoreRecord[]
+  activityLogs     ActivityLog[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Core domain models
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+
+  createdBy    User          @relation("GroupCreator", fields: [createdById], references: [id])
+  members      GroupMember[]
+  scoringRules ScoringRule[]
+  scoreRecords ScoreRecord[]
+  activityLogs ActivityLog[]
+
+  @@index([createdById])
+  @@index([isActive])
+}
+
+model GroupMember {
+  id       String    @id @default(cuid())
+  userId   String
+  groupId  String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model ScoringRule {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  criteria    Json // Flexible criteria definition
+  points      Int // Point value (can be negative for penalties)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  groupId     String
+
+  group        Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  scoreRecords ScoreRecord[]
+
+  @@index([groupId])
+  @@index([isActive])
+}
+
+model ScoreRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  groupId    String
+  ruleId     String
+  points     Int
+  criteria   Json // Specific criteria that triggered this score
+  notes      String?
+  recordedAt DateTime @default(now())
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  rule  ScoringRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([groupId])
+  @@index([ruleId])
+  @@index([recordedAt])
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  userId      String
+  groupId     String?
+  action      ActivityType
+  description String
+  metadata    Json? // Additional context data
+  timestamp   DateTime     @default(now())
+
+  user  User   @relation(fields: [userId], references: [id])
+  group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([groupId])
+  @@index([timestamp])
+  @@index([action])
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum GroupRole {
+  MEMBER
+  ADMIN
+  OWNER
+}
+
+enum ActivityType {
+  USER_REGISTERED
+  USER_LOGIN
+  LOGIN_FAILED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+  ADMIN_USER_CREATED
+  GROUP_CREATED
+  GROUP_UPDATED
+  GROUP_DELETED
+  MEMBER_INVITED
+  MEMBER_JOINED
+  MEMBER_REMOVED
+  SCORING_RULE_CREATED
+  SCORING_RULE_UPDATED
+  SCORING_RULE_DELETED
+  SCORE_RECORDED
+  SCORE_UPDATED
+  SCORE_DELETED
+}

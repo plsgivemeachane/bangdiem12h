@@ -1,0 +1,529 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { 
+  ArrowLeft, 
+  TrendingUp, 
+  Plus,
+  Settings,
+  Edit,
+  Trash2,
+  Power,
+  PowerOff,
+  Target,
+  Award,
+  Info,
+  Save,
+  X
+} from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Loading } from '@/components/ui/loading'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { GroupsApi } from '@/lib/api/groups'
+import { useAuth } from '@/hooks/use-auth'
+import { Group } from '@/types'
+import toast from 'react-hot-toast'
+
+export default function GroupRulesPage() {
+  const params = useParams()
+  const router = useRouter()
+  const groupId = params.id as string
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  
+  const [group, setGroup] = useState<Group | null>(null)
+  const [scoringRules, setScoringRules] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingRule, setEditingRule] = useState<any | null>(null)
+  const [newRule, setNewRule] = useState({
+    name: '',
+    description: '',
+    points: '',
+    criteria: '{}'
+  })
+
+  // Load group and rules data on mount
+  useEffect(() => {
+    if (groupId && isAuthenticated) {
+      loadGroupData()
+    }
+  }, [groupId, isAuthenticated])
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/auth/signin')
+      return
+    }
+  }, [isAuthenticated, authLoading, router])
+
+  const loadGroupData = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      
+      // Load group details and scoring rules in parallel
+      const [groupData, rulesData] = await Promise.all([
+        GroupsApi.getGroup(groupId),
+        GroupsApi.getScoringRules(groupId)
+      ])
+      
+      setGroup(groupData)
+      setScoringRules(rulesData)
+    } catch (error) {
+      console.error('Failed to load group data:', error)
+      if (error instanceof Error) {
+        if (error.message.includes('Group not found')) {
+          setError('Group not found or you do not have access to this group.')
+        } else if (error.message.includes('Access denied')) {
+          setError('You do not have permission to view this group.')
+        } else {
+          setError(error.message)
+        }
+      } else {
+        setError('Failed to load group data')
+      }
+      toast.error('Failed to load group data')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleBackToGroup = () => {
+    router.push(`/groups/${groupId}`)
+  }
+
+  // Check if user has permission to manage scoring rules
+  const canManageRules = group?.members?.some(
+    member => member.userId === user?.id && ['OWNER', 'ADMIN'].includes(member.role)
+  ) || false
+
+  // Get user's role in the group
+  const userRole = group?.members?.find(member => member.userId === user?.id)?.role || 'VIEWER'
+
+  const handleCreateRule = async () => {
+    if (!newRule.name.trim() || !newRule.points.trim()) {
+      toast.error('Name and points are required')
+      return
+    }
+
+    const points = parseInt(newRule.points)
+    if (isNaN(points) || points < 0) {
+      toast.error('Points must be a positive number')
+      return
+    }
+
+    let criteria;
+    try {
+      criteria = JSON.parse(newRule.criteria || '{}')
+    } catch {
+      toast.error('Criteria must be valid JSON')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const createdRule = await GroupsApi.createScoringRule({
+        groupId,
+        name: newRule.name.trim(),
+        description: newRule.description.trim() || undefined,
+        criteria,
+        points
+      })
+
+      setScoringRules(prev => [createdRule, ...prev])
+      setNewRule({ name: '', description: '', points: '', criteria: '{}' })
+      setIsCreateModalOpen(false)
+      toast.success('Scoring rule created successfully')
+    } catch (error) {
+      console.error('Failed to create scoring rule:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to create scoring rule')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleToggleRule = async (rule: any) => {
+    if (!canManageRules) return
+
+    try {
+      // TODO: Implement PATCH API for toggling rule active status
+      const updatedRule = { ...rule, isActive: !rule.isActive }
+      setScoringRules(prev => prev.map(r => r.id === rule.id ? updatedRule : r))
+      toast.success(`Rule ${updatedRule.isActive ? 'activated' : 'deactivated'}`)
+    } catch (error) {
+      console.error('Failed to toggle rule:', error)
+      toast.error('Failed to update rule status')
+    }
+  }
+
+  const handleDeleteRule = async (ruleId: string, ruleName: string) => {
+    if (!canManageRules) return
+
+    if (!window.confirm(`Are you sure you want to delete the rule "${ruleName}"?`)) {
+      return
+    }
+
+    try {
+      // TODO: Implement DELETE API for rules
+      setScoringRules(prev => prev.filter(r => r.id !== ruleId))
+      toast.success('Scoring rule deleted successfully')
+    } catch (error) {
+      console.error('Failed to delete rule:', error)
+      toast.error('Failed to delete scoring rule')
+    }
+  }
+
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  // Show loading spinner during authentication check
+  if (authLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Loading text="Checking authentication..." />
+      </div>
+    )
+  }
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-12">
+            <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
+            <p className="text-muted-foreground mb-6">
+              Please sign in to access this group's scoring rules.
+            </p>
+            <Button onClick={() => router.push('/auth/signin')}>
+              Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Loading text="Loading scoring rules..." />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error || !group) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="border-destructive">
+          <CardContent className="text-center py-12">
+            <h2 className="text-2xl font-bold mb-4">Group Not Found</h2>
+            <p className="text-muted-foreground mb-6">
+              {error || 'The group you are looking for does not exist.'}
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button onClick={handleBackToGroup} variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Groups
+              </Button>
+              <Button onClick={loadGroupData}>
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button onClick={handleBackToGroup} variant="outline" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Group
+          </Button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <TrendingUp className="h-8 w-8" />
+                Scoring Rules
+              </h1>
+            </div>
+            <p className="text-muted-foreground mt-1">
+              Managing scoring rules for {group.name}
+            </p>
+          </div>
+        </div>
+        
+        {canManageRules && (
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Rule
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Scoring Rule</DialogTitle>
+                <DialogDescription>
+                  Create a new scoring rule that members can use to record points.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Name *</label>
+                  <Input
+                    value={newRule.name}
+                    onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
+                    placeholder="e.g., Task Completed"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={newRule.description}
+                    onChange={(e) => setNewRule({ ...newRule, description: e.target.value })}
+                    placeholder="Optional description of when this rule applies"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Points *</label>
+                  <Input
+                    type="number"
+                    value={newRule.points}
+                    onChange={(e) => setNewRule({ ...newRule, points: e.target.value })}
+                    placeholder="e.g., 10"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Criteria (JSON)</label>
+                  <Textarea
+                    value={newRule.criteria}
+                    onChange={(e) => setNewRule({ ...newRule, criteria: e.target.value })}
+                    placeholder='{"type": "task", "category": "development"}'
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    JSON object for additional rule criteria
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsCreateModalOpen(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleCreateRule}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Creating...' : 'Create Rule'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Rules</CardTitle>
+            <Settings className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{scoringRules.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Defined rules
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Rules</CardTitle>
+            <Power className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {scoringRules.filter(rule => rule.isActive).length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Currently usable
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Your Role</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold capitalize">{userRole.toLowerCase()}</div>
+            <p className="text-xs text-muted-foreground">
+              Permission level
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Max Points</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Math.max(...scoringRules.map(rule => rule.points || 0), 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Highest rule value
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Rules List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Scoring Rules</CardTitle>
+          <CardDescription>
+            Rules that members can use to record scores
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {scoringRules && scoringRules.length > 0 ? (
+            <div className="space-y-4">
+              {scoringRules.map((rule) => (
+                <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{rule.name}</p>
+                        <Badge 
+                          variant={rule.isActive ? "default" : "secondary"}
+                          className="flex items-center gap-1"
+                        >
+                          {rule.isActive ? <Power className="h-3 w-3" /> : <PowerOff className="h-3 w-3" />}
+                          {rule.isActive ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
+                      {rule.description && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {rule.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Award className="h-4 w-4" />
+                          {rule.points} points
+                        </span>
+                        <span>Created {formatDate(rule.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {canManageRules && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleRule(rule)}
+                          title={rule.isActive ? 'Deactivate rule' : 'Activate rule'}
+                        >
+                          {rule.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        </Button>
+                        <Button variant="ghost" size="sm" title="Edit rule">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteRule(rule.id, rule.name)}
+                          title="Delete rule"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <TrendingUp className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">No scoring rules yet</p>
+              <p className="text-sm mb-4">
+                {canManageRules ? 'Create the first scoring rule to get started.' : 'No scoring rules have been defined for this group yet.'}
+              </p>
+              {canManageRules && (
+                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create First Rule
+                    </Button>
+                  </DialogTrigger>
+                </Dialog>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Help Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Info className="h-5 w-5" />
+            About Scoring Rules
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              Scoring rules define how points are awarded for different activities or achievements in your group.
+            </p>
+            <ul className="list-disc list-inside space-y-1 ml-4">
+              <li>Only group administrators can create and manage scoring rules</li>
+              <li>Members can use active rules to record their scores</li>
+              <li>Rules can be temporarily deactivated without deleting them</li>
+              <li>Each rule has a point value and optional criteria for specific use cases</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

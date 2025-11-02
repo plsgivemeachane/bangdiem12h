@@ -1,0 +1,234 @@
+import { Group, CreateGroupForm, UpdateGroupForm, GroupMember, AddMemberForm } from '@/types'
+
+export class GroupsApi {
+  private static baseUrl = '/api/groups'
+
+  // Get all groups for the current user
+  static async getGroups(): Promise<Group[]> {
+    const response = await fetch(this.baseUrl)
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to fetch groups')
+    }
+
+    const data = await response.json()
+    return data.groups
+  }
+
+  // Get a specific group by ID
+  static async getGroup(id: string): Promise<Group> {
+    const response = await fetch(`${this.baseUrl}/${id}`)
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to fetch group')
+    }
+
+    const data = await response.json()
+    return data.group
+  }
+
+  // Create a new group
+  static async createGroup(formData: CreateGroupForm): Promise<Group> {
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to create group')
+    }
+
+    const data = await response.json()
+    return data.group
+  }
+
+  // Update an existing group
+  static async updateGroup(id: string, formData: UpdateGroupForm): Promise<Group> {
+    const response = await fetch(`${this.baseUrl}/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to update group')
+    }
+
+    const data = await response.json()
+    return data.group
+  }
+
+  // Delete a group
+  static async deleteGroup(id: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/${id}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to delete group')
+    }
+  }
+
+  // Add a member to a group (admin-managed user approach)
+  static async addMember(groupId: string, formData: AddMemberForm): Promise<GroupMember> {
+    const response = await fetch(`${this.baseUrl}/${groupId}/members`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to add member')
+    }
+
+    const data = await response.json()
+    return data.member
+  }
+
+  // Remove a member from a group
+  static async removeMember(groupId: string, memberId: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/${groupId}/members/${memberId}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to remove member')
+    }
+  }
+
+  // Update member role
+  static async updateMemberRole(groupId: string, memberId: string, role: string): Promise<GroupMember> {
+    const response = await fetch(`${this.baseUrl}/${groupId}/members/${memberId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to update member role')
+    }
+
+    const data = await response.json()
+    return data.member
+  }
+
+  // Get members of a group
+  static async getGroupMembers(groupId: string): Promise<GroupMember[]> {
+    const response = await fetch(`${this.baseUrl}/${groupId}/members`)
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to fetch group members')
+    }
+
+    const data = await response.json()
+    return data.members
+  }
+
+  // Search users to add as members (for admin-managed approach)
+  static async searchUsers(query: string): Promise<{ id: string; email: string; name: string | null }[]> {
+    const response = await fetch(`${this.baseUrl}/search-users?q=${encodeURIComponent(query)}`)
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to search users')
+    }
+
+    const data = await response.json()
+    return data.users
+  }
+
+  // Score Records API
+  static async getScoreRecords(groupId: string, options?: {
+    userId?: string
+    startDate?: string
+    endDate?: string
+    limit?: number
+    offset?: number
+  }): Promise<{ scoreRecords: any[], pagination: any }> {
+    const searchParams = new URLSearchParams({ groupId })
+    
+    if (options?.userId) searchParams.append('userId', options.userId)
+    if (options?.startDate) searchParams.append('startDate', options.startDate)
+    if (options?.endDate) searchParams.append('endDate', options.endDate)
+    if (options?.limit) searchParams.append('limit', options.limit.toString())
+    if (options?.offset) searchParams.append('offset', options.offset.toString())
+
+    const response = await fetch(`/api/score-records?${searchParams}`)
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to fetch score records')
+    }
+
+    return await response.json()
+  }
+
+  // Create a new score record
+  static async createScoreRecord(formData: { groupId: string; ruleId: string; criteria?: any; notes?: string }): Promise<any> {
+    const response = await fetch('/api/score-records', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to create score record')
+    }
+
+    const data = await response.json()
+    return data.scoreRecord
+  }
+
+  // Scoring Rules API
+  static async getScoringRules(groupId: string): Promise<any[]> {
+    const response = await fetch(`/api/groups/${groupId}`)
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to fetch group')
+    }
+
+    const data = await response.json()
+    return data.group?.scoringRules || []
+  }
+
+  // Create a new scoring rule
+  static async createScoringRule(formData: { groupId: string; name: string; description?: string; criteria: any; points: number }): Promise<any> {
+    const response = await fetch('/api/scoring-rules', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to create scoring rule')
+    }
+
+    const data = await response.json()
+    return data.scoringRule
+  }
+}
