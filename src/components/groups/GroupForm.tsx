@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -61,6 +61,21 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
       description: group?.description || '',
     },
   })
+
+  // Reset form when group changes or dialog opens
+  useEffect(() => {
+    if (isOpen && group) {
+      form.reset({
+        name: group.name || '',
+        description: group.description || '',
+      })
+    } else if (isOpen && !group) {
+      form.reset({
+        name: '',
+        description: '',
+      })
+    }
+  }, [isOpen, group, form])
 
   const handleSubmit = async (data: FormData) => {
     setIsLoading(true)
