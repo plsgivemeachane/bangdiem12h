@@ -5,6 +5,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl", "rhel-openssl-3.0.x"] // Adjust based on your deployment target
   output   = "../node_modules/.prisma/client"
 }
 

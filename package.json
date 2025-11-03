@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -12,7 +11,10 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
-    "seed:admin": "node prisma/seed.js"
+    "seed:admin": "node prisma/seed.js",
+    "dev": "next dev --turbopack",
+    "vercel-build": "bunx prisma generate && bun run build",
+    "postinstall": "bunx prisma generate"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
