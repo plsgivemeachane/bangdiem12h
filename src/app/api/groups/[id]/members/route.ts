@@ -187,9 +187,7 @@ export async function PATCH(
     const group = await prisma.group.findUnique({
       where: { id: params.id },
       include: {
-        members: {
-          where: { userId: session.user.id }
-        }
+        members: true
       }
     })
 
@@ -197,12 +195,105 @@ export async function PATCH(
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
-    const userMember = group.members[0]
+    const userMember = group.members.find(m => m.userId === session.user.id)
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    // Update member role
+    // Get the member being updated
+    const targetMember = await prisma.groupMember.findUnique({
+      where: { id: memberId },
+      include: {
+        user: {
+          select: { 
+            id: true, 
+            name: true, 
+            email: true,
+            role: true,
+            createdAt: true
+          }
+        }
+      }
+    })
+
+    if (!targetMember) {
+      return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+    }
+
+    // Check if this is an ownership transfer
+    if (role === GroupRole.OWNER) {
+      // Only current owner can transfer ownership
+      if (userMember.role !== GroupRole.OWNER) {
+        return NextResponse.json({ error: 'Only the current owner can transfer ownership' }, { status: 403 })
+      }
+
+      // Cannot transfer ownership to yourself
+      if (targetMember.userId === session.user.id) {
+        return NextResponse.json({ error: 'You are already the owner' }, { status: 400 })
+      }
+
+      // Perform ownership transfer (update both members in a transaction)
+      const [updatedMember, downgradedOwner] = await prisma.$transaction([
+        // Update target member to OWNER
+        prisma.groupMember.update({
+          where: { id: memberId },
+          data: { role: GroupRole.OWNER },
+          include: {
+            user: {
+              select: { 
+                id: true, 
+                name: true, 
+                email: true,
+                role: true,
+                createdAt: true
+              }
+            }
+          }
+        }),
+        // Downgrade current owner to ADMIN
+        prisma.groupMember.update({
+          where: { id: userMember.id },
+          data: { role: GroupRole.ADMIN },
+          include: {
+            user: {
+              select: { 
+                id: true, 
+                name: true, 
+                email: true,
+                role: true,
+                createdAt: true
+              }
+            }
+          }
+        })
+      ])
+
+      // Log ownership transfer activity
+      await logActivity({
+        userId: session.user.id,
+        groupId: params.id,
+        action: ActivityType.OWNERSHIP_TRANSFERRED,
+        description: `Transferred ownership of "${group.name}" from ${downgradedOwner.user.email} to ${updatedMember.user.email}`,
+        metadata: { 
+          previousOwnerId: downgradedOwner.userId,
+          previousOwnerEmail: downgradedOwner.user.email,
+          newOwnerId: updatedMember.userId,
+          newOwnerEmail: updatedMember.user.email
+        }
+      })
+
+      return NextResponse.json({ 
+        member: {
+          ...updatedMember,
+          user: {
+            ...updatedMember.user,
+            password: undefined
+          }
+        }
+      })
+    }
+
+    // Regular role update (non-ownership transfer)
     const updatedMember = await prisma.groupMember.update({
       where: { id: memberId },
       data: { role: role as GroupRole },
@@ -223,7 +314,7 @@ export async function PATCH(
     await logActivity({
       userId: session.user.id,
       groupId: params.id,
-      action: ActivityType.SCORING_RULE_UPDATED,
+      action: ActivityType.MEMBER_ROLE_UPDATED,
       description: `Updated ${updatedMember.user.email} role to ${role} in group "${group.name}"`,
       metadata: { 
         memberId: updatedMember.id,
@@ -237,7 +328,6 @@ export async function PATCH(
         ...updatedMember,
         user: {
           ...updatedMember.user,
-          // Don't expose sensitive info
           password: undefined
         }
       }

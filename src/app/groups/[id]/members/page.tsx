@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { MemberInvite } from '@/components/groups/MemberInvite'
+import { OwnerTransferDialog } from '@/components/groups/OwnerTransferDialog'
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { Group, GroupMember } from '@/types'
@@ -34,6 +35,7 @@ export default function GroupMembersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [isTransferOwnershipOpen, setIsTransferOwnershipOpen] = useState(false)
 
   // Load group and members data on mount
   useEffect(() => {
@@ -131,6 +133,12 @@ export default function GroupMembersPage() {
       loadGroupData()
     }
     setIsInviteModalOpen(false)
+  }
+
+  const handleTransferSuccess = (newOwner: GroupMember) => {
+    // Refresh the entire group data to get updated roles
+    loadGroupData()
+    setIsTransferOwnershipOpen(false)
   }
 
   const getRoleIcon = (role: string) => {
@@ -253,10 +261,21 @@ export default function GroupMembersPage() {
         </div>
         
         {canManageGroup && (
-          <Button onClick={() => setIsInviteModalOpen(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add Member
-          </Button>
+          <div className="flex gap-2">
+            {isOwner && (
+              <Button 
+                onClick={() => setIsTransferOwnershipOpen(true)}
+                variant="outline"
+              >
+                <Crown className="mr-2 h-4 w-4" />
+                Transfer Ownership
+              </Button>
+            )}
+            <Button onClick={() => setIsInviteModalOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add Member
+            </Button>
+          </div>
         )}
       </div>
 
@@ -385,6 +404,19 @@ export default function GroupMembersPage() {
         onSuccess={handleInviteSuccess}
         groupId={groupId}
       />
+
+      {/* Owner Transfer Dialog */}
+      {group && (
+        <OwnerTransferDialog
+          isOpen={isTransferOwnershipOpen}
+          onClose={() => setIsTransferOwnershipOpen(false)}
+          onSuccess={handleTransferSuccess}
+          groupId={groupId}
+          groupName={group.name}
+          members={members}
+          currentUserId={user?.id || ''}
+        />
+      )}
     </div>
   )
 }

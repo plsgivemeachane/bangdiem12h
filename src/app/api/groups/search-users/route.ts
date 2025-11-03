@@ -12,41 +12,37 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q')
+    const searchTerm = query?.trim().toLowerCase() || ''
 
-    if (!query || query.trim().length === 0) {
-      return NextResponse.json({ error: 'Search query is required' }, { status: 400 })
+    // Build search conditions - if no query, return all users (for initial load)
+    const whereConditions: any = {
+      // Always exclude current user from search results
+      id: {
+        not: session.user.id
+      }
     }
 
-    const searchTerm = query.trim().toLowerCase()
+    // Add search filters only if query is provided
+    if (searchTerm.length > 0) {
+      whereConditions.OR = [
+        {
+          email: {
+            contains: searchTerm,
+            mode: 'insensitive'
+          }
+        },
+        {
+          name: {
+            contains: searchTerm,
+            mode: 'insensitive'
+          }
+        }
+      ]
+    }
 
     // Search users by email or name
     const users = await prisma.user.findMany({
-      where: {
-        AND: [
-          {
-            OR: [
-              {
-                email: {
-                  contains: searchTerm,
-                  mode: 'insensitive'
-                }
-              },
-              {
-                name: {
-                  contains: searchTerm,
-                  mode: 'insensitive'
-                }
-              }
-            ]
-          },
-          // Exclude current user from search results
-          {
-            id: {
-              not: session.user.id
-            }
-          }
-        ]
-      },
+      where: whereConditions,
       select: {
         id: true,
         name: true,

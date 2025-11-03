@@ -148,6 +148,15 @@ description: "Task list for Password Verification and Registration System implem
   - **Status**: ✅ COMPLETED - MemberInvite component + members page
   - **Features**: `src/components/groups/MemberInvite.tsx` + `src/app/groups/[id]/members/page.tsx`
   - **Capabilities**: Invite members, manage roles, view member list, remove members
+  - **Enhancement (2025-11-03)**: Added autocomplete user search with debounced API queries
+    - Replaced manual email entry with searchable user dropdown
+    - **Shows all users by default** when dropdown opens (zero-typing selection!)
+    - Enhanced API to support optional search query (returns all users when empty)
+    - Uses `/api/groups/search-users` endpoint with 300ms debounce when filtering
+    - Real-time search with loading states and "No users found" feedback
+    - Dynamic heading: "All Available Users" → "Search Results" when typing
+    - Built with shadcn/ui Command + Popover components
+    - Custom `useDebounce` hook in `src/hooks/use-debounce.ts`
 - [x] T036 Activity log viewer with filtering
   - **Status**: ✅ COMPLETED - `src/app/activity-logs/page.tsx` fully implemented  
   - **Features**: Filter by action type, date range, user, group; pagination; export functionality
