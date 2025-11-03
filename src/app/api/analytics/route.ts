@@ -16,32 +16,70 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period') || 'month' // week, month, year
     const userId = searchParams.get('userId') // optional, for admin views
 
-    if (!groupId) {
-      return NextResponse.json({ error: 'Group ID is required' }, { status: 400 })
-    }
+    let groups: any[] = []
+    let isAllGroups = false
 
-    // Verify user has access to this group
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
-      include: {
-        members: {
-          where: userId ? {} : { userId: session.user.id }
+    // Handle empty/missing groupId as "all user's groups"
+    if (!groupId || groupId === '') {
+      isAllGroups = true
+      // Fetch all groups where user is a member
+      const userMemberships = await prisma.groupMember.findMany({
+        where: { userId: session.user.id },
+        include: {
+          group: {
+            include: {
+              members: true
+            }
+          }
+        }
+      })
+      
+      groups = userMemberships.map(membership => membership.group)
+      
+      if (groups.length === 0) {
+        // User has no groups, return empty analytics
+        return NextResponse.json({
+          analytics: {
+            period,
+            dateRange: { start: new Date().toISOString(), end: new Date().toISOString() },
+            summary: {
+              totalPoints: 0,
+              recordCount: 0,
+              averagePoints: 0,
+              previousPeriod: { totalPoints: 0, recordCount: 0, pointsChange: 0, pointsChangePercent: 0 }
+            },
+            trendData: [],
+            ruleBreakdown: [],
+            groupBreakdown: []
+          }
+        })
+      }
+    } else {
+      // Single group mode - verify user has access to this group
+      const group = await prisma.group.findUnique({
+        where: { id: groupId },
+        include: {
+          members: {
+            where: userId ? {} : { userId: session.user.id }
+          }
+        }
+      })
+
+      if (!group) {
+        return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      }
+
+      // If userId is specified, verify admin access
+      if (userId && userId !== session.user.id) {
+        const hasAdminAccess = group.members.some(member => 
+          member.userId === session.user.id && (member.role === 'OWNER' || member.role === 'ADMIN')
+        )
+        if (!hasAdminAccess) {
+          return NextResponse.json({ error: 'Access denied' }, { status: 403 })
         }
       }
-    })
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
-
-    // If userId is specified, verify admin access
-    if (userId && userId !== session.user.id) {
-      const hasAdminAccess = group.members.some(member => 
-        member.userId === session.user.id && (member.role === 'OWNER' || member.role === 'ADMIN')
-      )
-      if (!hasAdminAccess) {
-        return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-      }
+      
+      groups = [group]
     }
 
     const targetUserId = userId || session.user.id
@@ -66,10 +104,11 @@ export async function GET(request: NextRequest) {
         break
     }
 
-    // Get score records for the period
+    // Get score records for the period (across all groups or single group)
+    const groupIds = groups.map(g => g.id)
     const scoreRecords = await prisma.scoreRecord.findMany({
       where: {
-        groupId,
+        groupId: { in: groupIds },
         userId: targetUserId,
         recordedAt: {
           gte: startDate,
@@ -79,6 +118,9 @@ export async function GET(request: NextRequest) {
       include: {
         rule: {
           select: { id: true, name: true, points: true }
+        },
+        group: {
+          select: { id: true, name: true }
         }
       },
       orderBy: { recordedAt: 'desc' }
@@ -96,16 +138,19 @@ export async function GET(request: NextRequest) {
       const dateKey = format(record.recordedAt, 'yyyy-MM-dd')
       dailyPoints[dateKey] = (dailyPoints[dateKey] || 0) + record.points
 
-      const ruleKey = record.rule.id
-      if (!ruleBreakdown[ruleKey]) {
-        ruleBreakdown[ruleKey] = {
-          name: record.rule.name,
-          points: 0,
-          count: 0
+      // Only process if rule exists (not deleted)
+      if (record.rule) {
+        const ruleKey = record.rule.id
+        if (!ruleBreakdown[ruleKey]) {
+          ruleBreakdown[ruleKey] = {
+            name: record.rule.name || 'Unknown Rule',
+            points: 0,
+            count: 0
+          }
         }
+        ruleBreakdown[ruleKey].points += record.points
+        ruleBreakdown[ruleKey].count += 1
       }
-      ruleBreakdown[ruleKey].points += record.points
-      ruleBreakdown[ruleKey].count += 1
     })
 
     // Convert to arrays for charts
@@ -130,7 +175,7 @@ export async function GET(request: NextRequest) {
 
     const previousScoreRecords = await prisma.scoreRecord.findMany({
       where: {
-        groupId,
+        groupId: { in: groupIds },
         userId: targetUserId,
         recordedAt: {
           gte: previousStartDate,
@@ -150,6 +195,35 @@ export async function GET(request: NextRequest) {
       pointsChangePercent
     }
 
+    // Add group breakdown for multi-group view
+    let groupBreakdownData: any[] = []
+    if (isAllGroups && groups.length > 1) {
+      const groupStats: { [key: string]: { name: string; points: number; count: number } } = {}
+      
+      groups.forEach(group => {
+        groupStats[group.id] = {
+          name: group.name || 'Unknown Group',
+          points: 0,
+          count: 0
+        }
+      })
+      
+      scoreRecords.forEach(record => {
+        if (record.group && groupStats[record.groupId]) {
+          groupStats[record.groupId].points += record.points
+          groupStats[record.groupId].count += 1
+        }
+      })
+      
+      groupBreakdownData = Object.entries(groupStats).map(([groupId, data]) => ({
+        groupId,
+        name: data.name,
+        totalPoints: data.points,
+        recordCount: data.count,
+        averagePoints: data.count > 0 ? Math.round((data.points / data.count) * 100) / 100 : 0
+      })).sort((a, b) => b.totalPoints - a.totalPoints)
+    }
+
     return NextResponse.json({
       analytics: {
         period,
@@ -164,7 +238,8 @@ export async function GET(request: NextRequest) {
           previousPeriod: previousPeriodData
         },
         trendData,
-        ruleBreakdown: ruleData
+        ruleBreakdown: ruleData,
+        groupBreakdown: groupBreakdownData
       }
     })
   } catch (error) {

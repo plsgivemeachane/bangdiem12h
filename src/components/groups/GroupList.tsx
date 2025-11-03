@@ -27,6 +27,7 @@ export function GroupList({
   onDelete,
   onManageMembers,
   onViewDetails,
+  onCreateGroup,
   showActions = true 
 }: GroupListProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -49,9 +50,11 @@ export function GroupList({
 
   const handleCreateGroup = () => {
     if (hasPermission('create-group')) {
-      // This would typically open a dialog or navigate to a form
-      toast.success('Opening group creation form...')
-      // TODO: Implement group creation flow
+      if (onCreateGroup) {
+        onCreateGroup()
+      } else {
+        toast.success('Opening group creation form...')
+      }
     } else {
       toast.error('You do not have permission to create groups')
     }

@@ -3,12 +3,12 @@ export interface User {
   id: string
   name: string | null
   email: string
-  password: string | null // Hashed password, nullable for OAuth users
-  emailVerified: Date | null
-  image: string | null
+  password?: string | null // Hashed password, nullable for OAuth users
+  emailVerified?: Date | null
+  image?: string | null
   role: UserRole
-  createdAt: Date
-  updatedAt: Date
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface Group {
@@ -21,11 +21,12 @@ export interface Group {
   createdById: string
   createdBy?: User
   members?: GroupMember[]
-  scoringRules?: ScoringRule[]
+  groupRules?: GroupRule[]
+  scoringRules?: ScoringRule[] // For backward compatibility with frontend
   scoreRecords?: ScoreRecord[]
   activityLogs?: ActivityLog[]
   _count?: {
-    scoringRules: number
+    groupRules: number
     scoreRecords: number
   }
 }
@@ -40,6 +41,16 @@ export interface GroupMember {
   group?: Group
 }
 
+export interface GroupRule {
+  id: string
+  groupId: string
+  ruleId: string
+  isActive: boolean
+  createdAt: Date
+  group?: Group
+  rule?: ScoringRule
+}
+
 export interface ScoringRule {
   id: string
   name: string
@@ -49,8 +60,7 @@ export interface ScoringRule {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
-  groupId: string
-  group?: Group
+  groupRules?: GroupRule[]
   scoreRecords?: ScoreRecord[]
 }
 
@@ -99,15 +109,22 @@ export enum ActivityType {
   PASSWORD_RESET_REQUESTED = 'PASSWORD_RESET_REQUESTED',
   PASSWORD_RESET_COMPLETED = 'PASSWORD_RESET_COMPLETED',
   ADMIN_USER_CREATED = 'ADMIN_USER_CREATED',
+  ADMIN_USER_ROLE_UPDATED = 'ADMIN_USER_ROLE_UPDATED',
+  ADMIN_USER_DELETED = 'ADMIN_USER_DELETED',
+  ADMIN_PASSWORD_RESET_BY_ADMIN = 'ADMIN_PASSWORD_RESET_BY_ADMIN',
   GROUP_CREATED = 'GROUP_CREATED',
   GROUP_UPDATED = 'GROUP_UPDATED',
   GROUP_DELETED = 'GROUP_DELETED',
   MEMBER_INVITED = 'MEMBER_INVITED',
   MEMBER_JOINED = 'MEMBER_JOINED',
+  MEMBER_ADDED = 'MEMBER_ADDED',
   MEMBER_REMOVED = 'MEMBER_REMOVED',
+  MEMBER_ROLE_UPDATED = 'MEMBER_ROLE_UPDATED',
   SCORING_RULE_CREATED = 'SCORING_RULE_CREATED',
   SCORING_RULE_UPDATED = 'SCORING_RULE_UPDATED',
   SCORING_RULE_DELETED = 'SCORING_RULE_DELETED',
+  RULE_ADDED_TO_GROUP = 'RULE_ADDED_TO_GROUP',
+  RULE_REMOVED_FROM_GROUP = 'RULE_REMOVED_FROM_GROUP',
   SCORE_RECORDED = 'SCORE_RECORDED',
   SCORE_UPDATED = 'SCORE_UPDATED',
   SCORE_DELETED = 'SCORE_DELETED'
@@ -212,6 +229,8 @@ export interface GroupListProps {
   onEdit?: (group: Group) => void
   onDelete?: (group: Group) => void
   onManageMembers?: (group: Group) => void
+  onViewDetails?: (group: Group) => void
+  onCreateGroup?: () => void
   showActions?: boolean
 }
 

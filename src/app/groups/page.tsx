@@ -228,6 +228,7 @@ export default function GroupsPage() {
         onDelete={handleDeleteGroup}
         onManageMembers={handleManageMembers}
         onViewDetails={handleViewDetails}
+        onCreateGroup={handleCreateGroup}
         showActions={true}
       />
 

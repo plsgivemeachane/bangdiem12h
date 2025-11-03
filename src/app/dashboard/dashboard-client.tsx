@@ -5,13 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
+import { ActivityFeed } from '@/components/activity/ActivityFeed'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DashboardStats, Group } from '@/types'
 import { Users, Trophy, Target, Activity, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
+import { useRouter } from 'next/navigation'
 
 export default function DashboardClient() {
   const { isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
     totalGroups: 0,
     totalScoreRecords: 0,
@@ -21,6 +26,8 @@ export default function DashboardClient() {
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showScoringRulesDialog, setShowScoringRulesDialog] = useState(false)
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('')
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -59,6 +66,25 @@ export default function DashboardClient() {
 
   const handleReload = () => {
     fetchDashboardData()
+  }
+
+  const handleGroupSelectForRules = (groupId: string) => {
+    setSelectedGroupId(groupId)
+    setShowScoringRulesDialog(false)
+    router.push(`/groups/${groupId}/rules`)
+  }
+
+  const handleQuickRulesAccess = () => {
+    // If user has only one group, navigate directly
+    if (groups.length === 1) {
+      router.push(`/groups/${groups[0].id}/rules`)
+    } else if (groups.length === 0) {
+      // No groups - redirect to create group
+      router.push('/groups')
+    } else {
+      // Multiple groups - show dialog
+      setShowScoringRulesDialog(true)
+    }
   }
 
   if (isLoading || loading) {
@@ -192,10 +218,13 @@ export default function DashboardClient() {
               <div className="space-y-3">
                 {groups.slice(0, 5).map((group) => (
                   <div key={group.id} className="flex items-center justify-between">
-                    <div>
+                    <div 
+                      className="flex-1 cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded transition-colors"
+                      onClick={() => router.push(`/groups/${group.id}`)}
+                    >
                       <p className="font-medium">{group.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {group._count?.scoringRules || 0} rules
+                        {group._count?.groupRules || 0} rules
                       </p>
                     </div>
                     <Badge variant={group.isActive ? "default" : "secondary"}>
@@ -231,43 +260,74 @@ export default function DashboardClient() {
                 Manage Groups
               </Link>
             </Button>
-            <Button variant="outline" asChild className="w-full justify-start">
-              <Link href="/groups">
-                View Scoring Rules
-              </Link>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={handleQuickRulesAccess}
+            >
+              View Scoring Rules
             </Button>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="max-w-2xl">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent>
-            {stats.recentActivity.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                No recent activity to display.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {stats.recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3">
-                    <Activity className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">
-                        {activity.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {activity.timestamp.toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <CardContent className="max-h-[600px] overflow-y-auto">
+            <ActivityFeed limit={10} compact={true} showViewAll={true} />
           </CardContent>
         </Card>
       </div>
+
+      {/* Group Selection Dialog for Scoring Rules */}
+      <Dialog open={showScoringRulesDialog} onOpenChange={setShowScoringRulesDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Select Group for Scoring Rules</DialogTitle>
+            <DialogDescription>
+              Choose a group to view and manage its scoring rules.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="group-select" className="text-sm font-medium">
+                Group
+              </label>
+              <Select onValueChange={handleGroupSelectForRules}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{group.name}</span>
+                        <Badge variant={group.isActive ? "default" : "secondary"} className="ml-2">
+                          {group.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowScoringRulesDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button asChild>
+              <Link href="/groups">
+                Create New Group
+              </Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

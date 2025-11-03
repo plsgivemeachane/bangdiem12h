@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
+import { ActivityType } from '@/types'
 
 export async function GET(
   request: NextRequest,
@@ -21,19 +22,31 @@ export async function GET(
           select: { id: true, name: true, email: true }
         },
         members: {
-          include: {
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+            joinedAt: true,
             user: {
-              select: { id: true, name: true, email: true }
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
             }
           }
         },
-        scoringRules: {
+        groupRules: {
+          include: {
+            rule: true
+          },
           where: { isActive: true },
           orderBy: { createdAt: 'desc' }
         },
         _count: {
           select: {
-            scoreRecords: true
+            scoreRecords: true,
+            groupRules: true
           }
         }
       }
@@ -51,7 +64,13 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
-    return NextResponse.json({ group })
+    // Transform groupRules to scoringRules for backward compatibility
+    const groupWithScoringRules = {
+      ...group,
+      scoringRules: group.groupRules?.map(gr => gr.rule) || []
+    }
+
+    return NextResponse.json({ group: groupWithScoringRules })
   } catch (error) {
     console.error('Error fetching group:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -101,9 +120,17 @@ export async function PATCH(
           select: { id: true, name: true, email: true }
         },
         members: {
-          include: {
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+            joinedAt: true,
             user: {
-              select: { id: true, name: true, email: true }
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
             }
           }
         }
@@ -114,7 +141,7 @@ export async function PATCH(
     await logActivity({
       userId: session.user.id,
       groupId: updatedGroup.id,
-      action: 'GROUP_UPDATED',
+      action: ActivityType.GROUP_UPDATED,
       description: `Updated group "${updatedGroup.name}"`,
       metadata: { changes: { name, description, isActive } }
     })
@@ -139,11 +166,14 @@ export async function DELETE(
     // Check if user is the creator
     const group = await prisma.group.findUnique({
       where: { id: params.id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        createdById: true,
         _count: {
           select: {
             scoreRecords: true,
-            scoringRules: true
+            groupRules: true
           }
         }
       }
@@ -158,7 +188,7 @@ export async function DELETE(
     }
 
     // Warn if group has data
-    if (group._count.scoreRecords > 0 || group._count.scoringRules > 0) {
+    if (group._count.scoreRecords > 0 || group._count.groupRules > 0) {
       return NextResponse.json({ 
         error: 'Cannot delete group with existing score records or scoring rules' 
       }, { status: 400 })
@@ -171,7 +201,7 @@ export async function DELETE(
     // Log activity
     await logActivity({
       userId: session.user.id,
-      action: 'GROUP_DELETED',
+      action: ActivityType.GROUP_DELETED,
       description: `Deleted group "${group.name}"`,
       metadata: { groupId: params.id, groupName: group.name }
     })

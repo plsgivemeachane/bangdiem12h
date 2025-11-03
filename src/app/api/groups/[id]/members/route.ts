@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
-import { GroupRole } from '@/types'
+import { GroupRole, ActivityType } from '@/types'
 
 export async function GET(
   request: NextRequest,
@@ -149,7 +149,7 @@ export async function POST(
     await logActivity({
       userId: session.user.id,
       groupId: params.id,
-      action: 'MEMBER_INVITED',
+      action: ActivityType.MEMBER_INVITED,
       description: `Added ${userToAdd.email} as ${role} to group "${group.name}"`,
       metadata: { 
         memberEmail: userToAdd.email, 
@@ -230,7 +230,7 @@ export async function PATCH(
     await logActivity({
       userId: session.user.id,
       groupId: params.id,
-      action: 'SCORING_RULE_UPDATED',
+      action: ActivityType.SCORING_RULE_UPDATED,
       description: `Updated ${updatedMember.user.email} role to ${role} in group "${group.name}"`,
       metadata: { 
         memberId: updatedMember.id,
@@ -323,7 +323,7 @@ export async function DELETE(
     await logActivity({
       userId: session.user.id,
       groupId: params.id,
-      action: 'MEMBER_REMOVED',
+      action: ActivityType.MEMBER_REMOVED,
       description: `Removed ${memberToRemove.user.email} from group "${group.name}"`,
       metadata: { 
         removedMemberId: memberToRemove.id,

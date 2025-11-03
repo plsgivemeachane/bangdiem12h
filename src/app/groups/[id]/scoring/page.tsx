@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
+import { ScoreRecordingModal } from '@/components/ui/score-recording-modal'
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { Group } from '@/types'
@@ -35,6 +36,7 @@ export default function GroupScoringPage() {
   const [isRecordingScore, setIsRecordingScore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [showScoreModal, setShowScoreModal] = useState(false)
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: ''
@@ -103,18 +105,22 @@ export default function GroupScoringPage() {
     loadGroupData()
   }
 
-  const handleRecordScore = async () => {
-    setIsRecordingScore(true)
-    try {
-      // TODO: Implement score recording dialog
-      // This would open a dialog to select a rule and record points
-      toast.success('Score recording feature coming soon!')
-    } catch (error) {
-      console.error('Failed to record score:', error)
-      toast.error('Failed to record score')
-    } finally {
-      setIsRecordingScore(false)
+  const handleRecordScore = () => {
+    if (group?.scoringRules && group.scoringRules.filter(rule => rule.isActive).length > 0) {
+      setShowScoreModal(true)
+    } else {
+      toast.error('No active scoring rules available for this group')
     }
+  }
+
+  const handleScoreModalClose = () => {
+    setShowScoreModal(false)
+  }
+
+  const handleScoreRecorded = (newScoreRecord: any) => {
+    // Add the new score record to the list
+    setScoreRecords(prev => [newScoreRecord, ...prev])
+    toast.success(`Score of ${newScoreRecord.points} points recorded!`)
   }
 
   // Get user's role in the group
@@ -433,6 +439,16 @@ export default function GroupScoringPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Score Recording Modal */}
+      <ScoreRecordingModal
+        isOpen={showScoreModal}
+        onClose={handleScoreModalClose}
+        onScoreRecorded={handleScoreRecorded}
+        groupId={groupId}
+        groupName={group.name}
+        availableRules={group?.scoringRules || []}
+      />
     </div>
   )
 }

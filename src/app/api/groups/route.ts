@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
+import { ActivityType } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
         },
         _count: {
           select: {
-            scoringRules: true,
+            groupRules: true,
             scoreRecords: true
           }
         }
@@ -75,14 +76,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'You already have a group with this name' }, { status: 400 })
     }
 
+    // Verify user exists in database before creating group
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     const group = await prisma.group.create({
       data: {
         name: name.trim(),
         description: description?.trim() || null,
-        createdById: session.user.id,
+        createdById: user.id,
         members: {
           create: {
-            userId: session.user.id,
+            userId: user.id,
             role: 'OWNER'
           }
         }
@@ -97,20 +107,38 @@ export async function POST(request: NextRequest) {
               select: { id: true, name: true, email: true }
             }
           }
+        },
+        groupRules: {
+          include: {
+            rule: true
+          },
+          where: { isActive: true }
+        },
+        _count: {
+          select: {
+            scoreRecords: true,
+            groupRules: true
+          }
         }
       }
     })
+
+    // Transform groupRules to scoringRules for backward compatibility
+    const groupWithScoringRules = {
+      ...group,
+      scoringRules: group.groupRules?.map(gr => gr.rule) || []
+    }
 
     // Log activity
     await logActivity({
       userId: session.user.id,
       groupId: group.id,
-      action: 'GROUP_CREATED',
+      action: ActivityType.GROUP_CREATED,
       description: `Created group "${group.name}"`,
       metadata: { groupName: group.name }
     })
 
-    return NextResponse.json({ group }, { status: 201 })
+    return NextResponse.json({ group: groupWithScoringRules, success: true })
   } catch (error) {
     console.error('Error creating group:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

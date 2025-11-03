@@ -2,7 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { verifyPassword } from '@/lib/utils/password'
-import { logUserLogin, logLoginFailed } from '@/lib/activity-logger'
+import { logUserLogin, logLoginFailed, logUserRegistration } from '@/lib/activity-logger'
 import { prisma } from '@/lib/prisma'
 
 // Extend the built-in session types
@@ -13,6 +13,10 @@ declare module 'next-auth' {
       email: string
       name: string | null
       role: string
+      image: string | null
+      emailVerified: Date | null
+      createdAt: Date
+      password: string | null
     }
   }
 }
@@ -87,8 +91,31 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, user, token }) {
       if (session?.user && token?.sub) {
-        session.user.id = token.sub
-        session.user.role = (token as any).role || 'USER'
+        // Fetch fresh user data from database to ensure session is up-to-date
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            image: true,
+            emailVerified: true,
+            createdAt: true,
+            password: true,
+          },
+        })
+
+        if (dbUser) {
+          session.user.id = dbUser.id
+          session.user.email = dbUser.email
+          session.user.name = dbUser.name
+          session.user.role = dbUser.role
+          session.user.image = dbUser.image
+          session.user.emailVerified = dbUser.emailVerified
+          session.user.createdAt = dbUser.createdAt
+          session.user.password = dbUser.password
+        }
       }
       return session
     },
@@ -109,14 +136,11 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async createUser({ user }) {
-      // Log user registration
-      await prisma.activityLog.create({
-        data: {
-          userId: user.id,
-          action: 'USER_REGISTERED',
-          description: `User ${user.email} registered`,
-          metadata: { email: user.email },
-        },
+      // Log user registration using centralized logger
+      await logUserRegistration(user.id, {
+        email: user.email || '',
+        name: user.name || '',
+        role: (user as any).role || 'USER',
       })
     },
   },

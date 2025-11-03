@@ -200,21 +200,35 @@ export class GroupsApi {
     return data.scoreRecord
   }
 
-  // Scoring Rules API
-  static async getScoringRules(groupId: string): Promise<any[]> {
-    const response = await fetch(`/api/groups/${groupId}`)
+  // Global Scoring Rules API
+  static async getScoringRules(groupId?: string): Promise<any[]> {
+    const url = groupId ? `/api/scoring-rules?groupId=${groupId}` : '/api/scoring-rules'
+    const response = await fetch(url)
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to fetch group')
+      throw new Error(error.error || 'Failed to fetch scoring rules')
     }
 
     const data = await response.json()
-    return data.group?.scoringRules || []
+    return data.scoringRules || []
   }
 
-  // Create a new scoring rule
-  static async createScoringRule(formData: { groupId: string; name: string; description?: string; criteria: any; points: number }): Promise<any> {
+  // Get ALL global rules (not filtered by group)
+  static async getAllGlobalRules(): Promise<any[]> {
+    const response = await fetch('/api/scoring-rules')
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to fetch global rules')
+    }
+
+    const data = await response.json()
+    return data.scoringRules || []
+  }
+
+  // Create a new global scoring rule (admin only)
+  static async createScoringRule(formData: { name: string; description?: string; criteria: any; points: number }): Promise<any> {
     const response = await fetch('/api/scoring-rules', {
       method: 'POST',
       headers: {
@@ -230,5 +244,36 @@ export class GroupsApi {
 
     const data = await response.json()
     return data.scoringRule
+  }
+
+  // Add rule to group
+  static async addRuleToGroup(groupId: string, ruleId: string): Promise<any> {
+    const response = await fetch(`/api/groups/${groupId}/rules`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ groupId, ruleId }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to add rule to group')
+    }
+
+    const data = await response.json()
+    return data.groupRule
+  }
+
+  // Remove rule from group
+  static async removeRuleFromGroup(groupId: string, ruleId: string): Promise<void> {
+    const response = await fetch(`/api/groups/${groupId}/rules?groupId=${groupId}&ruleId=${ruleId}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to remove rule from group')
+    }
   }
 }

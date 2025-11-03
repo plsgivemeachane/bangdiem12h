@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
+import { ActivityType } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,12 +40,7 @@ export async function POST(request: NextRequest) {
 
     // Get the scoring rule
     const rule = await prisma.scoringRule.findUnique({
-      where: { id: ruleId },
-      include: {
-        group: {
-          select: { id: true }
-        }
-      }
+      where: { id: ruleId }
     })
 
     if (!rule) {
@@ -55,7 +51,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'This scoring rule is no longer active' }, { status: 400 })
     }
 
-    if (rule.groupId !== groupId) {
+    // Check if the rule belongs to the group through GroupRule
+    const groupRule = await prisma.groupRule.findFirst({
+      where: {
+        ruleId: ruleId,
+        groupId: groupId,
+        isActive: true
+      }
+    })
+
+    if (!groupRule) {
       return NextResponse.json({ error: 'Scoring rule does not belong to this group' }, { status: 400 })
     }
 
@@ -86,7 +91,7 @@ export async function POST(request: NextRequest) {
     await logActivity({
       userId: session.user.id,
       groupId,
-      action: 'SCORE_RECORDED',
+      action: ActivityType.SCORE_RECORDED,
       description: `Recorded ${rule.points} points for rule "${rule.name}"`,
       metadata: { 
         ruleName: rule.name, 

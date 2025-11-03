@@ -186,8 +186,15 @@ exports.Prisma.ScoringRuleScalarFieldEnum = {
   points: 'points',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  groupId: 'groupId'
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GroupRuleScalarFieldEnum = {
+  id: 'id',
+  groupId: 'groupId',
+  ruleId: 'ruleId',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ScoreRecordScalarFieldEnum = {
@@ -258,15 +265,22 @@ exports.ActivityType = exports.$Enums.ActivityType = {
   PASSWORD_RESET_REQUESTED: 'PASSWORD_RESET_REQUESTED',
   PASSWORD_RESET_COMPLETED: 'PASSWORD_RESET_COMPLETED',
   ADMIN_USER_CREATED: 'ADMIN_USER_CREATED',
+  ADMIN_USER_ROLE_UPDATED: 'ADMIN_USER_ROLE_UPDATED',
+  ADMIN_USER_DELETED: 'ADMIN_USER_DELETED',
+  ADMIN_PASSWORD_RESET_BY_ADMIN: 'ADMIN_PASSWORD_RESET_BY_ADMIN',
   GROUP_CREATED: 'GROUP_CREATED',
   GROUP_UPDATED: 'GROUP_UPDATED',
   GROUP_DELETED: 'GROUP_DELETED',
   MEMBER_INVITED: 'MEMBER_INVITED',
   MEMBER_JOINED: 'MEMBER_JOINED',
+  MEMBER_ADDED: 'MEMBER_ADDED',
   MEMBER_REMOVED: 'MEMBER_REMOVED',
+  MEMBER_ROLE_UPDATED: 'MEMBER_ROLE_UPDATED',
   SCORING_RULE_CREATED: 'SCORING_RULE_CREATED',
   SCORING_RULE_UPDATED: 'SCORING_RULE_UPDATED',
   SCORING_RULE_DELETED: 'SCORING_RULE_DELETED',
+  RULE_ADDED_TO_GROUP: 'RULE_ADDED_TO_GROUP',
+  RULE_REMOVED_FROM_GROUP: 'RULE_REMOVED_FROM_GROUP',
   SCORE_RECORDED: 'SCORE_RECORDED',
   SCORE_UPDATED: 'SCORE_UPDATED',
   SCORE_DELETED: 'SCORE_DELETED'
@@ -280,6 +294,7 @@ exports.Prisma.ModelName = {
   Group: 'Group',
   GroupMember: 'GroupMember',
   ScoringRule: 'ScoringRule',
+  GroupRule: 'GroupRule',
   ScoreRecord: 'ScoreRecord',
   ActivityLog: 'ActivityLog'
 };

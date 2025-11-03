@@ -18,9 +18,9 @@ async function main() {
     create: {
       email: adminEmail,
       name: 'System Administrator',
+      password: hashedPassword,
       role: 'ADMIN',
-      // Note: For credentials auth, NextAuth handles user creation differently
-      // This creates the initial admin user for system management
+      emailVerified: new Date(),
     },
   })
 

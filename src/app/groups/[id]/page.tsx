@@ -17,9 +17,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
+import { ActivityFeed } from '@/components/activity/ActivityFeed'
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
-import { Group, Member } from '@/types'
+import { Group, GroupMember } from '@/types'
 import toast from 'react-hot-toast'
 
 export default function GroupDetailPage() {
@@ -351,17 +352,17 @@ export default function GroupDetailPage() {
         <CardContent>
           {group.members && group.members.length > 0 ? (
             <div className="space-y-3">
-              {group.members.map((member: Member) => (
+              {group.members.map((member: GroupMember) => (
                 <div key={member.userId} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                       <span className="text-sm font-medium">
-                        {member.user.name?.charAt(0).toUpperCase() || 'U'}
+                        {member.user?.name?.charAt(0).toUpperCase() || 'U'}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium">{member.user.name}</p>
-                      <p className="text-sm text-muted-foreground">{member.user.email}</p>
+                      <p className="font-medium">{member.user?.name || 'Unknown User'}</p>
+                      <p className="text-sm text-muted-foreground">{member.user?.email || 'No email'}</p>
                     </div>
                   </div>
                   <Badge variant="outline" className="capitalize">
@@ -387,10 +388,7 @@ export default function GroupDetailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6 text-muted-foreground">
-            <Activity className="mx-auto h-12 w-12 mb-4" />
-            <p>Activity tracking will be implemented soon</p>
-          </div>
+          <ActivityFeed groupId={group.id} limit={5} compact={true} showViewAll={true} />
         </CardContent>
       </Card>
     </div>

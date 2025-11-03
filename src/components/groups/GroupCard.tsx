@@ -39,7 +39,7 @@ export function GroupCard({
   const { hasPermission } = usePermissions()
   
   const memberCount = group.members?.length || 0
-  const activeRulesCount = group._count?.scoringRules || 0
+  const activeRulesCount = group._count?.groupRules || 0
   const scoreRecordsCount = group._count?.scoreRecords || 0
 
   const handleEdit = () => {

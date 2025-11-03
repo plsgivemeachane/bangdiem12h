@@ -74,7 +74,7 @@ model Group {
 
   createdBy    User          @relation("GroupCreator", fields: [createdById], references: [id])
   members      GroupMember[]
-  scoringRules ScoringRule[]
+  groupRules   GroupRule[]
   scoreRecords ScoreRecord[]
   activityLogs ActivityLog[]
 
@@ -106,12 +106,27 @@ model ScoringRule {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  groupId     String
 
-  group        Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupRules   GroupRule[]
   scoreRecords ScoreRecord[]
 
+  @@index([isActive])
+}
+
+// Junction table for group-rule relationships
+model GroupRule {
+  id        String   @id @default(cuid())
+  groupId   String
+  ruleId    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  group Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  rule  ScoringRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, ruleId])
   @@index([groupId])
+  @@index([ruleId])
   @@index([isActive])
 }
 
@@ -137,14 +152,14 @@ model ScoreRecord {
 
 model ActivityLog {
   id          String       @id @default(cuid())
-  userId      String
+  userId      String?
   groupId     String?
   action      ActivityType
   description String
   metadata    Json? // Additional context data
   timestamp   DateTime     @default(now())
 
-  user  User   @relation(fields: [userId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
   group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -172,15 +187,22 @@ enum ActivityType {
   PASSWORD_RESET_REQUESTED
   PASSWORD_RESET_COMPLETED
   ADMIN_USER_CREATED
+  ADMIN_USER_ROLE_UPDATED
+  ADMIN_USER_DELETED
+  ADMIN_PASSWORD_RESET_BY_ADMIN
   GROUP_CREATED
   GROUP_UPDATED
   GROUP_DELETED
   MEMBER_INVITED
   MEMBER_JOINED
+  MEMBER_ADDED
   MEMBER_REMOVED
+  MEMBER_ROLE_UPDATED
   SCORING_RULE_CREATED
   SCORING_RULE_UPDATED
   SCORING_RULE_DELETED
+  RULE_ADDED_TO_GROUP
+  RULE_REMOVED_FROM_GROUP
   SCORE_RECORDED
   SCORE_UPDATED
   SCORE_DELETED

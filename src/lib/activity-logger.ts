@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { ActivityType } from '@/types'
 
 interface LogActivityParams {
-  userId: string
+  userId?: string | null
   groupId?: string
   action: ActivityType
   description: string
@@ -19,11 +19,11 @@ export async function logActivity({
   try {
     await prisma.activityLog.create({
       data: {
-        userId,
-        groupId: groupId || null,
+        ...(userId && { userId }),
+        ...(groupId && { groupId }),
         action,
         description,
-        metadata: metadata ? metadata : undefined,
+        ...(metadata && { metadata }),
       },
     })
   } catch (error) {
@@ -79,7 +79,7 @@ export async function logUserLogin(userId: string, loginData: {
  */
 export async function logLoginFailed(email: string, reason: string, ipAddress?: string) {
   return logActivity({
-    userId: 'anonymous', // Use a system user ID or handle differently
+    userId: null, // No valid user for failed login attempts
     action: ActivityType.LOGIN_FAILED,
     description: `Failed login attempt for ${email}`,
     metadata: {

@@ -49,6 +49,11 @@ export type GroupMember = $Result.DefaultSelection<Prisma.$GroupMemberPayload>
  */
 export type ScoringRule = $Result.DefaultSelection<Prisma.$ScoringRulePayload>
 /**
+ * Model GroupRule
+ * 
+ */
+export type GroupRule = $Result.DefaultSelection<Prisma.$GroupRulePayload>
+/**
  * Model ScoreRecord
  * 
  */
@@ -87,15 +92,22 @@ export const ActivityType: {
   PASSWORD_RESET_REQUESTED: 'PASSWORD_RESET_REQUESTED',
   PASSWORD_RESET_COMPLETED: 'PASSWORD_RESET_COMPLETED',
   ADMIN_USER_CREATED: 'ADMIN_USER_CREATED',
+  ADMIN_USER_ROLE_UPDATED: 'ADMIN_USER_ROLE_UPDATED',
+  ADMIN_USER_DELETED: 'ADMIN_USER_DELETED',
+  ADMIN_PASSWORD_RESET_BY_ADMIN: 'ADMIN_PASSWORD_RESET_BY_ADMIN',
   GROUP_CREATED: 'GROUP_CREATED',
   GROUP_UPDATED: 'GROUP_UPDATED',
   GROUP_DELETED: 'GROUP_DELETED',
   MEMBER_INVITED: 'MEMBER_INVITED',
   MEMBER_JOINED: 'MEMBER_JOINED',
+  MEMBER_ADDED: 'MEMBER_ADDED',
   MEMBER_REMOVED: 'MEMBER_REMOVED',
+  MEMBER_ROLE_UPDATED: 'MEMBER_ROLE_UPDATED',
   SCORING_RULE_CREATED: 'SCORING_RULE_CREATED',
   SCORING_RULE_UPDATED: 'SCORING_RULE_UPDATED',
   SCORING_RULE_DELETED: 'SCORING_RULE_DELETED',
+  RULE_ADDED_TO_GROUP: 'RULE_ADDED_TO_GROUP',
+  RULE_REMOVED_FROM_GROUP: 'RULE_REMOVED_FROM_GROUP',
   SCORE_RECORDED: 'SCORE_RECORDED',
   SCORE_UPDATED: 'SCORE_UPDATED',
   SCORE_DELETED: 'SCORE_DELETED'
@@ -304,6 +316,16 @@ export class PrismaClient<
     * ```
     */
   get scoringRule(): Prisma.ScoringRuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.groupRule`: Exposes CRUD operations for the **GroupRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GroupRules
+    * const groupRules = await prisma.groupRule.findMany()
+    * ```
+    */
+  get groupRule(): Prisma.GroupRuleDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.scoreRecord`: Exposes CRUD operations for the **ScoreRecord** model.
@@ -772,6 +794,7 @@ export namespace Prisma {
     Group: 'Group',
     GroupMember: 'GroupMember',
     ScoringRule: 'ScoringRule',
+    GroupRule: 'GroupRule',
     ScoreRecord: 'ScoreRecord',
     ActivityLog: 'ActivityLog'
   };
@@ -792,7 +815,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "account" | "session" | "user" | "verificationToken" | "group" | "groupMember" | "scoringRule" | "scoreRecord" | "activityLog"
+      modelProps: "account" | "session" | "user" | "verificationToken" | "group" | "groupMember" | "scoringRule" | "groupRule" | "scoreRecord" | "activityLog"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1314,6 +1337,80 @@ export namespace Prisma {
           }
         }
       }
+      GroupRule: {
+        payload: Prisma.$GroupRulePayload<ExtArgs>
+        fields: Prisma.GroupRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GroupRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GroupRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>
+          }
+          findFirst: {
+            args: Prisma.GroupRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GroupRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>
+          }
+          findMany: {
+            args: Prisma.GroupRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>[]
+          }
+          create: {
+            args: Prisma.GroupRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>
+          }
+          createMany: {
+            args: Prisma.GroupRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GroupRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>[]
+          }
+          delete: {
+            args: Prisma.GroupRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>
+          }
+          update: {
+            args: Prisma.GroupRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.GroupRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GroupRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GroupRuleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>[]
+          }
+          upsert: {
+            args: Prisma.GroupRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRulePayload>
+          }
+          aggregate: {
+            args: Prisma.GroupRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGroupRule>
+          }
+          groupBy: {
+            args: Prisma.GroupRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GroupRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GroupRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<GroupRuleCountAggregateOutputType> | number
+          }
+        }
+      }
       ScoreRecord: {
         payload: Prisma.$ScoreRecordPayload<ExtArgs>
         fields: Prisma.ScoreRecordFieldRefs
@@ -1565,6 +1662,7 @@ export namespace Prisma {
     group?: GroupOmit
     groupMember?: GroupMemberOmit
     scoringRule?: ScoringRuleOmit
+    groupRule?: GroupRuleOmit
     scoreRecord?: ScoreRecordOmit
     activityLog?: ActivityLogOmit
   }
@@ -1724,14 +1822,14 @@ export namespace Prisma {
 
   export type GroupCountOutputType = {
     members: number
-    scoringRules: number
+    groupRules: number
     scoreRecords: number
     activityLogs: number
   }
 
   export type GroupCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     members?: boolean | GroupCountOutputTypeCountMembersArgs
-    scoringRules?: boolean | GroupCountOutputTypeCountScoringRulesArgs
+    groupRules?: boolean | GroupCountOutputTypeCountGroupRulesArgs
     scoreRecords?: boolean | GroupCountOutputTypeCountScoreRecordsArgs
     activityLogs?: boolean | GroupCountOutputTypeCountActivityLogsArgs
   }
@@ -1757,8 +1855,8 @@ export namespace Prisma {
   /**
    * GroupCountOutputType without action
    */
-  export type GroupCountOutputTypeCountScoringRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: ScoringRuleWhereInput
+  export type GroupCountOutputTypeCountGroupRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupRuleWhereInput
   }
 
   /**
@@ -1781,10 +1879,12 @@ export namespace Prisma {
    */
 
   export type ScoringRuleCountOutputType = {
+    groupRules: number
     scoreRecords: number
   }
 
   export type ScoringRuleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    groupRules?: boolean | ScoringRuleCountOutputTypeCountGroupRulesArgs
     scoreRecords?: boolean | ScoringRuleCountOutputTypeCountScoreRecordsArgs
   }
 
@@ -1797,6 +1897,13 @@ export namespace Prisma {
      * Select specific fields to fetch from the ScoringRuleCountOutputType
      */
     select?: ScoringRuleCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ScoringRuleCountOutputType without action
+   */
+  export type ScoringRuleCountOutputTypeCountGroupRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupRuleWhereInput
   }
 
   /**
@@ -6452,7 +6559,7 @@ export namespace Prisma {
     createdById?: boolean
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     members?: boolean | Group$membersArgs<ExtArgs>
-    scoringRules?: boolean | Group$scoringRulesArgs<ExtArgs>
+    groupRules?: boolean | Group$groupRulesArgs<ExtArgs>
     scoreRecords?: boolean | Group$scoreRecordsArgs<ExtArgs>
     activityLogs?: boolean | Group$activityLogsArgs<ExtArgs>
     _count?: boolean | GroupCountOutputTypeDefaultArgs<ExtArgs>
@@ -6494,7 +6601,7 @@ export namespace Prisma {
   export type GroupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     members?: boolean | Group$membersArgs<ExtArgs>
-    scoringRules?: boolean | Group$scoringRulesArgs<ExtArgs>
+    groupRules?: boolean | Group$groupRulesArgs<ExtArgs>
     scoreRecords?: boolean | Group$scoreRecordsArgs<ExtArgs>
     activityLogs?: boolean | Group$activityLogsArgs<ExtArgs>
     _count?: boolean | GroupCountOutputTypeDefaultArgs<ExtArgs>
@@ -6511,7 +6618,7 @@ export namespace Prisma {
     objects: {
       createdBy: Prisma.$UserPayload<ExtArgs>
       members: Prisma.$GroupMemberPayload<ExtArgs>[]
-      scoringRules: Prisma.$ScoringRulePayload<ExtArgs>[]
+      groupRules: Prisma.$GroupRulePayload<ExtArgs>[]
       scoreRecords: Prisma.$ScoreRecordPayload<ExtArgs>[]
       activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
     }
@@ -6919,7 +7026,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     createdBy<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     members<T extends Group$membersArgs<ExtArgs> = {}>(args?: Subset<T, Group$membersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    scoringRules<T extends Group$scoringRulesArgs<ExtArgs> = {}>(args?: Subset<T, Group$scoringRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ScoringRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    groupRules<T extends Group$groupRulesArgs<ExtArgs> = {}>(args?: Subset<T, Group$groupRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     scoreRecords<T extends Group$scoreRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Group$scoreRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ScoreRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     activityLogs<T extends Group$activityLogsArgs<ExtArgs> = {}>(args?: Subset<T, Group$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -7378,27 +7485,27 @@ export namespace Prisma {
   }
 
   /**
-   * Group.scoringRules
+   * Group.groupRules
    */
-  export type Group$scoringRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Group$groupRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the ScoringRule
+     * Select specific fields to fetch from the GroupRule
      */
-    select?: ScoringRuleSelect<ExtArgs> | null
+    select?: GroupRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the ScoringRule
+     * Omit specific fields from the GroupRule
      */
-    omit?: ScoringRuleOmit<ExtArgs> | null
+    omit?: GroupRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: ScoringRuleInclude<ExtArgs> | null
-    where?: ScoringRuleWhereInput
-    orderBy?: ScoringRuleOrderByWithRelationInput | ScoringRuleOrderByWithRelationInput[]
-    cursor?: ScoringRuleWhereUniqueInput
+    include?: GroupRuleInclude<ExtArgs> | null
+    where?: GroupRuleWhereInput
+    orderBy?: GroupRuleOrderByWithRelationInput | GroupRuleOrderByWithRelationInput[]
+    cursor?: GroupRuleWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: ScoringRuleScalarFieldEnum | ScoringRuleScalarFieldEnum[]
+    distinct?: GroupRuleScalarFieldEnum | GroupRuleScalarFieldEnum[]
   }
 
   /**
@@ -8562,7 +8669,6 @@ export namespace Prisma {
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
-    groupId: string | null
   }
 
   export type ScoringRuleMaxAggregateOutputType = {
@@ -8573,7 +8679,6 @@ export namespace Prisma {
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
-    groupId: string | null
   }
 
   export type ScoringRuleCountAggregateOutputType = {
@@ -8585,7 +8690,6 @@ export namespace Prisma {
     isActive: number
     createdAt: number
     updatedAt: number
-    groupId: number
     _all: number
   }
 
@@ -8606,7 +8710,6 @@ export namespace Prisma {
     isActive?: true
     createdAt?: true
     updatedAt?: true
-    groupId?: true
   }
 
   export type ScoringRuleMaxAggregateInputType = {
@@ -8617,7 +8720,6 @@ export namespace Prisma {
     isActive?: true
     createdAt?: true
     updatedAt?: true
-    groupId?: true
   }
 
   export type ScoringRuleCountAggregateInputType = {
@@ -8629,7 +8731,6 @@ export namespace Prisma {
     isActive?: true
     createdAt?: true
     updatedAt?: true
-    groupId?: true
     _all?: true
   }
 
@@ -8728,7 +8829,6 @@ export namespace Prisma {
     isActive: boolean
     createdAt: Date
     updatedAt: Date
-    groupId: string
     _count: ScoringRuleCountAggregateOutputType | null
     _avg: ScoringRuleAvgAggregateOutputType | null
     _sum: ScoringRuleSumAggregateOutputType | null
@@ -8759,8 +8859,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    groupId?: boolean
-    group?: boolean | GroupDefaultArgs<ExtArgs>
+    groupRules?: boolean | ScoringRule$groupRulesArgs<ExtArgs>
     scoreRecords?: boolean | ScoringRule$scoreRecordsArgs<ExtArgs>
     _count?: boolean | ScoringRuleCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scoringRule"]>
@@ -8774,8 +8873,6 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    groupId?: boolean
-    group?: boolean | GroupDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scoringRule"]>
 
   export type ScoringRuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8787,8 +8884,6 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    groupId?: boolean
-    group?: boolean | GroupDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scoringRule"]>
 
   export type ScoringRuleSelectScalar = {
@@ -8800,26 +8895,21 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    groupId?: boolean
   }
 
-  export type ScoringRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "criteria" | "points" | "isActive" | "createdAt" | "updatedAt" | "groupId", ExtArgs["result"]["scoringRule"]>
+  export type ScoringRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "criteria" | "points" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["scoringRule"]>
   export type ScoringRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    group?: boolean | GroupDefaultArgs<ExtArgs>
+    groupRules?: boolean | ScoringRule$groupRulesArgs<ExtArgs>
     scoreRecords?: boolean | ScoringRule$scoreRecordsArgs<ExtArgs>
     _count?: boolean | ScoringRuleCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type ScoringRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    group?: boolean | GroupDefaultArgs<ExtArgs>
-  }
-  export type ScoringRuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    group?: boolean | GroupDefaultArgs<ExtArgs>
-  }
+  export type ScoringRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type ScoringRuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $ScoringRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ScoringRule"
     objects: {
-      group: Prisma.$GroupPayload<ExtArgs>
+      groupRules: Prisma.$GroupRulePayload<ExtArgs>[]
       scoreRecords: Prisma.$ScoreRecordPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -8831,7 +8921,6 @@ export namespace Prisma {
       isActive: boolean
       createdAt: Date
       updatedAt: Date
-      groupId: string
     }, ExtArgs["result"]["scoringRule"]>
     composites: {}
   }
@@ -9226,7 +9315,7 @@ export namespace Prisma {
    */
   export interface Prisma__ScoringRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    group<T extends GroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GroupDefaultArgs<ExtArgs>>): Prisma__GroupClient<$Result.GetResult<Prisma.$GroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    groupRules<T extends ScoringRule$groupRulesArgs<ExtArgs> = {}>(args?: Subset<T, ScoringRule$groupRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     scoreRecords<T extends ScoringRule$scoreRecordsArgs<ExtArgs> = {}>(args?: Subset<T, ScoringRule$scoreRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ScoreRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -9265,7 +9354,6 @@ export namespace Prisma {
     readonly isActive: FieldRef<"ScoringRule", 'Boolean'>
     readonly createdAt: FieldRef<"ScoringRule", 'DateTime'>
     readonly updatedAt: FieldRef<"ScoringRule", 'DateTime'>
-    readonly groupId: FieldRef<"ScoringRule", 'String'>
   }
     
 
@@ -9515,10 +9603,6 @@ export namespace Prisma {
      */
     data: ScoringRuleCreateManyInput | ScoringRuleCreateManyInput[]
     skipDuplicates?: boolean
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ScoringRuleIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -9589,10 +9673,6 @@ export namespace Prisma {
      * Limit how many ScoringRules to update.
      */
     limit?: number
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ScoringRuleIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -9662,6 +9742,30 @@ export namespace Prisma {
   }
 
   /**
+   * ScoringRule.groupRules
+   */
+  export type ScoringRule$groupRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    where?: GroupRuleWhereInput
+    orderBy?: GroupRuleOrderByWithRelationInput | GroupRuleOrderByWithRelationInput[]
+    cursor?: GroupRuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GroupRuleScalarFieldEnum | GroupRuleScalarFieldEnum[]
+  }
+
+  /**
    * ScoringRule.scoreRecords
    */
   export type ScoringRule$scoreRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9701,6 +9805,1072 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ScoringRuleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GroupRule
+   */
+
+  export type AggregateGroupRule = {
+    _count: GroupRuleCountAggregateOutputType | null
+    _min: GroupRuleMinAggregateOutputType | null
+    _max: GroupRuleMaxAggregateOutputType | null
+  }
+
+  export type GroupRuleMinAggregateOutputType = {
+    id: string | null
+    groupId: string | null
+    ruleId: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+  }
+
+  export type GroupRuleMaxAggregateOutputType = {
+    id: string | null
+    groupId: string | null
+    ruleId: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+  }
+
+  export type GroupRuleCountAggregateOutputType = {
+    id: number
+    groupId: number
+    ruleId: number
+    isActive: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type GroupRuleMinAggregateInputType = {
+    id?: true
+    groupId?: true
+    ruleId?: true
+    isActive?: true
+    createdAt?: true
+  }
+
+  export type GroupRuleMaxAggregateInputType = {
+    id?: true
+    groupId?: true
+    ruleId?: true
+    isActive?: true
+    createdAt?: true
+  }
+
+  export type GroupRuleCountAggregateInputType = {
+    id?: true
+    groupId?: true
+    ruleId?: true
+    isActive?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type GroupRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupRule to aggregate.
+     */
+    where?: GroupRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupRules to fetch.
+     */
+    orderBy?: GroupRuleOrderByWithRelationInput | GroupRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GroupRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GroupRules
+    **/
+    _count?: true | GroupRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GroupRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GroupRuleMaxAggregateInputType
+  }
+
+  export type GetGroupRuleAggregateType<T extends GroupRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateGroupRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGroupRule[P]>
+      : GetScalarType<T[P], AggregateGroupRule[P]>
+  }
+
+
+
+
+  export type GroupRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupRuleWhereInput
+    orderBy?: GroupRuleOrderByWithAggregationInput | GroupRuleOrderByWithAggregationInput[]
+    by: GroupRuleScalarFieldEnum[] | GroupRuleScalarFieldEnum
+    having?: GroupRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GroupRuleCountAggregateInputType | true
+    _min?: GroupRuleMinAggregateInputType
+    _max?: GroupRuleMaxAggregateInputType
+  }
+
+  export type GroupRuleGroupByOutputType = {
+    id: string
+    groupId: string
+    ruleId: string
+    isActive: boolean
+    createdAt: Date
+    _count: GroupRuleCountAggregateOutputType | null
+    _min: GroupRuleMinAggregateOutputType | null
+    _max: GroupRuleMaxAggregateOutputType | null
+  }
+
+  type GetGroupRuleGroupByPayload<T extends GroupRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GroupRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GroupRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GroupRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], GroupRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GroupRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    ruleId?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    group?: boolean | GroupDefaultArgs<ExtArgs>
+    rule?: boolean | ScoringRuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupRule"]>
+
+  export type GroupRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    ruleId?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    group?: boolean | GroupDefaultArgs<ExtArgs>
+    rule?: boolean | ScoringRuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupRule"]>
+
+  export type GroupRuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    ruleId?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    group?: boolean | GroupDefaultArgs<ExtArgs>
+    rule?: boolean | ScoringRuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupRule"]>
+
+  export type GroupRuleSelectScalar = {
+    id?: boolean
+    groupId?: boolean
+    ruleId?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+  }
+
+  export type GroupRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "groupId" | "ruleId" | "isActive" | "createdAt", ExtArgs["result"]["groupRule"]>
+  export type GroupRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | GroupDefaultArgs<ExtArgs>
+    rule?: boolean | ScoringRuleDefaultArgs<ExtArgs>
+  }
+  export type GroupRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | GroupDefaultArgs<ExtArgs>
+    rule?: boolean | ScoringRuleDefaultArgs<ExtArgs>
+  }
+  export type GroupRuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | GroupDefaultArgs<ExtArgs>
+    rule?: boolean | ScoringRuleDefaultArgs<ExtArgs>
+  }
+
+  export type $GroupRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GroupRule"
+    objects: {
+      group: Prisma.$GroupPayload<ExtArgs>
+      rule: Prisma.$ScoringRulePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      groupId: string
+      ruleId: string
+      isActive: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["groupRule"]>
+    composites: {}
+  }
+
+  type GroupRuleGetPayload<S extends boolean | null | undefined | GroupRuleDefaultArgs> = $Result.GetResult<Prisma.$GroupRulePayload, S>
+
+  type GroupRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GroupRuleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GroupRuleCountAggregateInputType | true
+    }
+
+  export interface GroupRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GroupRule'], meta: { name: 'GroupRule' } }
+    /**
+     * Find zero or one GroupRule that matches the filter.
+     * @param {GroupRuleFindUniqueArgs} args - Arguments to find a GroupRule
+     * @example
+     * // Get one GroupRule
+     * const groupRule = await prisma.groupRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GroupRuleFindUniqueArgs>(args: SelectSubset<T, GroupRuleFindUniqueArgs<ExtArgs>>): Prisma__GroupRuleClient<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GroupRule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GroupRuleFindUniqueOrThrowArgs} args - Arguments to find a GroupRule
+     * @example
+     * // Get one GroupRule
+     * const groupRule = await prisma.groupRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GroupRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, GroupRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GroupRuleClient<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GroupRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRuleFindFirstArgs} args - Arguments to find a GroupRule
+     * @example
+     * // Get one GroupRule
+     * const groupRule = await prisma.groupRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GroupRuleFindFirstArgs>(args?: SelectSubset<T, GroupRuleFindFirstArgs<ExtArgs>>): Prisma__GroupRuleClient<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GroupRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRuleFindFirstOrThrowArgs} args - Arguments to find a GroupRule
+     * @example
+     * // Get one GroupRule
+     * const groupRule = await prisma.groupRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GroupRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, GroupRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__GroupRuleClient<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GroupRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GroupRules
+     * const groupRules = await prisma.groupRule.findMany()
+     * 
+     * // Get first 10 GroupRules
+     * const groupRules = await prisma.groupRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const groupRuleWithIdOnly = await prisma.groupRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GroupRuleFindManyArgs>(args?: SelectSubset<T, GroupRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GroupRule.
+     * @param {GroupRuleCreateArgs} args - Arguments to create a GroupRule.
+     * @example
+     * // Create one GroupRule
+     * const GroupRule = await prisma.groupRule.create({
+     *   data: {
+     *     // ... data to create a GroupRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends GroupRuleCreateArgs>(args: SelectSubset<T, GroupRuleCreateArgs<ExtArgs>>): Prisma__GroupRuleClient<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GroupRules.
+     * @param {GroupRuleCreateManyArgs} args - Arguments to create many GroupRules.
+     * @example
+     * // Create many GroupRules
+     * const groupRule = await prisma.groupRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GroupRuleCreateManyArgs>(args?: SelectSubset<T, GroupRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GroupRules and returns the data saved in the database.
+     * @param {GroupRuleCreateManyAndReturnArgs} args - Arguments to create many GroupRules.
+     * @example
+     * // Create many GroupRules
+     * const groupRule = await prisma.groupRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GroupRules and only return the `id`
+     * const groupRuleWithIdOnly = await prisma.groupRule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GroupRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, GroupRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GroupRule.
+     * @param {GroupRuleDeleteArgs} args - Arguments to delete one GroupRule.
+     * @example
+     * // Delete one GroupRule
+     * const GroupRule = await prisma.groupRule.delete({
+     *   where: {
+     *     // ... filter to delete one GroupRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GroupRuleDeleteArgs>(args: SelectSubset<T, GroupRuleDeleteArgs<ExtArgs>>): Prisma__GroupRuleClient<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GroupRule.
+     * @param {GroupRuleUpdateArgs} args - Arguments to update one GroupRule.
+     * @example
+     * // Update one GroupRule
+     * const groupRule = await prisma.groupRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GroupRuleUpdateArgs>(args: SelectSubset<T, GroupRuleUpdateArgs<ExtArgs>>): Prisma__GroupRuleClient<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GroupRules.
+     * @param {GroupRuleDeleteManyArgs} args - Arguments to filter GroupRules to delete.
+     * @example
+     * // Delete a few GroupRules
+     * const { count } = await prisma.groupRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GroupRuleDeleteManyArgs>(args?: SelectSubset<T, GroupRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GroupRules
+     * const groupRule = await prisma.groupRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GroupRuleUpdateManyArgs>(args: SelectSubset<T, GroupRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupRules and returns the data updated in the database.
+     * @param {GroupRuleUpdateManyAndReturnArgs} args - Arguments to update many GroupRules.
+     * @example
+     * // Update many GroupRules
+     * const groupRule = await prisma.groupRule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GroupRules and only return the `id`
+     * const groupRuleWithIdOnly = await prisma.groupRule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GroupRuleUpdateManyAndReturnArgs>(args: SelectSubset<T, GroupRuleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GroupRule.
+     * @param {GroupRuleUpsertArgs} args - Arguments to update or create a GroupRule.
+     * @example
+     * // Update or create a GroupRule
+     * const groupRule = await prisma.groupRule.upsert({
+     *   create: {
+     *     // ... data to create a GroupRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GroupRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GroupRuleUpsertArgs>(args: SelectSubset<T, GroupRuleUpsertArgs<ExtArgs>>): Prisma__GroupRuleClient<$Result.GetResult<Prisma.$GroupRulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GroupRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRuleCountArgs} args - Arguments to filter GroupRules to count.
+     * @example
+     * // Count the number of GroupRules
+     * const count = await prisma.groupRule.count({
+     *   where: {
+     *     // ... the filter for the GroupRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends GroupRuleCountArgs>(
+      args?: Subset<T, GroupRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GroupRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GroupRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GroupRuleAggregateArgs>(args: Subset<T, GroupRuleAggregateArgs>): Prisma.PrismaPromise<GetGroupRuleAggregateType<T>>
+
+    /**
+     * Group by GroupRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupRuleGroupByArgs['orderBy'] }
+        : { orderBy?: GroupRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGroupRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GroupRule model
+   */
+  readonly fields: GroupRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GroupRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GroupRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    group<T extends GroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GroupDefaultArgs<ExtArgs>>): Prisma__GroupClient<$Result.GetResult<Prisma.$GroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    rule<T extends ScoringRuleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ScoringRuleDefaultArgs<ExtArgs>>): Prisma__ScoringRuleClient<$Result.GetResult<Prisma.$ScoringRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GroupRule model
+   */
+  interface GroupRuleFieldRefs {
+    readonly id: FieldRef<"GroupRule", 'String'>
+    readonly groupId: FieldRef<"GroupRule", 'String'>
+    readonly ruleId: FieldRef<"GroupRule", 'String'>
+    readonly isActive: FieldRef<"GroupRule", 'Boolean'>
+    readonly createdAt: FieldRef<"GroupRule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GroupRule findUnique
+   */
+  export type GroupRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRule to fetch.
+     */
+    where: GroupRuleWhereUniqueInput
+  }
+
+  /**
+   * GroupRule findUniqueOrThrow
+   */
+  export type GroupRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRule to fetch.
+     */
+    where: GroupRuleWhereUniqueInput
+  }
+
+  /**
+   * GroupRule findFirst
+   */
+  export type GroupRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRule to fetch.
+     */
+    where?: GroupRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupRules to fetch.
+     */
+    orderBy?: GroupRuleOrderByWithRelationInput | GroupRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupRules.
+     */
+    cursor?: GroupRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupRules.
+     */
+    distinct?: GroupRuleScalarFieldEnum | GroupRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GroupRule findFirstOrThrow
+   */
+  export type GroupRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRule to fetch.
+     */
+    where?: GroupRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupRules to fetch.
+     */
+    orderBy?: GroupRuleOrderByWithRelationInput | GroupRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupRules.
+     */
+    cursor?: GroupRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupRules.
+     */
+    distinct?: GroupRuleScalarFieldEnum | GroupRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GroupRule findMany
+   */
+  export type GroupRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRules to fetch.
+     */
+    where?: GroupRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupRules to fetch.
+     */
+    orderBy?: GroupRuleOrderByWithRelationInput | GroupRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GroupRules.
+     */
+    cursor?: GroupRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupRules.
+     */
+    skip?: number
+    distinct?: GroupRuleScalarFieldEnum | GroupRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GroupRule create
+   */
+  export type GroupRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GroupRule.
+     */
+    data: XOR<GroupRuleCreateInput, GroupRuleUncheckedCreateInput>
+  }
+
+  /**
+   * GroupRule createMany
+   */
+  export type GroupRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GroupRules.
+     */
+    data: GroupRuleCreateManyInput | GroupRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GroupRule createManyAndReturn
+   */
+  export type GroupRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * The data used to create many GroupRules.
+     */
+    data: GroupRuleCreateManyInput | GroupRuleCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GroupRule update
+   */
+  export type GroupRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GroupRule.
+     */
+    data: XOR<GroupRuleUpdateInput, GroupRuleUncheckedUpdateInput>
+    /**
+     * Choose, which GroupRule to update.
+     */
+    where: GroupRuleWhereUniqueInput
+  }
+
+  /**
+   * GroupRule updateMany
+   */
+  export type GroupRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GroupRules.
+     */
+    data: XOR<GroupRuleUpdateManyMutationInput, GroupRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupRules to update
+     */
+    where?: GroupRuleWhereInput
+    /**
+     * Limit how many GroupRules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GroupRule updateManyAndReturn
+   */
+  export type GroupRuleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * The data used to update GroupRules.
+     */
+    data: XOR<GroupRuleUpdateManyMutationInput, GroupRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupRules to update
+     */
+    where?: GroupRuleWhereInput
+    /**
+     * Limit how many GroupRules to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GroupRule upsert
+   */
+  export type GroupRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GroupRule to update in case it exists.
+     */
+    where: GroupRuleWhereUniqueInput
+    /**
+     * In case the GroupRule found by the `where` argument doesn't exist, create a new GroupRule with this data.
+     */
+    create: XOR<GroupRuleCreateInput, GroupRuleUncheckedCreateInput>
+    /**
+     * In case the GroupRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GroupRuleUpdateInput, GroupRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * GroupRule delete
+   */
+  export type GroupRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
+    /**
+     * Filter which GroupRule to delete.
+     */
+    where: GroupRuleWhereUniqueInput
+  }
+
+  /**
+   * GroupRule deleteMany
+   */
+  export type GroupRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupRules to delete
+     */
+    where?: GroupRuleWhereInput
+    /**
+     * Limit how many GroupRules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GroupRule without action
+   */
+  export type GroupRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRule
+     */
+    select?: GroupRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRule
+     */
+    omit?: GroupRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRuleInclude<ExtArgs> | null
   }
 
 
@@ -10990,7 +12160,7 @@ export namespace Prisma {
 
   export type ActivityLogGroupByOutputType = {
     id: string
-    userId: string
+    userId: string | null
     groupId: string | null
     action: $Enums.ActivityType
     description: string
@@ -11023,7 +12193,7 @@ export namespace Prisma {
     description?: boolean
     metadata?: boolean
     timestamp?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | ActivityLog$userArgs<ExtArgs>
     group?: boolean | ActivityLog$groupArgs<ExtArgs>
   }, ExtArgs["result"]["activityLog"]>
 
@@ -11035,7 +12205,7 @@ export namespace Prisma {
     description?: boolean
     metadata?: boolean
     timestamp?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | ActivityLog$userArgs<ExtArgs>
     group?: boolean | ActivityLog$groupArgs<ExtArgs>
   }, ExtArgs["result"]["activityLog"]>
 
@@ -11047,7 +12217,7 @@ export namespace Prisma {
     description?: boolean
     metadata?: boolean
     timestamp?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | ActivityLog$userArgs<ExtArgs>
     group?: boolean | ActivityLog$groupArgs<ExtArgs>
   }, ExtArgs["result"]["activityLog"]>
 
@@ -11063,27 +12233,27 @@ export namespace Prisma {
 
   export type ActivityLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "groupId" | "action" | "description" | "metadata" | "timestamp", ExtArgs["result"]["activityLog"]>
   export type ActivityLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | ActivityLog$userArgs<ExtArgs>
     group?: boolean | ActivityLog$groupArgs<ExtArgs>
   }
   export type ActivityLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | ActivityLog$userArgs<ExtArgs>
     group?: boolean | ActivityLog$groupArgs<ExtArgs>
   }
   export type ActivityLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | ActivityLog$userArgs<ExtArgs>
     group?: boolean | ActivityLog$groupArgs<ExtArgs>
   }
 
   export type $ActivityLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ActivityLog"
     objects: {
-      user: Prisma.$UserPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs> | null
       group: Prisma.$GroupPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      userId: string
+      userId: string | null
       groupId: string | null
       action: $Enums.ActivityType
       description: string
@@ -11483,7 +12653,7 @@ export namespace Prisma {
    */
   export interface Prisma__ActivityLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends ActivityLog$userArgs<ExtArgs> = {}>(args?: Subset<T, ActivityLog$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     group<T extends ActivityLog$groupArgs<ExtArgs> = {}>(args?: Subset<T, ActivityLog$groupArgs<ExtArgs>>): Prisma__GroupClient<$Result.GetResult<Prisma.$GroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -11917,6 +13087,25 @@ export namespace Prisma {
   }
 
   /**
+   * ActivityLog.user
+   */
+  export type ActivityLog$userArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
    * ActivityLog.group
    */
   export type ActivityLog$groupArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12052,11 +13241,21 @@ export namespace Prisma {
     points: 'points',
     isActive: 'isActive',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt',
-    groupId: 'groupId'
+    updatedAt: 'updatedAt'
   };
 
   export type ScoringRuleScalarFieldEnum = (typeof ScoringRuleScalarFieldEnum)[keyof typeof ScoringRuleScalarFieldEnum]
+
+
+  export const GroupRuleScalarFieldEnum: {
+    id: 'id',
+    groupId: 'groupId',
+    ruleId: 'ruleId',
+    isActive: 'isActive',
+    createdAt: 'createdAt'
+  };
+
+  export type GroupRuleScalarFieldEnum = (typeof GroupRuleScalarFieldEnum)[keyof typeof GroupRuleScalarFieldEnum]
 
 
   export const ScoreRecordScalarFieldEnum: {
@@ -12550,7 +13749,7 @@ export namespace Prisma {
     createdById?: StringFilter<"Group"> | string
     createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
     members?: GroupMemberListRelationFilter
-    scoringRules?: ScoringRuleListRelationFilter
+    groupRules?: GroupRuleListRelationFilter
     scoreRecords?: ScoreRecordListRelationFilter
     activityLogs?: ActivityLogListRelationFilter
   }
@@ -12565,7 +13764,7 @@ export namespace Prisma {
     createdById?: SortOrder
     createdBy?: UserOrderByWithRelationInput
     members?: GroupMemberOrderByRelationAggregateInput
-    scoringRules?: ScoringRuleOrderByRelationAggregateInput
+    groupRules?: GroupRuleOrderByRelationAggregateInput
     scoreRecords?: ScoreRecordOrderByRelationAggregateInput
     activityLogs?: ActivityLogOrderByRelationAggregateInput
   }
@@ -12583,7 +13782,7 @@ export namespace Prisma {
     createdById?: StringFilter<"Group"> | string
     createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
     members?: GroupMemberListRelationFilter
-    scoringRules?: ScoringRuleListRelationFilter
+    groupRules?: GroupRuleListRelationFilter
     scoreRecords?: ScoreRecordListRelationFilter
     activityLogs?: ActivityLogListRelationFilter
   }, "id">
@@ -12685,8 +13884,7 @@ export namespace Prisma {
     isActive?: BoolFilter<"ScoringRule"> | boolean
     createdAt?: DateTimeFilter<"ScoringRule"> | Date | string
     updatedAt?: DateTimeFilter<"ScoringRule"> | Date | string
-    groupId?: StringFilter<"ScoringRule"> | string
-    group?: XOR<GroupScalarRelationFilter, GroupWhereInput>
+    groupRules?: GroupRuleListRelationFilter
     scoreRecords?: ScoreRecordListRelationFilter
   }
 
@@ -12699,8 +13897,7 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    groupId?: SortOrder
-    group?: GroupOrderByWithRelationInput
+    groupRules?: GroupRuleOrderByRelationAggregateInput
     scoreRecords?: ScoreRecordOrderByRelationAggregateInput
   }
 
@@ -12716,8 +13913,7 @@ export namespace Prisma {
     isActive?: BoolFilter<"ScoringRule"> | boolean
     createdAt?: DateTimeFilter<"ScoringRule"> | Date | string
     updatedAt?: DateTimeFilter<"ScoringRule"> | Date | string
-    groupId?: StringFilter<"ScoringRule"> | string
-    group?: XOR<GroupScalarRelationFilter, GroupWhereInput>
+    groupRules?: GroupRuleListRelationFilter
     scoreRecords?: ScoreRecordListRelationFilter
   }, "id">
 
@@ -12730,7 +13926,6 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    groupId?: SortOrder
     _count?: ScoringRuleCountOrderByAggregateInput
     _avg?: ScoringRuleAvgOrderByAggregateInput
     _max?: ScoringRuleMaxOrderByAggregateInput
@@ -12750,7 +13945,65 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"ScoringRule"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"ScoringRule"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ScoringRule"> | Date | string
-    groupId?: StringWithAggregatesFilter<"ScoringRule"> | string
+  }
+
+  export type GroupRuleWhereInput = {
+    AND?: GroupRuleWhereInput | GroupRuleWhereInput[]
+    OR?: GroupRuleWhereInput[]
+    NOT?: GroupRuleWhereInput | GroupRuleWhereInput[]
+    id?: StringFilter<"GroupRule"> | string
+    groupId?: StringFilter<"GroupRule"> | string
+    ruleId?: StringFilter<"GroupRule"> | string
+    isActive?: BoolFilter<"GroupRule"> | boolean
+    createdAt?: DateTimeFilter<"GroupRule"> | Date | string
+    group?: XOR<GroupScalarRelationFilter, GroupWhereInput>
+    rule?: XOR<ScoringRuleScalarRelationFilter, ScoringRuleWhereInput>
+  }
+
+  export type GroupRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    ruleId?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    group?: GroupOrderByWithRelationInput
+    rule?: ScoringRuleOrderByWithRelationInput
+  }
+
+  export type GroupRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    groupId_ruleId?: GroupRuleGroupIdRuleIdCompoundUniqueInput
+    AND?: GroupRuleWhereInput | GroupRuleWhereInput[]
+    OR?: GroupRuleWhereInput[]
+    NOT?: GroupRuleWhereInput | GroupRuleWhereInput[]
+    groupId?: StringFilter<"GroupRule"> | string
+    ruleId?: StringFilter<"GroupRule"> | string
+    isActive?: BoolFilter<"GroupRule"> | boolean
+    createdAt?: DateTimeFilter<"GroupRule"> | Date | string
+    group?: XOR<GroupScalarRelationFilter, GroupWhereInput>
+    rule?: XOR<ScoringRuleScalarRelationFilter, ScoringRuleWhereInput>
+  }, "id" | "groupId_ruleId">
+
+  export type GroupRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    ruleId?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    _count?: GroupRuleCountOrderByAggregateInput
+    _max?: GroupRuleMaxOrderByAggregateInput
+    _min?: GroupRuleMinOrderByAggregateInput
+  }
+
+  export type GroupRuleScalarWhereWithAggregatesInput = {
+    AND?: GroupRuleScalarWhereWithAggregatesInput | GroupRuleScalarWhereWithAggregatesInput[]
+    OR?: GroupRuleScalarWhereWithAggregatesInput[]
+    NOT?: GroupRuleScalarWhereWithAggregatesInput | GroupRuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GroupRule"> | string
+    groupId?: StringWithAggregatesFilter<"GroupRule"> | string
+    ruleId?: StringWithAggregatesFilter<"GroupRule"> | string
+    isActive?: BoolWithAggregatesFilter<"GroupRule"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"GroupRule"> | Date | string
   }
 
   export type ScoreRecordWhereInput = {
@@ -12836,19 +14089,19 @@ export namespace Prisma {
     OR?: ActivityLogWhereInput[]
     NOT?: ActivityLogWhereInput | ActivityLogWhereInput[]
     id?: StringFilter<"ActivityLog"> | string
-    userId?: StringFilter<"ActivityLog"> | string
+    userId?: StringNullableFilter<"ActivityLog"> | string | null
     groupId?: StringNullableFilter<"ActivityLog"> | string | null
     action?: EnumActivityTypeFilter<"ActivityLog"> | $Enums.ActivityType
     description?: StringFilter<"ActivityLog"> | string
     metadata?: JsonNullableFilter<"ActivityLog">
     timestamp?: DateTimeFilter<"ActivityLog"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     group?: XOR<GroupNullableScalarRelationFilter, GroupWhereInput> | null
   }
 
   export type ActivityLogOrderByWithRelationInput = {
     id?: SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     groupId?: SortOrderInput | SortOrder
     action?: SortOrder
     description?: SortOrder
@@ -12863,19 +14116,19 @@ export namespace Prisma {
     AND?: ActivityLogWhereInput | ActivityLogWhereInput[]
     OR?: ActivityLogWhereInput[]
     NOT?: ActivityLogWhereInput | ActivityLogWhereInput[]
-    userId?: StringFilter<"ActivityLog"> | string
+    userId?: StringNullableFilter<"ActivityLog"> | string | null
     groupId?: StringNullableFilter<"ActivityLog"> | string | null
     action?: EnumActivityTypeFilter<"ActivityLog"> | $Enums.ActivityType
     description?: StringFilter<"ActivityLog"> | string
     metadata?: JsonNullableFilter<"ActivityLog">
     timestamp?: DateTimeFilter<"ActivityLog"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     group?: XOR<GroupNullableScalarRelationFilter, GroupWhereInput> | null
   }, "id">
 
   export type ActivityLogOrderByWithAggregationInput = {
     id?: SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     groupId?: SortOrderInput | SortOrder
     action?: SortOrder
     description?: SortOrder
@@ -12891,7 +14144,7 @@ export namespace Prisma {
     OR?: ActivityLogScalarWhereWithAggregatesInput[]
     NOT?: ActivityLogScalarWhereWithAggregatesInput | ActivityLogScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"ActivityLog"> | string
-    userId?: StringWithAggregatesFilter<"ActivityLog"> | string
+    userId?: StringNullableWithAggregatesFilter<"ActivityLog"> | string | null
     groupId?: StringNullableWithAggregatesFilter<"ActivityLog"> | string | null
     action?: EnumActivityTypeWithAggregatesFilter<"ActivityLog"> | $Enums.ActivityType
     description?: StringWithAggregatesFilter<"ActivityLog"> | string
@@ -13210,7 +14463,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdBy: UserCreateNestedOneWithoutGroupsInput
     members?: GroupMemberCreateNestedManyWithoutGroupInput
-    scoringRules?: ScoringRuleCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleCreateNestedManyWithoutGroupInput
     scoreRecords?: ScoreRecordCreateNestedManyWithoutGroupInput
     activityLogs?: ActivityLogCreateNestedManyWithoutGroupInput
   }
@@ -13224,7 +14477,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdById: string
     members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
-    scoringRules?: ScoringRuleUncheckedCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleUncheckedCreateNestedManyWithoutGroupInput
     scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutGroupInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutGroupInput
   }
@@ -13238,7 +14491,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: UserUpdateOneRequiredWithoutGroupsNestedInput
     members?: GroupMemberUpdateManyWithoutGroupNestedInput
-    scoringRules?: ScoringRuleUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUpdateManyWithoutGroupNestedInput
     scoreRecords?: ScoreRecordUpdateManyWithoutGroupNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutGroupNestedInput
   }
@@ -13252,7 +14505,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdById?: StringFieldUpdateOperationsInput | string
     members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
-    scoringRules?: ScoringRuleUncheckedUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUncheckedUpdateManyWithoutGroupNestedInput
     scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutGroupNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutGroupNestedInput
   }
@@ -13349,7 +14602,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    group: GroupCreateNestedOneWithoutScoringRulesInput
+    groupRules?: GroupRuleCreateNestedManyWithoutRuleInput
     scoreRecords?: ScoreRecordCreateNestedManyWithoutRuleInput
   }
 
@@ -13362,7 +14615,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    groupId: string
+    groupRules?: GroupRuleUncheckedCreateNestedManyWithoutRuleInput
     scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutRuleInput
   }
 
@@ -13375,7 +14628,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    group?: GroupUpdateOneRequiredWithoutScoringRulesNestedInput
+    groupRules?: GroupRuleUpdateManyWithoutRuleNestedInput
     scoreRecords?: ScoreRecordUpdateManyWithoutRuleNestedInput
   }
 
@@ -13388,7 +14641,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    groupId?: StringFieldUpdateOperationsInput | string
+    groupRules?: GroupRuleUncheckedUpdateManyWithoutRuleNestedInput
     scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutRuleNestedInput
   }
 
@@ -13401,7 +14654,6 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    groupId: string
   }
 
   export type ScoringRuleUpdateManyMutationInput = {
@@ -13424,7 +14676,60 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupRuleCreateInput = {
+    id?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    group: GroupCreateNestedOneWithoutGroupRulesInput
+    rule: ScoringRuleCreateNestedOneWithoutGroupRulesInput
+  }
+
+  export type GroupRuleUncheckedCreateInput = {
+    id?: string
+    groupId: string
+    ruleId: string
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type GroupRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    group?: GroupUpdateOneRequiredWithoutGroupRulesNestedInput
+    rule?: ScoringRuleUpdateOneRequiredWithoutGroupRulesNestedInput
+  }
+
+  export type GroupRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
     groupId?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupRuleCreateManyInput = {
+    id?: string
+    groupId: string
+    ruleId: string
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type GroupRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ScoreRecordCreateInput = {
@@ -13507,13 +14812,13 @@ export namespace Prisma {
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     timestamp?: Date | string
-    user: UserCreateNestedOneWithoutActivityLogsInput
+    user?: UserCreateNestedOneWithoutActivityLogsInput
     group?: GroupCreateNestedOneWithoutActivityLogsInput
   }
 
   export type ActivityLogUncheckedCreateInput = {
     id?: string
-    userId: string
+    userId?: string | null
     groupId?: string | null
     action: $Enums.ActivityType
     description: string
@@ -13527,13 +14832,13 @@ export namespace Prisma {
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
+    user?: UserUpdateOneWithoutActivityLogsNestedInput
     group?: GroupUpdateOneWithoutActivityLogsNestedInput
   }
 
   export type ActivityLogUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     groupId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: EnumActivityTypeFieldUpdateOperationsInput | $Enums.ActivityType
     description?: StringFieldUpdateOperationsInput | string
@@ -13543,7 +14848,7 @@ export namespace Prisma {
 
   export type ActivityLogCreateManyInput = {
     id?: string
-    userId: string
+    userId?: string | null
     groupId?: string | null
     action: $Enums.ActivityType
     description: string
@@ -13561,7 +14866,7 @@ export namespace Prisma {
 
   export type ActivityLogUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     groupId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: EnumActivityTypeFieldUpdateOperationsInput | $Enums.ActivityType
     description?: StringFieldUpdateOperationsInput | string
@@ -13942,13 +15247,13 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
-  export type ScoringRuleListRelationFilter = {
-    every?: ScoringRuleWhereInput
-    some?: ScoringRuleWhereInput
-    none?: ScoringRuleWhereInput
+  export type GroupRuleListRelationFilter = {
+    every?: GroupRuleWhereInput
+    some?: GroupRuleWhereInput
+    none?: GroupRuleWhereInput
   }
 
-  export type ScoringRuleOrderByRelationAggregateInput = {
+  export type GroupRuleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -14084,7 +15389,6 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    groupId?: SortOrder
   }
 
   export type ScoringRuleAvgOrderByAggregateInput = {
@@ -14099,7 +15403,6 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    groupId?: SortOrder
   }
 
   export type ScoringRuleMinOrderByAggregateInput = {
@@ -14110,7 +15413,6 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    groupId?: SortOrder
   }
 
   export type ScoringRuleSumOrderByAggregateInput = {
@@ -14162,6 +15464,35 @@ export namespace Prisma {
   export type ScoringRuleScalarRelationFilter = {
     is?: ScoringRuleWhereInput
     isNot?: ScoringRuleWhereInput
+  }
+
+  export type GroupRuleGroupIdRuleIdCompoundUniqueInput = {
+    groupId: string
+    ruleId: string
+  }
+
+  export type GroupRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    ruleId?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type GroupRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    ruleId?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type GroupRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    ruleId?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type ScoreRecordCountOrderByAggregateInput = {
@@ -14231,6 +15562,11 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type UserNullableScalarRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
   }
 
   export type GroupNullableScalarRelationFilter = {
@@ -14623,11 +15959,11 @@ export namespace Prisma {
     connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
   }
 
-  export type ScoringRuleCreateNestedManyWithoutGroupInput = {
-    create?: XOR<ScoringRuleCreateWithoutGroupInput, ScoringRuleUncheckedCreateWithoutGroupInput> | ScoringRuleCreateWithoutGroupInput[] | ScoringRuleUncheckedCreateWithoutGroupInput[]
-    connectOrCreate?: ScoringRuleCreateOrConnectWithoutGroupInput | ScoringRuleCreateOrConnectWithoutGroupInput[]
-    createMany?: ScoringRuleCreateManyGroupInputEnvelope
-    connect?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
+  export type GroupRuleCreateNestedManyWithoutGroupInput = {
+    create?: XOR<GroupRuleCreateWithoutGroupInput, GroupRuleUncheckedCreateWithoutGroupInput> | GroupRuleCreateWithoutGroupInput[] | GroupRuleUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupRuleCreateOrConnectWithoutGroupInput | GroupRuleCreateOrConnectWithoutGroupInput[]
+    createMany?: GroupRuleCreateManyGroupInputEnvelope
+    connect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
   }
 
   export type ScoreRecordCreateNestedManyWithoutGroupInput = {
@@ -14651,11 +15987,11 @@ export namespace Prisma {
     connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
   }
 
-  export type ScoringRuleUncheckedCreateNestedManyWithoutGroupInput = {
-    create?: XOR<ScoringRuleCreateWithoutGroupInput, ScoringRuleUncheckedCreateWithoutGroupInput> | ScoringRuleCreateWithoutGroupInput[] | ScoringRuleUncheckedCreateWithoutGroupInput[]
-    connectOrCreate?: ScoringRuleCreateOrConnectWithoutGroupInput | ScoringRuleCreateOrConnectWithoutGroupInput[]
-    createMany?: ScoringRuleCreateManyGroupInputEnvelope
-    connect?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
+  export type GroupRuleUncheckedCreateNestedManyWithoutGroupInput = {
+    create?: XOR<GroupRuleCreateWithoutGroupInput, GroupRuleUncheckedCreateWithoutGroupInput> | GroupRuleCreateWithoutGroupInput[] | GroupRuleUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupRuleCreateOrConnectWithoutGroupInput | GroupRuleCreateOrConnectWithoutGroupInput[]
+    createMany?: GroupRuleCreateManyGroupInputEnvelope
+    connect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
   }
 
   export type ScoreRecordUncheckedCreateNestedManyWithoutGroupInput = {
@@ -14698,18 +16034,18 @@ export namespace Prisma {
     deleteMany?: GroupMemberScalarWhereInput | GroupMemberScalarWhereInput[]
   }
 
-  export type ScoringRuleUpdateManyWithoutGroupNestedInput = {
-    create?: XOR<ScoringRuleCreateWithoutGroupInput, ScoringRuleUncheckedCreateWithoutGroupInput> | ScoringRuleCreateWithoutGroupInput[] | ScoringRuleUncheckedCreateWithoutGroupInput[]
-    connectOrCreate?: ScoringRuleCreateOrConnectWithoutGroupInput | ScoringRuleCreateOrConnectWithoutGroupInput[]
-    upsert?: ScoringRuleUpsertWithWhereUniqueWithoutGroupInput | ScoringRuleUpsertWithWhereUniqueWithoutGroupInput[]
-    createMany?: ScoringRuleCreateManyGroupInputEnvelope
-    set?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
-    disconnect?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
-    delete?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
-    connect?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
-    update?: ScoringRuleUpdateWithWhereUniqueWithoutGroupInput | ScoringRuleUpdateWithWhereUniqueWithoutGroupInput[]
-    updateMany?: ScoringRuleUpdateManyWithWhereWithoutGroupInput | ScoringRuleUpdateManyWithWhereWithoutGroupInput[]
-    deleteMany?: ScoringRuleScalarWhereInput | ScoringRuleScalarWhereInput[]
+  export type GroupRuleUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<GroupRuleCreateWithoutGroupInput, GroupRuleUncheckedCreateWithoutGroupInput> | GroupRuleCreateWithoutGroupInput[] | GroupRuleUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupRuleCreateOrConnectWithoutGroupInput | GroupRuleCreateOrConnectWithoutGroupInput[]
+    upsert?: GroupRuleUpsertWithWhereUniqueWithoutGroupInput | GroupRuleUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: GroupRuleCreateManyGroupInputEnvelope
+    set?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    disconnect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    delete?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    connect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    update?: GroupRuleUpdateWithWhereUniqueWithoutGroupInput | GroupRuleUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: GroupRuleUpdateManyWithWhereWithoutGroupInput | GroupRuleUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: GroupRuleScalarWhereInput | GroupRuleScalarWhereInput[]
   }
 
   export type ScoreRecordUpdateManyWithoutGroupNestedInput = {
@@ -14754,18 +16090,18 @@ export namespace Prisma {
     deleteMany?: GroupMemberScalarWhereInput | GroupMemberScalarWhereInput[]
   }
 
-  export type ScoringRuleUncheckedUpdateManyWithoutGroupNestedInput = {
-    create?: XOR<ScoringRuleCreateWithoutGroupInput, ScoringRuleUncheckedCreateWithoutGroupInput> | ScoringRuleCreateWithoutGroupInput[] | ScoringRuleUncheckedCreateWithoutGroupInput[]
-    connectOrCreate?: ScoringRuleCreateOrConnectWithoutGroupInput | ScoringRuleCreateOrConnectWithoutGroupInput[]
-    upsert?: ScoringRuleUpsertWithWhereUniqueWithoutGroupInput | ScoringRuleUpsertWithWhereUniqueWithoutGroupInput[]
-    createMany?: ScoringRuleCreateManyGroupInputEnvelope
-    set?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
-    disconnect?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
-    delete?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
-    connect?: ScoringRuleWhereUniqueInput | ScoringRuleWhereUniqueInput[]
-    update?: ScoringRuleUpdateWithWhereUniqueWithoutGroupInput | ScoringRuleUpdateWithWhereUniqueWithoutGroupInput[]
-    updateMany?: ScoringRuleUpdateManyWithWhereWithoutGroupInput | ScoringRuleUpdateManyWithWhereWithoutGroupInput[]
-    deleteMany?: ScoringRuleScalarWhereInput | ScoringRuleScalarWhereInput[]
+  export type GroupRuleUncheckedUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<GroupRuleCreateWithoutGroupInput, GroupRuleUncheckedCreateWithoutGroupInput> | GroupRuleCreateWithoutGroupInput[] | GroupRuleUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupRuleCreateOrConnectWithoutGroupInput | GroupRuleCreateOrConnectWithoutGroupInput[]
+    upsert?: GroupRuleUpsertWithWhereUniqueWithoutGroupInput | GroupRuleUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: GroupRuleCreateManyGroupInputEnvelope
+    set?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    disconnect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    delete?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    connect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    update?: GroupRuleUpdateWithWhereUniqueWithoutGroupInput | GroupRuleUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: GroupRuleUpdateManyWithWhereWithoutGroupInput | GroupRuleUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: GroupRuleScalarWhereInput | GroupRuleScalarWhereInput[]
   }
 
   export type ScoreRecordUncheckedUpdateManyWithoutGroupNestedInput = {
@@ -14828,10 +16164,11 @@ export namespace Prisma {
     update?: XOR<XOR<GroupUpdateToOneWithWhereWithoutMembersInput, GroupUpdateWithoutMembersInput>, GroupUncheckedUpdateWithoutMembersInput>
   }
 
-  export type GroupCreateNestedOneWithoutScoringRulesInput = {
-    create?: XOR<GroupCreateWithoutScoringRulesInput, GroupUncheckedCreateWithoutScoringRulesInput>
-    connectOrCreate?: GroupCreateOrConnectWithoutScoringRulesInput
-    connect?: GroupWhereUniqueInput
+  export type GroupRuleCreateNestedManyWithoutRuleInput = {
+    create?: XOR<GroupRuleCreateWithoutRuleInput, GroupRuleUncheckedCreateWithoutRuleInput> | GroupRuleCreateWithoutRuleInput[] | GroupRuleUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: GroupRuleCreateOrConnectWithoutRuleInput | GroupRuleCreateOrConnectWithoutRuleInput[]
+    createMany?: GroupRuleCreateManyRuleInputEnvelope
+    connect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
   }
 
   export type ScoreRecordCreateNestedManyWithoutRuleInput = {
@@ -14839,6 +16176,13 @@ export namespace Prisma {
     connectOrCreate?: ScoreRecordCreateOrConnectWithoutRuleInput | ScoreRecordCreateOrConnectWithoutRuleInput[]
     createMany?: ScoreRecordCreateManyRuleInputEnvelope
     connect?: ScoreRecordWhereUniqueInput | ScoreRecordWhereUniqueInput[]
+  }
+
+  export type GroupRuleUncheckedCreateNestedManyWithoutRuleInput = {
+    create?: XOR<GroupRuleCreateWithoutRuleInput, GroupRuleUncheckedCreateWithoutRuleInput> | GroupRuleCreateWithoutRuleInput[] | GroupRuleUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: GroupRuleCreateOrConnectWithoutRuleInput | GroupRuleCreateOrConnectWithoutRuleInput[]
+    createMany?: GroupRuleCreateManyRuleInputEnvelope
+    connect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
   }
 
   export type ScoreRecordUncheckedCreateNestedManyWithoutRuleInput = {
@@ -14856,12 +16200,18 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type GroupUpdateOneRequiredWithoutScoringRulesNestedInput = {
-    create?: XOR<GroupCreateWithoutScoringRulesInput, GroupUncheckedCreateWithoutScoringRulesInput>
-    connectOrCreate?: GroupCreateOrConnectWithoutScoringRulesInput
-    upsert?: GroupUpsertWithoutScoringRulesInput
-    connect?: GroupWhereUniqueInput
-    update?: XOR<XOR<GroupUpdateToOneWithWhereWithoutScoringRulesInput, GroupUpdateWithoutScoringRulesInput>, GroupUncheckedUpdateWithoutScoringRulesInput>
+  export type GroupRuleUpdateManyWithoutRuleNestedInput = {
+    create?: XOR<GroupRuleCreateWithoutRuleInput, GroupRuleUncheckedCreateWithoutRuleInput> | GroupRuleCreateWithoutRuleInput[] | GroupRuleUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: GroupRuleCreateOrConnectWithoutRuleInput | GroupRuleCreateOrConnectWithoutRuleInput[]
+    upsert?: GroupRuleUpsertWithWhereUniqueWithoutRuleInput | GroupRuleUpsertWithWhereUniqueWithoutRuleInput[]
+    createMany?: GroupRuleCreateManyRuleInputEnvelope
+    set?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    disconnect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    delete?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    connect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    update?: GroupRuleUpdateWithWhereUniqueWithoutRuleInput | GroupRuleUpdateWithWhereUniqueWithoutRuleInput[]
+    updateMany?: GroupRuleUpdateManyWithWhereWithoutRuleInput | GroupRuleUpdateManyWithWhereWithoutRuleInput[]
+    deleteMany?: GroupRuleScalarWhereInput | GroupRuleScalarWhereInput[]
   }
 
   export type ScoreRecordUpdateManyWithoutRuleNestedInput = {
@@ -14878,6 +16228,20 @@ export namespace Prisma {
     deleteMany?: ScoreRecordScalarWhereInput | ScoreRecordScalarWhereInput[]
   }
 
+  export type GroupRuleUncheckedUpdateManyWithoutRuleNestedInput = {
+    create?: XOR<GroupRuleCreateWithoutRuleInput, GroupRuleUncheckedCreateWithoutRuleInput> | GroupRuleCreateWithoutRuleInput[] | GroupRuleUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: GroupRuleCreateOrConnectWithoutRuleInput | GroupRuleCreateOrConnectWithoutRuleInput[]
+    upsert?: GroupRuleUpsertWithWhereUniqueWithoutRuleInput | GroupRuleUpsertWithWhereUniqueWithoutRuleInput[]
+    createMany?: GroupRuleCreateManyRuleInputEnvelope
+    set?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    disconnect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    delete?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    connect?: GroupRuleWhereUniqueInput | GroupRuleWhereUniqueInput[]
+    update?: GroupRuleUpdateWithWhereUniqueWithoutRuleInput | GroupRuleUpdateWithWhereUniqueWithoutRuleInput[]
+    updateMany?: GroupRuleUpdateManyWithWhereWithoutRuleInput | GroupRuleUpdateManyWithWhereWithoutRuleInput[]
+    deleteMany?: GroupRuleScalarWhereInput | GroupRuleScalarWhereInput[]
+  }
+
   export type ScoreRecordUncheckedUpdateManyWithoutRuleNestedInput = {
     create?: XOR<ScoreRecordCreateWithoutRuleInput, ScoreRecordUncheckedCreateWithoutRuleInput> | ScoreRecordCreateWithoutRuleInput[] | ScoreRecordUncheckedCreateWithoutRuleInput[]
     connectOrCreate?: ScoreRecordCreateOrConnectWithoutRuleInput | ScoreRecordCreateOrConnectWithoutRuleInput[]
@@ -14890,6 +16254,34 @@ export namespace Prisma {
     update?: ScoreRecordUpdateWithWhereUniqueWithoutRuleInput | ScoreRecordUpdateWithWhereUniqueWithoutRuleInput[]
     updateMany?: ScoreRecordUpdateManyWithWhereWithoutRuleInput | ScoreRecordUpdateManyWithWhereWithoutRuleInput[]
     deleteMany?: ScoreRecordScalarWhereInput | ScoreRecordScalarWhereInput[]
+  }
+
+  export type GroupCreateNestedOneWithoutGroupRulesInput = {
+    create?: XOR<GroupCreateWithoutGroupRulesInput, GroupUncheckedCreateWithoutGroupRulesInput>
+    connectOrCreate?: GroupCreateOrConnectWithoutGroupRulesInput
+    connect?: GroupWhereUniqueInput
+  }
+
+  export type ScoringRuleCreateNestedOneWithoutGroupRulesInput = {
+    create?: XOR<ScoringRuleCreateWithoutGroupRulesInput, ScoringRuleUncheckedCreateWithoutGroupRulesInput>
+    connectOrCreate?: ScoringRuleCreateOrConnectWithoutGroupRulesInput
+    connect?: ScoringRuleWhereUniqueInput
+  }
+
+  export type GroupUpdateOneRequiredWithoutGroupRulesNestedInput = {
+    create?: XOR<GroupCreateWithoutGroupRulesInput, GroupUncheckedCreateWithoutGroupRulesInput>
+    connectOrCreate?: GroupCreateOrConnectWithoutGroupRulesInput
+    upsert?: GroupUpsertWithoutGroupRulesInput
+    connect?: GroupWhereUniqueInput
+    update?: XOR<XOR<GroupUpdateToOneWithWhereWithoutGroupRulesInput, GroupUpdateWithoutGroupRulesInput>, GroupUncheckedUpdateWithoutGroupRulesInput>
+  }
+
+  export type ScoringRuleUpdateOneRequiredWithoutGroupRulesNestedInput = {
+    create?: XOR<ScoringRuleCreateWithoutGroupRulesInput, ScoringRuleUncheckedCreateWithoutGroupRulesInput>
+    connectOrCreate?: ScoringRuleCreateOrConnectWithoutGroupRulesInput
+    upsert?: ScoringRuleUpsertWithoutGroupRulesInput
+    connect?: ScoringRuleWhereUniqueInput
+    update?: XOR<XOR<ScoringRuleUpdateToOneWithWhereWithoutGroupRulesInput, ScoringRuleUpdateWithoutGroupRulesInput>, ScoringRuleUncheckedUpdateWithoutGroupRulesInput>
   }
 
   export type UserCreateNestedOneWithoutScoreRecordsInput = {
@@ -14950,10 +16342,12 @@ export namespace Prisma {
     set?: $Enums.ActivityType
   }
 
-  export type UserUpdateOneRequiredWithoutActivityLogsNestedInput = {
+  export type UserUpdateOneWithoutActivityLogsNestedInput = {
     create?: XOR<UserCreateWithoutActivityLogsInput, UserUncheckedCreateWithoutActivityLogsInput>
     connectOrCreate?: UserCreateOrConnectWithoutActivityLogsInput
     upsert?: UserUpsertWithoutActivityLogsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutActivityLogsInput, UserUpdateWithoutActivityLogsInput>, UserUncheckedUpdateWithoutActivityLogsInput>
   }
@@ -15502,7 +16896,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: GroupMemberCreateNestedManyWithoutGroupInput
-    scoringRules?: ScoringRuleCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleCreateNestedManyWithoutGroupInput
     scoreRecords?: ScoreRecordCreateNestedManyWithoutGroupInput
     activityLogs?: ActivityLogCreateNestedManyWithoutGroupInput
   }
@@ -15515,7 +16909,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
-    scoringRules?: ScoringRuleUncheckedCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleUncheckedCreateNestedManyWithoutGroupInput
     scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutGroupInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutGroupInput
   }
@@ -15779,7 +17173,7 @@ export namespace Prisma {
     OR?: ActivityLogScalarWhereInput[]
     NOT?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
     id?: StringFilter<"ActivityLog"> | string
-    userId?: StringFilter<"ActivityLog"> | string
+    userId?: StringNullableFilter<"ActivityLog"> | string | null
     groupId?: StringNullableFilter<"ActivityLog"> | string | null
     action?: EnumActivityTypeFilter<"ActivityLog"> | $Enums.ActivityType
     description?: StringFilter<"ActivityLog"> | string
@@ -15850,37 +17244,27 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type ScoringRuleCreateWithoutGroupInput = {
+  export type GroupRuleCreateWithoutGroupInput = {
     id?: string
-    name: string
-    description?: string | null
-    criteria: JsonNullValueInput | InputJsonValue
-    points: number
     isActive?: boolean
     createdAt?: Date | string
-    updatedAt?: Date | string
-    scoreRecords?: ScoreRecordCreateNestedManyWithoutRuleInput
+    rule: ScoringRuleCreateNestedOneWithoutGroupRulesInput
   }
 
-  export type ScoringRuleUncheckedCreateWithoutGroupInput = {
+  export type GroupRuleUncheckedCreateWithoutGroupInput = {
     id?: string
-    name: string
-    description?: string | null
-    criteria: JsonNullValueInput | InputJsonValue
-    points: number
+    ruleId: string
     isActive?: boolean
     createdAt?: Date | string
-    updatedAt?: Date | string
-    scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutRuleInput
   }
 
-  export type ScoringRuleCreateOrConnectWithoutGroupInput = {
-    where: ScoringRuleWhereUniqueInput
-    create: XOR<ScoringRuleCreateWithoutGroupInput, ScoringRuleUncheckedCreateWithoutGroupInput>
+  export type GroupRuleCreateOrConnectWithoutGroupInput = {
+    where: GroupRuleWhereUniqueInput
+    create: XOR<GroupRuleCreateWithoutGroupInput, GroupRuleUncheckedCreateWithoutGroupInput>
   }
 
-  export type ScoringRuleCreateManyGroupInputEnvelope = {
-    data: ScoringRuleCreateManyGroupInput | ScoringRuleCreateManyGroupInput[]
+  export type GroupRuleCreateManyGroupInputEnvelope = {
+    data: GroupRuleCreateManyGroupInput | GroupRuleCreateManyGroupInput[]
     skipDuplicates?: boolean
   }
 
@@ -15920,12 +17304,12 @@ export namespace Prisma {
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     timestamp?: Date | string
-    user: UserCreateNestedOneWithoutActivityLogsInput
+    user?: UserCreateNestedOneWithoutActivityLogsInput
   }
 
   export type ActivityLogUncheckedCreateWithoutGroupInput = {
     id?: string
-    userId: string
+    userId?: string | null
     action: $Enums.ActivityType
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
@@ -16003,35 +17387,31 @@ export namespace Prisma {
     data: XOR<GroupMemberUpdateManyMutationInput, GroupMemberUncheckedUpdateManyWithoutGroupInput>
   }
 
-  export type ScoringRuleUpsertWithWhereUniqueWithoutGroupInput = {
-    where: ScoringRuleWhereUniqueInput
-    update: XOR<ScoringRuleUpdateWithoutGroupInput, ScoringRuleUncheckedUpdateWithoutGroupInput>
-    create: XOR<ScoringRuleCreateWithoutGroupInput, ScoringRuleUncheckedCreateWithoutGroupInput>
+  export type GroupRuleUpsertWithWhereUniqueWithoutGroupInput = {
+    where: GroupRuleWhereUniqueInput
+    update: XOR<GroupRuleUpdateWithoutGroupInput, GroupRuleUncheckedUpdateWithoutGroupInput>
+    create: XOR<GroupRuleCreateWithoutGroupInput, GroupRuleUncheckedCreateWithoutGroupInput>
   }
 
-  export type ScoringRuleUpdateWithWhereUniqueWithoutGroupInput = {
-    where: ScoringRuleWhereUniqueInput
-    data: XOR<ScoringRuleUpdateWithoutGroupInput, ScoringRuleUncheckedUpdateWithoutGroupInput>
+  export type GroupRuleUpdateWithWhereUniqueWithoutGroupInput = {
+    where: GroupRuleWhereUniqueInput
+    data: XOR<GroupRuleUpdateWithoutGroupInput, GroupRuleUncheckedUpdateWithoutGroupInput>
   }
 
-  export type ScoringRuleUpdateManyWithWhereWithoutGroupInput = {
-    where: ScoringRuleScalarWhereInput
-    data: XOR<ScoringRuleUpdateManyMutationInput, ScoringRuleUncheckedUpdateManyWithoutGroupInput>
+  export type GroupRuleUpdateManyWithWhereWithoutGroupInput = {
+    where: GroupRuleScalarWhereInput
+    data: XOR<GroupRuleUpdateManyMutationInput, GroupRuleUncheckedUpdateManyWithoutGroupInput>
   }
 
-  export type ScoringRuleScalarWhereInput = {
-    AND?: ScoringRuleScalarWhereInput | ScoringRuleScalarWhereInput[]
-    OR?: ScoringRuleScalarWhereInput[]
-    NOT?: ScoringRuleScalarWhereInput | ScoringRuleScalarWhereInput[]
-    id?: StringFilter<"ScoringRule"> | string
-    name?: StringFilter<"ScoringRule"> | string
-    description?: StringNullableFilter<"ScoringRule"> | string | null
-    criteria?: JsonFilter<"ScoringRule">
-    points?: IntFilter<"ScoringRule"> | number
-    isActive?: BoolFilter<"ScoringRule"> | boolean
-    createdAt?: DateTimeFilter<"ScoringRule"> | Date | string
-    updatedAt?: DateTimeFilter<"ScoringRule"> | Date | string
-    groupId?: StringFilter<"ScoringRule"> | string
+  export type GroupRuleScalarWhereInput = {
+    AND?: GroupRuleScalarWhereInput | GroupRuleScalarWhereInput[]
+    OR?: GroupRuleScalarWhereInput[]
+    NOT?: GroupRuleScalarWhereInput | GroupRuleScalarWhereInput[]
+    id?: StringFilter<"GroupRule"> | string
+    groupId?: StringFilter<"GroupRule"> | string
+    ruleId?: StringFilter<"GroupRule"> | string
+    isActive?: BoolFilter<"GroupRule"> | boolean
+    createdAt?: DateTimeFilter<"GroupRule"> | Date | string
   }
 
   export type ScoreRecordUpsertWithWhereUniqueWithoutGroupInput = {
@@ -16113,7 +17493,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy: UserCreateNestedOneWithoutGroupsInput
-    scoringRules?: ScoringRuleCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleCreateNestedManyWithoutGroupInput
     scoreRecords?: ScoreRecordCreateNestedManyWithoutGroupInput
     activityLogs?: ActivityLogCreateNestedManyWithoutGroupInput
   }
@@ -16126,7 +17506,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdById: string
-    scoringRules?: ScoringRuleUncheckedCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleUncheckedCreateNestedManyWithoutGroupInput
     scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutGroupInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutGroupInput
   }
@@ -16200,7 +17580,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: UserUpdateOneRequiredWithoutGroupsNestedInput
-    scoringRules?: ScoringRuleUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUpdateManyWithoutGroupNestedInput
     scoreRecords?: ScoreRecordUpdateManyWithoutGroupNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutGroupNestedInput
   }
@@ -16213,40 +17593,33 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdById?: StringFieldUpdateOperationsInput | string
-    scoringRules?: ScoringRuleUncheckedUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUncheckedUpdateManyWithoutGroupNestedInput
     scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutGroupNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutGroupNestedInput
   }
 
-  export type GroupCreateWithoutScoringRulesInput = {
+  export type GroupRuleCreateWithoutRuleInput = {
     id?: string
-    name: string
-    description?: string | null
     isActive?: boolean
     createdAt?: Date | string
-    updatedAt?: Date | string
-    createdBy: UserCreateNestedOneWithoutGroupsInput
-    members?: GroupMemberCreateNestedManyWithoutGroupInput
-    scoreRecords?: ScoreRecordCreateNestedManyWithoutGroupInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutGroupInput
+    group: GroupCreateNestedOneWithoutGroupRulesInput
   }
 
-  export type GroupUncheckedCreateWithoutScoringRulesInput = {
+  export type GroupRuleUncheckedCreateWithoutRuleInput = {
     id?: string
-    name: string
-    description?: string | null
+    groupId: string
     isActive?: boolean
     createdAt?: Date | string
-    updatedAt?: Date | string
-    createdById: string
-    members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
-    scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutGroupInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutGroupInput
   }
 
-  export type GroupCreateOrConnectWithoutScoringRulesInput = {
-    where: GroupWhereUniqueInput
-    create: XOR<GroupCreateWithoutScoringRulesInput, GroupUncheckedCreateWithoutScoringRulesInput>
+  export type GroupRuleCreateOrConnectWithoutRuleInput = {
+    where: GroupRuleWhereUniqueInput
+    create: XOR<GroupRuleCreateWithoutRuleInput, GroupRuleUncheckedCreateWithoutRuleInput>
+  }
+
+  export type GroupRuleCreateManyRuleInputEnvelope = {
+    data: GroupRuleCreateManyRuleInput | GroupRuleCreateManyRuleInput[]
+    skipDuplicates?: boolean
   }
 
   export type ScoreRecordCreateWithoutRuleInput = {
@@ -16279,41 +17652,20 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type GroupUpsertWithoutScoringRulesInput = {
-    update: XOR<GroupUpdateWithoutScoringRulesInput, GroupUncheckedUpdateWithoutScoringRulesInput>
-    create: XOR<GroupCreateWithoutScoringRulesInput, GroupUncheckedCreateWithoutScoringRulesInput>
-    where?: GroupWhereInput
+  export type GroupRuleUpsertWithWhereUniqueWithoutRuleInput = {
+    where: GroupRuleWhereUniqueInput
+    update: XOR<GroupRuleUpdateWithoutRuleInput, GroupRuleUncheckedUpdateWithoutRuleInput>
+    create: XOR<GroupRuleCreateWithoutRuleInput, GroupRuleUncheckedCreateWithoutRuleInput>
   }
 
-  export type GroupUpdateToOneWithWhereWithoutScoringRulesInput = {
-    where?: GroupWhereInput
-    data: XOR<GroupUpdateWithoutScoringRulesInput, GroupUncheckedUpdateWithoutScoringRulesInput>
+  export type GroupRuleUpdateWithWhereUniqueWithoutRuleInput = {
+    where: GroupRuleWhereUniqueInput
+    data: XOR<GroupRuleUpdateWithoutRuleInput, GroupRuleUncheckedUpdateWithoutRuleInput>
   }
 
-  export type GroupUpdateWithoutScoringRulesInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdBy?: UserUpdateOneRequiredWithoutGroupsNestedInput
-    members?: GroupMemberUpdateManyWithoutGroupNestedInput
-    scoreRecords?: ScoreRecordUpdateManyWithoutGroupNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutGroupNestedInput
-  }
-
-  export type GroupUncheckedUpdateWithoutScoringRulesInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdById?: StringFieldUpdateOperationsInput | string
-    members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
-    scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutGroupNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutGroupNestedInput
+  export type GroupRuleUpdateManyWithWhereWithoutRuleInput = {
+    where: GroupRuleScalarWhereInput
+    data: XOR<GroupRuleUpdateManyMutationInput, GroupRuleUncheckedUpdateManyWithoutRuleInput>
   }
 
   export type ScoreRecordUpsertWithWhereUniqueWithoutRuleInput = {
@@ -16330,6 +17682,138 @@ export namespace Prisma {
   export type ScoreRecordUpdateManyWithWhereWithoutRuleInput = {
     where: ScoreRecordScalarWhereInput
     data: XOR<ScoreRecordUpdateManyMutationInput, ScoreRecordUncheckedUpdateManyWithoutRuleInput>
+  }
+
+  export type GroupCreateWithoutGroupRulesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy: UserCreateNestedOneWithoutGroupsInput
+    members?: GroupMemberCreateNestedManyWithoutGroupInput
+    scoreRecords?: ScoreRecordCreateNestedManyWithoutGroupInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutGroupInput
+  }
+
+  export type GroupUncheckedCreateWithoutGroupRulesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById: string
+    members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
+    scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutGroupInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutGroupInput
+  }
+
+  export type GroupCreateOrConnectWithoutGroupRulesInput = {
+    where: GroupWhereUniqueInput
+    create: XOR<GroupCreateWithoutGroupRulesInput, GroupUncheckedCreateWithoutGroupRulesInput>
+  }
+
+  export type ScoringRuleCreateWithoutGroupRulesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    criteria: JsonNullValueInput | InputJsonValue
+    points: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    scoreRecords?: ScoreRecordCreateNestedManyWithoutRuleInput
+  }
+
+  export type ScoringRuleUncheckedCreateWithoutGroupRulesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    criteria: JsonNullValueInput | InputJsonValue
+    points: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutRuleInput
+  }
+
+  export type ScoringRuleCreateOrConnectWithoutGroupRulesInput = {
+    where: ScoringRuleWhereUniqueInput
+    create: XOR<ScoringRuleCreateWithoutGroupRulesInput, ScoringRuleUncheckedCreateWithoutGroupRulesInput>
+  }
+
+  export type GroupUpsertWithoutGroupRulesInput = {
+    update: XOR<GroupUpdateWithoutGroupRulesInput, GroupUncheckedUpdateWithoutGroupRulesInput>
+    create: XOR<GroupCreateWithoutGroupRulesInput, GroupUncheckedCreateWithoutGroupRulesInput>
+    where?: GroupWhereInput
+  }
+
+  export type GroupUpdateToOneWithWhereWithoutGroupRulesInput = {
+    where?: GroupWhereInput
+    data: XOR<GroupUpdateWithoutGroupRulesInput, GroupUncheckedUpdateWithoutGroupRulesInput>
+  }
+
+  export type GroupUpdateWithoutGroupRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: UserUpdateOneRequiredWithoutGroupsNestedInput
+    members?: GroupMemberUpdateManyWithoutGroupNestedInput
+    scoreRecords?: ScoreRecordUpdateManyWithoutGroupNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutGroupNestedInput
+  }
+
+  export type GroupUncheckedUpdateWithoutGroupRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
+    scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutGroupNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutGroupNestedInput
+  }
+
+  export type ScoringRuleUpsertWithoutGroupRulesInput = {
+    update: XOR<ScoringRuleUpdateWithoutGroupRulesInput, ScoringRuleUncheckedUpdateWithoutGroupRulesInput>
+    create: XOR<ScoringRuleCreateWithoutGroupRulesInput, ScoringRuleUncheckedCreateWithoutGroupRulesInput>
+    where?: ScoringRuleWhereInput
+  }
+
+  export type ScoringRuleUpdateToOneWithWhereWithoutGroupRulesInput = {
+    where?: ScoringRuleWhereInput
+    data: XOR<ScoringRuleUpdateWithoutGroupRulesInput, ScoringRuleUncheckedUpdateWithoutGroupRulesInput>
+  }
+
+  export type ScoringRuleUpdateWithoutGroupRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    criteria?: JsonNullValueInput | InputJsonValue
+    points?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    scoreRecords?: ScoreRecordUpdateManyWithoutRuleNestedInput
+  }
+
+  export type ScoringRuleUncheckedUpdateWithoutGroupRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    criteria?: JsonNullValueInput | InputJsonValue
+    points?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutRuleNestedInput
   }
 
   export type UserCreateWithoutScoreRecordsInput = {
@@ -16380,7 +17864,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdBy: UserCreateNestedOneWithoutGroupsInput
     members?: GroupMemberCreateNestedManyWithoutGroupInput
-    scoringRules?: ScoringRuleCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleCreateNestedManyWithoutGroupInput
     activityLogs?: ActivityLogCreateNestedManyWithoutGroupInput
   }
 
@@ -16393,7 +17877,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdById: string
     members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
-    scoringRules?: ScoringRuleUncheckedCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleUncheckedCreateNestedManyWithoutGroupInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutGroupInput
   }
 
@@ -16411,7 +17895,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    group: GroupCreateNestedOneWithoutScoringRulesInput
+    groupRules?: GroupRuleCreateNestedManyWithoutRuleInput
   }
 
   export type ScoringRuleUncheckedCreateWithoutScoreRecordsInput = {
@@ -16423,7 +17907,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    groupId: string
+    groupRules?: GroupRuleUncheckedCreateNestedManyWithoutRuleInput
   }
 
   export type ScoringRuleCreateOrConnectWithoutScoreRecordsInput = {
@@ -16496,7 +17980,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: UserUpdateOneRequiredWithoutGroupsNestedInput
     members?: GroupMemberUpdateManyWithoutGroupNestedInput
-    scoringRules?: ScoringRuleUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUpdateManyWithoutGroupNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutGroupNestedInput
   }
 
@@ -16509,7 +17993,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdById?: StringFieldUpdateOperationsInput | string
     members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
-    scoringRules?: ScoringRuleUncheckedUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUncheckedUpdateManyWithoutGroupNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutGroupNestedInput
   }
 
@@ -16533,7 +18017,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    group?: GroupUpdateOneRequiredWithoutScoringRulesNestedInput
+    groupRules?: GroupRuleUpdateManyWithoutRuleNestedInput
   }
 
   export type ScoringRuleUncheckedUpdateWithoutScoreRecordsInput = {
@@ -16545,7 +18029,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    groupId?: StringFieldUpdateOperationsInput | string
+    groupRules?: GroupRuleUncheckedUpdateManyWithoutRuleNestedInput
   }
 
   export type UserCreateWithoutActivityLogsInput = {
@@ -16596,7 +18080,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdBy: UserCreateNestedOneWithoutGroupsInput
     members?: GroupMemberCreateNestedManyWithoutGroupInput
-    scoringRules?: ScoringRuleCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleCreateNestedManyWithoutGroupInput
     scoreRecords?: ScoreRecordCreateNestedManyWithoutGroupInput
   }
 
@@ -16609,7 +18093,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdById: string
     members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
-    scoringRules?: ScoringRuleUncheckedCreateNestedManyWithoutGroupInput
+    groupRules?: GroupRuleUncheckedCreateNestedManyWithoutGroupInput
     scoreRecords?: ScoreRecordUncheckedCreateNestedManyWithoutGroupInput
   }
 
@@ -16683,7 +18167,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: UserUpdateOneRequiredWithoutGroupsNestedInput
     members?: GroupMemberUpdateManyWithoutGroupNestedInput
-    scoringRules?: ScoringRuleUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUpdateManyWithoutGroupNestedInput
     scoreRecords?: ScoreRecordUpdateManyWithoutGroupNestedInput
   }
 
@@ -16696,7 +18180,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdById?: StringFieldUpdateOperationsInput | string
     members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
-    scoringRules?: ScoringRuleUncheckedUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUncheckedUpdateManyWithoutGroupNestedInput
     scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutGroupNestedInput
   }
 
@@ -16823,7 +18307,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: GroupMemberUpdateManyWithoutGroupNestedInput
-    scoringRules?: ScoringRuleUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUpdateManyWithoutGroupNestedInput
     scoreRecords?: ScoreRecordUpdateManyWithoutGroupNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutGroupNestedInput
   }
@@ -16836,7 +18320,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
-    scoringRules?: ScoringRuleUncheckedUpdateManyWithoutGroupNestedInput
+    groupRules?: GroupRuleUncheckedUpdateManyWithoutGroupNestedInput
     scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutGroupNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutGroupNestedInput
   }
@@ -16935,15 +18419,11 @@ export namespace Prisma {
     joinedAt?: Date | string
   }
 
-  export type ScoringRuleCreateManyGroupInput = {
+  export type GroupRuleCreateManyGroupInput = {
     id?: string
-    name: string
-    description?: string | null
-    criteria: JsonNullValueInput | InputJsonValue
-    points: number
+    ruleId: string
     isActive?: boolean
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type ScoreRecordCreateManyGroupInput = {
@@ -16958,7 +18438,7 @@ export namespace Prisma {
 
   export type ActivityLogCreateManyGroupInput = {
     id?: string
-    userId: string
+    userId?: string | null
     action: $Enums.ActivityType
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
@@ -16986,39 +18466,25 @@ export namespace Prisma {
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type ScoringRuleUpdateWithoutGroupInput = {
+  export type GroupRuleUpdateWithoutGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    criteria?: JsonNullValueInput | InputJsonValue
-    points?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    scoreRecords?: ScoreRecordUpdateManyWithoutRuleNestedInput
+    rule?: ScoringRuleUpdateOneRequiredWithoutGroupRulesNestedInput
   }
 
-  export type ScoringRuleUncheckedUpdateWithoutGroupInput = {
+  export type GroupRuleUncheckedUpdateWithoutGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    criteria?: JsonNullValueInput | InputJsonValue
-    points?: IntFieldUpdateOperationsInput | number
+    ruleId?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    scoreRecords?: ScoreRecordUncheckedUpdateManyWithoutRuleNestedInput
   }
 
-  export type ScoringRuleUncheckedUpdateManyWithoutGroupInput = {
+  export type GroupRuleUncheckedUpdateManyWithoutGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    criteria?: JsonNullValueInput | InputJsonValue
-    points?: IntFieldUpdateOperationsInput | number
+    ruleId?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ScoreRecordUpdateWithoutGroupInput = {
@@ -17057,12 +18523,12 @@ export namespace Prisma {
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
+    user?: UserUpdateOneWithoutActivityLogsNestedInput
   }
 
   export type ActivityLogUncheckedUpdateWithoutGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: EnumActivityTypeFieldUpdateOperationsInput | $Enums.ActivityType
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
@@ -17071,11 +18537,18 @@ export namespace Prisma {
 
   export type ActivityLogUncheckedUpdateManyWithoutGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: EnumActivityTypeFieldUpdateOperationsInput | $Enums.ActivityType
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupRuleCreateManyRuleInput = {
+    id?: string
+    groupId: string
+    isActive?: boolean
+    createdAt?: Date | string
   }
 
   export type ScoreRecordCreateManyRuleInput = {
@@ -17086,6 +18559,27 @@ export namespace Prisma {
     criteria: JsonNullValueInput | InputJsonValue
     notes?: string | null
     recordedAt?: Date | string
+  }
+
+  export type GroupRuleUpdateWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    group?: GroupUpdateOneRequiredWithoutGroupRulesNestedInput
+  }
+
+  export type GroupRuleUncheckedUpdateWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupRuleUncheckedUpdateManyWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ScoreRecordUpdateWithoutRuleInput = {

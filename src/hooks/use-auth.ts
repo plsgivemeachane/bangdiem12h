@@ -15,7 +15,7 @@ interface UseAuthReturn {
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
-  signIn: (email: string, password: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<any>
   signOut: () => Promise<void>
   refreshSession: () => void
 }
