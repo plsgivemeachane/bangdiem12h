@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/middleware/auth.middleware'
 import { prisma } from '@/lib/prisma'
-import { UserRole, ActivityType } from '@/generated/prisma'
+import { UserRole, ActivityType } from '../../../../../../node_modules/.prisma/client'
 
 // GET /api/admin/users/[id] - Get single user details
 export async function GET(

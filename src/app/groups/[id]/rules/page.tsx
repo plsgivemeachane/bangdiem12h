@@ -141,7 +141,7 @@ export default function GroupRulesPage() {
       // This would typically call an API to toggle the rule status globally
       toast.success(`Rule "${rule.name}" status updated globally`)
       // For now, just update locally
-      setRules(prev => prev.map(r => 
+      setGroupRules(prev => prev.map(r => 
         r.id === rule.id ? { ...r, isActive: !r.isActive } : r
       ))
     } catch (error) {

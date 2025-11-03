@@ -360,7 +360,7 @@ export default function AdminUsersPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setRoleDialog({ open: true, user: userData, newRole: userData.role === 'ADMIN' ? 'USER' : 'ADMIN' })}
+                              onClick={() => setRoleDialog({ open: true, user: userData, newRole: (userData.role === 'ADMIN' ? 'USER' : 'ADMIN') as UserRole })}
                               disabled={userData.id === user?.id}
                             >
                               <Edit2 className="h-3 w-3" />

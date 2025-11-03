@@ -8,6 +8,10 @@ interface User {
   email: string | null
   name: string | null
   role: string
+  image: string | null
+  emailVerified: Date | null
+  createdAt: Date
+  password: string | null
 }
 
 interface UseAuthReturn {
@@ -34,7 +38,11 @@ export function useAuth(): UseAuthReturn {
       id: session.user.id as string,
       email: session.user.email,
       name: session.user.name,
-      role: (session.user.role as string) || 'USER'
+      role: (session.user.role as string) || 'USER',
+      image: session.user.image,
+      emailVerified: session.user.emailVerified,
+      createdAt: session.user.createdAt,
+      password: session.user.password
     }
   }, [session])
 

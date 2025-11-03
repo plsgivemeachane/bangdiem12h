@@ -62,14 +62,14 @@ export function ActivityFeed({
       const response = await fetch(`/api/activity-logs?${params.toString()}`)
       
       if (!response.ok) {
-        throw new Error('Failed to fetch activities')
+        throw new Error('Không thể tải hoạt động')
       }
 
       const data = await response.json()
       setActivities(data.activityLogs || [])
     } catch (error) {
       console.error('Failed to load activities:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load activities')
+      setError(error instanceof Error ? error.message : 'Không thể tải hoạt động')
     } finally {
       setIsLoading(false)
     }
@@ -83,12 +83,12 @@ export function ActivityFeed({
     const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / 86400000)
 
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+    if (diffMins < 1) return 'Vừa xong'
+    if (diffMins < 60) return `${diffMins} phút trước`
+    if (diffHours < 24) return `${diffHours} giờ trước`
+    if (diffDays < 7) return `${diffDays} ngày trước`
     
-    return activityDate.toLocaleDateString('en-US', {
+    return activityDate.toLocaleDateString('vi-VN', {
       month: 'short',
       day: 'numeric',
       year: activityDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
@@ -129,16 +129,42 @@ export function ActivityFeed({
   }
 
   const formatActionName = (action: ActivityType): string => {
-    return action.replace(/_/g, ' ').toLowerCase()
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
+    const translations: Record<ActivityType, string> = {
+      [ActivityType.USER_REGISTERED]: 'Người dùng đăng ký',
+      [ActivityType.USER_LOGIN]: 'Người dùng đăng nhập',
+      [ActivityType.LOGIN_FAILED]: 'Đăng nhập thất bại',
+      [ActivityType.PASSWORD_RESET_REQUESTED]: 'Yêu cầu đặt lại mật khẩu',
+      [ActivityType.PASSWORD_RESET_COMPLETED]: 'Đặt lại mật khẩu hoàn tất',
+      [ActivityType.ADMIN_USER_CREATED]: 'Quản trị viên tạo người dùng',
+      [ActivityType.ADMIN_USER_ROLE_UPDATED]: 'Quản trị viên cập nhật vai trò',
+      [ActivityType.ADMIN_USER_DELETED]: 'Quản trị viên xóa người dùng',
+      [ActivityType.ADMIN_PASSWORD_RESET_BY_ADMIN]: 'Quản trị viên đặt lại mật khẩu',
+      [ActivityType.GROUP_CREATED]: 'Tạo nhóm',
+      [ActivityType.GROUP_UPDATED]: 'Cập nhật nhóm',
+      [ActivityType.GROUP_DELETED]: 'Xóa nhóm',
+      [ActivityType.MEMBER_INVITED]: 'Mời thành viên',
+      [ActivityType.MEMBER_JOINED]: 'Thành viên tham gia',
+      [ActivityType.MEMBER_ADDED]: 'Thêm thành viên',
+      [ActivityType.MEMBER_REMOVED]: 'Xóa thành viên',
+      [ActivityType.MEMBER_ROLE_UPDATED]: 'Cập nhật vai trò thành viên',
+      [ActivityType.OWNERSHIP_TRANSFERRED]: 'Chuyển quyền sở hữu',
+      [ActivityType.SCORING_RULE_CREATED]: 'Tạo quy tắc chấm điểm',
+      [ActivityType.SCORING_RULE_UPDATED]: 'Cập nhật quy tắc chấm điểm',
+      [ActivityType.SCORING_RULE_DELETED]: 'Xóa quy tắc chấm điểm',
+      [ActivityType.RULE_ADDED_TO_GROUP]: 'Thêm quy tắc vào nhóm',
+      [ActivityType.RULE_REMOVED_FROM_GROUP]: 'Xóa quy tắc khỏi nhóm',
+      [ActivityType.SCORE_RECORDED]: 'Ghi điểm',
+      [ActivityType.SCORE_UPDATED]: 'Cập nhật điểm',
+      [ActivityType.SCORE_DELETED]: 'Xóa điểm'
+    }
+    
+    return translations[action] || action.replace(/_/g, ' ')
   }
 
   if (isLoading) {
     return (
       <div className="py-8">
-        <Loading text="Loading activities..." />
+        <Loading text="Đang tải hoạt động..." />
       </div>
     )
   }
@@ -148,7 +174,7 @@ export function ActivityFeed({
       <div className="text-center py-6">
         <p className="text-destructive text-sm mb-3">{error}</p>
         <Button variant="outline" size="sm" onClick={loadActivities}>
-          Try Again
+          Thử lại
         </Button>
       </div>
     )
@@ -158,7 +184,7 @@ export function ActivityFeed({
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Activity className="mx-auto h-10 w-10 mb-3 opacity-50" />
-        <p className="text-sm">No recent activity</p>
+        <p className="text-sm">Không có hoạt động gần đây</p>
       </div>
     )
   }
@@ -213,7 +239,7 @@ export function ActivityFeed({
             {!compact && activity.metadata && Object.keys(activity.metadata).length > 0 && (
               <details className="mt-2">
                 <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
-                  View details
+                  Xem chi tiết
                 </summary>
                 <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">
                   {JSON.stringify(activity.metadata, null, 2)}
@@ -231,7 +257,7 @@ export function ActivityFeed({
             className="w-full"
           >
             <Button variant="outline" size="sm" className="w-full">
-              View All Activity
+              Xem tất cả hoạt động
               <ExternalLink className="ml-2 h-3 w-3" />
             </Button>
           </Link>

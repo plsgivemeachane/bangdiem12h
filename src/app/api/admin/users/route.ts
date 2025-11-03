@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/middleware/auth.middleware'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, validatePasswordStrength, isCommonPassword } from '@/lib/utils/password'
 import { logAdminUserCreated } from '@/lib/activity-logger'
-import { UserRole } from '@/generated/prisma'
+import { UserRole } from '../../../../../node_modules/.prisma/client'
 
 // GET /api/admin/users - List all users with pagination and filtering
 export async function GET(request: NextRequest) {
