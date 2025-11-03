@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { UserAccountMenu } from './UserAccountMenu'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, Users, TrendingUp, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Users, TrendingUp, Menu, X, Shield } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -15,9 +15,13 @@ const navigation = [
   { name: 'Analytics', href: '/analytics', icon: TrendingUp },
 ]
 
+const adminNavigation = [
+  { name: 'Admin', href: '/admin/users', icon: Shield },
+]
+
 export function AppHeader() {
   const pathname = usePathname()
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isAdmin, isLoading } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Don't show header on auth pages
@@ -48,6 +52,25 @@ export function AppHeader() {
           {isAuthenticated && (
             <div className="hidden md:flex md:gap-1">
               {navigation.map((item) => {
+                const Icon = item.icon
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.name}
+                  </Link>
+                )
+              })}
+              {isAdmin && adminNavigation.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
                 return (
@@ -102,6 +125,26 @@ export function AppHeader() {
         <div className="md:hidden border-t">
           <div className="space-y-1 px-4 pb-3 pt-2">
             {navigation.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    'flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium transition-colors',
+                    isActive
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.name}
+                </Link>
+              )
+            })}
+            {isAdmin && adminNavigation.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
               return (
