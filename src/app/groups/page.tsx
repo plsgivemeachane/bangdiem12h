@@ -144,10 +144,13 @@ export default function GroupsPage() {
             Manage your groups and organize scoring activities
           </p>
         </div>
-        <Button onClick={handleCreateGroup}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Group
-        </Button>
+        {/* Only System ADMINs can create groups */}
+        {user?.role === 'ADMIN' && (
+          <Button onClick={handleCreateGroup}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Group
+          </Button>
+        )}
       </div>
 
       {/* Quick Stats */}

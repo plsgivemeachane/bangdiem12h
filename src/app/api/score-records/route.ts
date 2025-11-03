@@ -12,15 +12,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { groupId, ruleId, criteria, notes } = await request.json()
+    const { groupId, ruleId, criteria, notes, targetUserId } = await request.json()
 
-    if (!groupId || !ruleId) {
+    if (!groupId || !ruleId || !targetUserId) {
       return NextResponse.json({ 
-        error: 'Group ID and rule ID are required' 
+        error: 'Group ID, rule ID, and target user ID are required' 
       }, { status: 400 })
     }
 
-    // Verify user has access to this group
+    // Verify current user is ADMIN/OWNER of this group
     const group = await prisma.group.findUnique({
       where: { id: groupId },
       include: {
@@ -34,8 +34,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
-    if (group.members.length === 0) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+    const currentUserMember = group.members[0]
+    if (!currentUserMember) {
+      return NextResponse.json({ 
+        error: 'You are not a member of this group' 
+      }, { status: 403 })
+    }
+
+    // Only Group ADMINs can record scores
+    if (!['OWNER', 'ADMIN'].includes(currentUserMember.role)) {
+      return NextResponse.json({ 
+        error: 'Only group administrators can record scores' 
+      }, { status: 403 })
+    }
+
+    // Verify target user is in the group
+    const targetMember = await prisma.groupMember.findUnique({
+      where: {
+        userId_groupId: {
+          userId: targetUserId,
+          groupId
+        }
+      }
+    })
+
+    if (!targetMember) {
+      return NextResponse.json({ 
+        error: 'Target user is not a member of this group' 
+      }, { status: 404 })
     }
 
     // Get the scoring rule
@@ -43,31 +69,27 @@ export async function POST(request: NextRequest) {
       where: { id: ruleId }
     })
 
-    if (!rule) {
-      return NextResponse.json({ error: 'Scoring rule not found' }, { status: 404 })
+    if (!rule || !rule.isActive) {
+      return NextResponse.json({ 
+        error: 'Scoring rule not found or inactive' 
+      }, { status: 404 })
     }
 
-    if (!rule.isActive) {
-      return NextResponse.json({ error: 'This scoring rule is no longer active' }, { status: 400 })
-    }
-
-    // Check if the rule belongs to the group through GroupRule
+    // Verify rule belongs to group
     const groupRule = await prisma.groupRule.findFirst({
-      where: {
-        ruleId: ruleId,
-        groupId: groupId,
-        isActive: true
-      }
+      where: { ruleId, groupId, isActive: true }
     })
 
     if (!groupRule) {
-      return NextResponse.json({ error: 'Scoring rule does not belong to this group' }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'Scoring rule does not belong to this group' 
+      }, { status: 400 })
     }
 
-    // Create score record
+    // Create score record for target user
     const scoreRecord = await prisma.scoreRecord.create({
       data: {
-        userId: session.user.id,
+        userId: targetUserId,
         groupId,
         ruleId,
         points: rule.points,
@@ -92,11 +114,12 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       groupId,
       action: ActivityType.SCORE_RECORDED,
-      description: `Recorded ${rule.points} points for rule "${rule.name}"`,
+      description: `Recorded ${rule.points} points for ${scoreRecord.user.name || scoreRecord.user.email} using rule "${rule.name}"`,
       metadata: { 
         ruleName: rule.name, 
         points: rule.points, 
         scoreRecordId: scoreRecord.id,
+        targetUserId,
         criteria 
       }
     })
@@ -123,39 +146,18 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    if (!groupId) {
-      return NextResponse.json({ error: 'Group ID is required' }, { status: 400 })
+    // Build where clause (no permission restrictions - users can view all scores)
+    const whereClause: any = {}
+
+    if (groupId) {
+      whereClause.groupId = groupId
     }
 
-    // Verify user has access to this group
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
-      include: {
-        members: {
-          where: { userId: session.user.id }
-        }
-      }
-    })
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
-
-    const whereClause: any = {
-      groupId
-    }
-
-    // If userId is specified and different from current user, verify access
-    if (userId && userId !== session.user.id) {
-      if (group.members.length === 0 || (group.members[0].role === 'MEMBER')) {
-        return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-      }
+    if (userId) {
       whereClause.userId = userId
-    } else {
-      whereClause.userId = session.user.id
     }
 
-    // Add date filters
+    // Date filters
     if (startDate) {
       whereClause.recordedAt = { ...whereClause.recordedAt, gte: new Date(startDate) }
     }
@@ -172,6 +174,9 @@ export async function GET(request: NextRequest) {
           },
           user: {
             select: { id: true, name: true, email: true }
+          },
+          group: {
+            select: { id: true, name: true }
           }
         },
         orderBy: { recordedAt: 'desc' },

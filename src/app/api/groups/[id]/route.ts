@@ -56,13 +56,7 @@ export async function GET(
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
-    // Check if user has access to this group
-    const hasAccess = group.createdById === session.user.id || 
-                     group.members.some(member => member.userId === session.user.id)
-
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-    }
+    // No access check - all users can view all groups (read-only permission)
 
     // Transform groupRules to scoringRules for backward compatibility
     const groupWithScoringRules = {
@@ -104,7 +98,7 @@ export async function PATCH(
     }
 
     const userMember = group.members[0]
-    if (!userMember || (userMember.role !== 'OWNER' && userMember.role !== 'ADMIN')) {
+    if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
@@ -163,13 +157,16 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is the creator
+    // Check if user is OWNER/ADMIN of the group
     const group = await prisma.group.findUnique({
       where: { id: params.id },
       select: {
         id: true,
         name: true,
         createdById: true,
+        members: {
+          where: { userId: session.user.id }
+        },
         _count: {
           select: {
             scoreRecords: true,
@@ -183,8 +180,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
-    if (group.createdById !== session.user.id) {
-      return NextResponse.json({ error: 'Only the creator can delete the group' }, { status: 403 })
+    const userMember = group.members[0]
+    if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
+      return NextResponse.json({ error: 'Only group administrators can delete the group' }, { status: 403 })
     }
 
     // Warn if group has data

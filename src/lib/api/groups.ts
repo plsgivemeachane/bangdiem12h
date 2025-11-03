@@ -182,7 +182,7 @@ export class GroupsApi {
   }
 
   // Create a new score record
-  static async createScoreRecord(formData: { groupId: string; ruleId: string; criteria?: any; notes?: string }): Promise<any> {
+  static async createScoreRecord(formData: { groupId: string; ruleId: string; targetUserId: string; criteria?: any; notes?: string }): Promise<any> {
     const response = await fetch('/api/score-records', {
       method: 'POST',
       headers: {

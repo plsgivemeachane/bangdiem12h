@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const groupId = searchParams.get('groupId') // Optional: filter rules for a specific group
 
+    // No permission check - all users can view all rules
     let scoringRules
 
     if (groupId) {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' }
       })
     } else {
-      // Get all global rules
+      // Get all active rules
       scoringRules = await prisma.scoringRule.findMany({
         where: { isActive: true },
         orderBy: { createdAt: 'desc' }
@@ -62,17 +63,90 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only allow admin users to create global rules
-    if (session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
-
-    const { name, description, criteria, points } = await request.json()
+    const { name, description, criteria, points, groupId } = await request.json()
 
     if (!name || criteria === undefined || points === undefined) {
       return NextResponse.json({ 
         error: 'Name, criteria, and points are required' 
       }, { status: 400 })
+    }
+
+    // CASE 1: Group-scoped rule (NEW feature)
+    if (groupId) {
+      // Verify user is ADMIN/OWNER of the group
+      const group = await prisma.group.findUnique({
+        where: { id: groupId },
+        include: {
+          members: {
+            where: { userId: session.user.id }
+          }
+        }
+      })
+
+      if (!group) {
+        return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      }
+
+      const member = group.members[0]
+      if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
+        return NextResponse.json({ 
+          error: 'Only group administrators can create rules for this group' 
+        }, { status: 403 })
+      }
+
+      // Check for duplicate rule name within the group
+      const existingGroupRule = await prisma.groupRule.findFirst({
+        where: {
+          groupId,
+          rule: {
+            name: name.trim()
+          }
+        },
+        include: { rule: true }
+      })
+
+      if (existingGroupRule) {
+        return NextResponse.json({ 
+          error: 'A rule with this name already exists in this group' 
+        }, { status: 400 })
+      }
+
+      // Create the rule and auto-assign to the group
+      const scoringRule = await prisma.scoringRule.create({
+        data: {
+          name: name.trim(),
+          description: description?.trim() || null,
+          criteria,
+          points: parseInt(points),
+        }
+      })
+
+      // Create group-rule association
+      await prisma.groupRule.create({
+        data: {
+          groupId,
+          ruleId: scoringRule.id,
+          isActive: true
+        }
+      })
+
+      // Log activity
+      await logActivity({
+        userId: session.user.id,
+        groupId,
+        action: ActivityType.SCORING_RULE_CREATED,
+        description: `Created scoring rule "${scoringRule.name}" for group "${group.name}"`,
+        metadata: { ruleName: scoringRule.name, points: scoringRule.points, criteria }
+      })
+
+      return NextResponse.json({ scoringRule }, { status: 201 })
+    }
+
+    // CASE 2: Global rule - System ADMIN only
+    if (session.user.role !== 'ADMIN') {
+      return NextResponse.json({ 
+        error: 'Admin access required to create global rules' 
+      }, { status: 403 })
     }
 
     // Check for duplicate global rule names

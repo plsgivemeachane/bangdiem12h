@@ -124,8 +124,10 @@ export default function GroupScoringPage() {
   }
 
   // Get user's role in the group
-  const userRole = group?.members?.find(member => member.userId === user?.id)?.role || 'VIEWER'
-  const canRecordScores = userRole !== 'VIEWER'
+  const currentUserMember = group?.members?.find(member => member.userId === user?.id)
+  const userRole = currentUserMember?.role || 'VIEWER'
+  // Only Group ADMINs can record scores
+  const canRecordScores = currentUserMember && ['OWNER', 'ADMIN'].includes(currentUserMember.role)
 
   // Calculate stats
   const totalPoints = scoreRecords.reduce((sum, record) => sum + (record.points || 0), 0)
@@ -440,15 +442,18 @@ export default function GroupScoringPage() {
         </Card>
       )}
 
-      {/* Score Recording Modal */}
-      <ScoreRecordingModal
-        isOpen={showScoreModal}
-        onClose={handleScoreModalClose}
-        onScoreRecorded={handleScoreRecorded}
-        groupId={groupId}
-        groupName={group.name}
-        availableRules={group?.scoringRules || []}
-      />
+      {/* Score Recording Modal - Only for Group ADMINs */}
+      {canRecordScores && (
+        <ScoreRecordingModal
+          isOpen={showScoreModal}
+          onClose={handleScoreModalClose}
+          onScoreRecorded={handleScoreRecorded}
+          groupId={groupId}
+          groupName={group.name}
+          availableRules={group?.scoringRules || []}
+          groupMembers={group?.members || []}
+        />
+      )}
     </div>
   )
 }

@@ -32,9 +32,7 @@ export async function GET(
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
-    if (group.members.length === 0) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-    }
+    // No access check for viewing - all users can view all groups
 
     // Get rules available to this group
     const availableRules = await prisma.scoringRule.findMany({
@@ -89,10 +87,7 @@ export async function POST(
       where: { id: groupId },
       include: {
         members: {
-          where: { 
-            userId: session.user.id,
-            role: { in: ['OWNER', 'ADMIN'] }
-          }
+          where: { userId: session.user.id }
         }
       }
     })
@@ -101,7 +96,8 @@ export async function POST(
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
-    if (group.members.length === 0) {
+    const userMember = group.members[0]
+    if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
       return NextResponse.json({ 
         error: 'Admin/Owner access required to manage group rules' 
       }, { status: 403 })
@@ -220,10 +216,7 @@ export async function DELETE(
       where: { id: groupId },
       include: {
         members: {
-          where: { 
-            userId: session.user.id,
-            role: { in: ['OWNER', 'ADMIN'] }
-          }
+          where: { userId: session.user.id }
         }
       }
     })
@@ -232,7 +225,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
-    if (group.members.length === 0) {
+    const userMember = group.members[0]
+    if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
       return NextResponse.json({ 
         error: 'Admin/Owner access required to manage group rules' 
       }, { status: 403 })

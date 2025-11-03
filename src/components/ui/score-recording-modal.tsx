@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { X, Save, Award, Calendar, FileText, Target } from 'lucide-react'
+import { X, Save, Award, Calendar, FileText, Target, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { GroupsApi } from '@/lib/api/groups'
-import { ScoringRule } from '@/types'
+import { ScoringRule, GroupMember } from '@/types'
 import toast from 'react-hot-toast'
 
 interface ScoreRecordingModalProps {
@@ -20,6 +20,7 @@ interface ScoreRecordingModalProps {
   groupId: string
   groupName: string
   availableRules: ScoringRule[]
+  groupMembers: GroupMember[]
 }
 
 export function ScoreRecordingModal({
@@ -28,10 +29,12 @@ export function ScoreRecordingModal({
   onScoreRecorded,
   groupId,
   groupName,
-  availableRules
+  availableRules,
+  groupMembers
 }: ScoreRecordingModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
+    targetUserId: '',
     ruleId: '',
     points: '',
     notes: '',
@@ -59,6 +62,11 @@ export function ScoreRecordingModal({
   }
 
   const validateForm = () => {
+    if (!formData.targetUserId) {
+      toast.error('Please select a member')
+      return false
+    }
+
     if (!formData.ruleId) {
       toast.error('Please select a scoring rule')
       return false
@@ -98,6 +106,7 @@ export function ScoreRecordingModal({
       const scoreData = {
         groupId,
         ruleId: formData.ruleId,
+        targetUserId: formData.targetUserId,
         points: parseFloat(formData.points),
         notes: formData.notes.trim() || undefined,
         recordedAt: formData.recordedAt ? new Date(formData.recordedAt) : undefined
@@ -111,6 +120,7 @@ export function ScoreRecordingModal({
       
       // Reset form
       setFormData({
+        targetUserId: '',
         ruleId: '',
         points: '',
         notes: '',
@@ -134,6 +144,7 @@ export function ScoreRecordingModal({
       onClose()
       // Reset form
       setFormData({
+        targetUserId: '',
         ruleId: '',
         points: '',
         notes: '',
@@ -169,6 +180,38 @@ export function ScoreRecordingModal({
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Member Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="member-select" className="text-base font-medium flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Member *
+              </Label>
+              <Select 
+                value={formData.targetUserId} 
+                onValueChange={(value) => handleInputChange('targetUserId', value)}
+                disabled={isLoading}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select a member to score..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {groupMembers.map((member) => (
+                    <SelectItem key={member.userId} value={member.userId}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{member.user?.name || member.user?.email}</span>
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {member.role.toLowerCase()}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                Select which member this score is for
+              </p>
+            </div>
+
             {/* Rule Selection */}
             <div className="space-y-4">
               <div>
@@ -302,7 +345,7 @@ export function ScoreRecordingModal({
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !formData.ruleId || !formData.points || availableRules.filter(rule => rule.isActive).length === 0}
+                disabled={isLoading || !formData.targetUserId || !formData.ruleId || !formData.points || availableRules.filter(rule => rule.isActive).length === 0}
                 className="min-w-32"
               >
                 {isLoading ? (

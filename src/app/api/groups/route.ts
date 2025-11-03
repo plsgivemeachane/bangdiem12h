@@ -12,17 +12,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Fetch ALL groups - users can view all groups (read-only permission)
     const groups = await prisma.group.findMany({
-      where: {
-        OR: [
-          { createdById: session.user.id },
-          { 
-            members: {
-              some: { userId: session.user.id }
-            }
-          }
-        ]
-      },
       include: {
         createdBy: {
           select: { id: true, name: true, email: true }
@@ -56,6 +47,13 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Only System ADMINs can create groups
+    if (session.user.role !== 'ADMIN') {
+      return NextResponse.json({ 
+        error: 'Only system administrators can create groups' 
+      }, { status: 403 })
     }
 
     const { name, description } = await request.json()

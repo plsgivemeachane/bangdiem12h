@@ -24,7 +24,7 @@ import {
 import { GroupCardProps } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/navigation'
-import { usePermissions } from '@/hooks/use-auth'
+import { useAuth } from '@/hooks/use-auth'
 import { LoadingSpinner } from '@/components/ui/loading'
 
 export function GroupCard({ 
@@ -36,11 +36,15 @@ export function GroupCard({
 }: GroupCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { hasPermission } = usePermissions()
+  const { user } = useAuth()
   
   const memberCount = group.members?.length || 0
   const activeRulesCount = group._count?.groupRules || 0
   const scoreRecordsCount = group._count?.scoreRecords || 0
+
+  // Check if current user is a group admin
+  const currentUserMember = group.members?.find(m => m.userId === user?.id)
+  const isGroupAdmin = currentUserMember && ['OWNER', 'ADMIN'].includes(currentUserMember.role)
 
   const handleEdit = () => {
     if (onEdit) {
@@ -122,21 +126,24 @@ export function GroupCard({
                   View Details
                 </DropdownMenuItem>
                 
-                {hasPermission('manage-members') && (
+                {/* Only Group ADMINs can manage members */}
+                {isGroupAdmin && (
                   <DropdownMenuItem onClick={handleManageMembers}>
                     <Users className="mr-2 h-4 w-4" />
                     Manage Members
                   </DropdownMenuItem>
                 )}
                 
-                {hasPermission('edit-group') && (
+                {/* Only Group ADMINs can edit */}
+                {isGroupAdmin && (
                   <DropdownMenuItem onClick={handleEdit}>
                     <Edit className="mr-2 h-4 w-4" />
                     Edit Group
                   </DropdownMenuItem>
                 )}
                 
-                {hasPermission('delete-group') && (
+                {/* Only Group ADMINs can delete */}
+                {isGroupAdmin && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
@@ -205,7 +212,8 @@ export function GroupCard({
             Details
           </Button>
           
-          {hasPermission('manage-members') && (
+          {/* Only Group ADMINs can manage members */}
+          {isGroupAdmin && (
             <Button 
               variant="outline" 
               size="sm" 
