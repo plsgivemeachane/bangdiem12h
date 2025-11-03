@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { ActivityFeed } from '@/components/activity/ActivityFeed'
+import { GroupForm } from '@/components/groups/GroupForm'
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { Group, GroupMember } from '@/types'
@@ -32,6 +33,7 @@ export default function GroupDetailPage() {
   const [group, setGroup] = useState<Group | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false)
 
   // Load group data on mount
   useEffect(() => {
@@ -87,6 +89,20 @@ export default function GroupDetailPage() {
 
   const handleViewRules = () => {
     router.push(`/groups/${groupId}/rules`)
+  }
+
+  const handleEditGroup = () => {
+    setIsEditFormOpen(true)
+  }
+
+  const handleEditSuccess = (updatedGroup?: Group) => {
+    setIsEditFormOpen(false)
+    if (updatedGroup) {
+      setGroup(updatedGroup)
+      toast.success('Group updated successfully')
+    } else {
+      loadGroup()
+    }
   }
 
   // Check if user has permission to manage group
@@ -185,7 +201,7 @@ export default function GroupDetailPage() {
         
         {canManageGroup && (
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleEditGroup}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Group
             </Button>
@@ -391,6 +407,15 @@ export default function GroupDetailPage() {
           <ActivityFeed groupId={group.id} limit={5} compact={true} showViewAll={true} />
         </CardContent>
       </Card>
+
+      {/* Edit Group Form */}
+      <GroupForm
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        onSuccess={handleEditSuccess}
+        group={group}
+        mode="edit"
+      />
     </div>
   )
 }
