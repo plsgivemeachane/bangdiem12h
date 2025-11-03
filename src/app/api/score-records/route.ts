@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { groupId, ruleId, criteria, notes, targetUserId } = await request.json()
+    const { groupId, ruleId, criteria, notes, targetUserId, points: customPoints } = await request.json()
 
     if (!groupId || !ruleId || !targetUserId) {
       return NextResponse.json({ 
@@ -86,13 +86,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Use custom points if provided, otherwise use rule's default points
+    const finalPoints = customPoints !== undefined ? customPoints : rule.points
+
     // Create score record for target user
     const scoreRecord = await prisma.scoreRecord.create({
       data: {
         userId: targetUserId,
         groupId,
         ruleId,
-        points: rule.points,
+        points: finalPoints,
         criteria: criteria || rule.criteria,
         notes: notes?.trim() || null,
       },
@@ -114,10 +117,10 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       groupId,
       action: ActivityType.SCORE_RECORDED,
-      description: `Recorded ${rule.points} points for ${scoreRecord.user.name || scoreRecord.user.email} using rule "${rule.name}"`,
+      description: `Recorded ${finalPoints} points for ${scoreRecord.user.name || scoreRecord.user.email} using rule "${rule.name}"`,
       metadata: { 
         ruleName: rule.name, 
-        points: rule.points, 
+        points: finalPoints, 
         scoreRecordId: scoreRecord.id,
         targetUserId,
         criteria 

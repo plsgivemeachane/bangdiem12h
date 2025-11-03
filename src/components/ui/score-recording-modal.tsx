@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { GroupsApi } from '@/lib/api/groups'
 import { ScoringRule, GroupMember } from '@/types'
 import toast from 'react-hot-toast'
@@ -33,6 +34,7 @@ export function ScoreRecordingModal({
   groupMembers
 }: ScoreRecordingModalProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [overridePoints, setOverridePoints] = useState(false)
   const [formData, setFormData] = useState({
     targetUserId: '',
     ruleId: '',
@@ -57,6 +59,8 @@ export function ScoreRecordingModal({
           ...prev,
           points: rule.points.toString()
         }))
+        // Reset override when rule changes
+        setOverridePoints(false)
       }
     }
   }
@@ -72,21 +76,24 @@ export function ScoreRecordingModal({
       return false
     }
 
-    if (!formData.points || isNaN(parseFloat(formData.points))) {
-      toast.error('Please enter valid points')
-      return false
-    }
-
-    if (parseFloat(formData.points) <= 0) {
-      toast.error('Points must be greater than 0')
-      return false
-    }
-
-    const points = parseFloat(formData.points)
-    if (selectedRule && points !== selectedRule.points) {
-      // Allow custom points, but warn if different from rule's default
-      if (!window.confirm(`You're recording ${points} points but the rule "${selectedRule.name}" typically gives ${selectedRule.points} points. Continue anyway?`)) {
+    // Only validate points if override is enabled
+    if (overridePoints) {
+      if (!formData.points || isNaN(parseFloat(formData.points))) {
+        toast.error('Please enter valid points')
         return false
+      }
+
+      if (parseFloat(formData.points) <= 0) {
+        toast.error('Points must be greater than 0')
+        return false
+      }
+
+      const points = parseFloat(formData.points)
+      if (selectedRule && points !== selectedRule.points) {
+        // Allow custom points, but warn if different from rule's default
+        if (!window.confirm(`You're recording ${points} points but the rule "${selectedRule.name}" typically gives ${selectedRule.points} points. Continue anyway?`)) {
+          return false
+        }
       }
     }
 
@@ -103,11 +110,16 @@ export function ScoreRecordingModal({
     setIsLoading(true)
 
     try {
+      // Use rule's default points if override is disabled
+      const finalPoints = overridePoints && formData.points 
+        ? parseFloat(formData.points) 
+        : selectedRule?.points
+
       const scoreData = {
         groupId,
         ruleId: formData.ruleId,
         targetUserId: formData.targetUserId,
-        points: parseFloat(formData.points),
+        points: finalPoints,
         notes: formData.notes.trim() || undefined,
         recordedAt: formData.recordedAt ? new Date(formData.recordedAt) : undefined
       }
@@ -126,6 +138,7 @@ export function ScoreRecordingModal({
         notes: '',
         recordedAt: new Date().toISOString().split('T')[0]
       })
+      setOverridePoints(false)
 
     } catch (error) {
       console.error('Failed to record score:', error)
@@ -150,6 +163,7 @@ export function ScoreRecordingModal({
         notes: '',
         recordedAt: new Date().toISOString().split('T')[0]
       })
+      setOverridePoints(false)
     }
   }
 
@@ -264,38 +278,56 @@ export function ScoreRecordingModal({
                         {selectedRule.points} pts
                       </Badge>
                     </div>
+                    
+                    {/* Override Points Checkbox */}
+                    <div className="flex items-center space-x-2 mt-4 pt-4 border-t">
+                      <Checkbox 
+                        id="override-points" 
+                        checked={overridePoints}
+                        onCheckedChange={(checked: boolean) => setOverridePoints(checked)}
+                        disabled={isLoading}
+                      />
+                      <Label 
+                        htmlFor="override-points" 
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        Override default points ({selectedRule.points} pts)
+                      </Label>
+                    </div>
                   </CardContent>
                 </Card>
               )}
             </div>
 
-            {/* Points */}
-            <div className="space-y-2">
-              <Label htmlFor="points" className="text-base font-medium">
-                Points *
-              </Label>
-              <div className="relative">
-                <Input
-                  id="points"
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  value={formData.points}
-                  onChange={(e) => handleInputChange('points', e.target.value)}
-                  placeholder={selectedRule ? selectedRule.points.toString() : "0"}
-                  disabled={isLoading}
-                  required
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <span className="text-sm text-muted-foreground">points</span>
+            {/* Points - Only show when override is enabled */}
+            {overridePoints && selectedRule && (
+              <div className="space-y-2">
+                <Label htmlFor="points" className="text-base font-medium">
+                  Points *
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="points"
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    value={formData.points}
+                    onChange={(e) => handleInputChange('points', e.target.value)}
+                    placeholder={selectedRule.points.toString()}
+                    disabled={isLoading}
+                    required
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-sm text-muted-foreground">points</span>
+                  </div>
                 </div>
+                {parseFloat(formData.points) !== selectedRule.points && formData.points && (
+                  <p className="text-sm text-amber-600">
+                    ⚠️ This differs from the rule's default of {selectedRule.points} points
+                  </p>
+                )}
               </div>
-              {selectedRule && parseFloat(formData.points) !== selectedRule.points && formData.points && (
-                <p className="text-sm text-amber-600">
-                  ⚠️ This differs from the rule's default of {selectedRule.points} points
-                </p>
-              )}
-            </div>
+            )}
 
             {/* Date */}
             <div className="space-y-2">
@@ -345,7 +377,7 @@ export function ScoreRecordingModal({
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !formData.targetUserId || !formData.ruleId || !formData.points || availableRules.filter(rule => rule.isActive).length === 0}
+                disabled={isLoading || !formData.targetUserId || !formData.ruleId || (overridePoints && !formData.points) || availableRules.filter(rule => rule.isActive).length === 0}
                 className="min-w-32"
               >
                 {isLoading ? (
