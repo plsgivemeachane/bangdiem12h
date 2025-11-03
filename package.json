@@ -13,8 +13,8 @@
     "db:seed": "prisma db seed",
     "seed:admin": "node prisma/seed.js",
     "dev": "next dev --turbopack",
-    "vercel-build": "bunx prisma generate && bun run build",
-    "postinstall": "bunx prisma generate"
+    "vercel-build": "npx prisma generate && npm run build",
+    "postinstall": "npx prisma generate"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
