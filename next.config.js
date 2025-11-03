@@ -1,11 +1,16 @@
-/** @type {import('next').NextConfig} */
-const path = require('path')
+import { PrismaPlugin } from "@prisma/nextjs-monorepo-workaround-plugin";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Explicitly set project root to prevent webpack from scanning outside
-  // reactStrictMode: true,
+  devIndicators: false,
   output: 'standalone',
   experimental: {
+    authInterrupts: true,
     outputFileTracingIgnores: ["./generated/client/**/*"],
     outputFileTracingExcludes: ["./generated/client/**/*"],
   },
@@ -18,16 +23,17 @@ const nextConfig = {
     DATABASE_URL: process.env.DATABASE_URL,
   },
   webpack: (config, { isServer, dev }) => {
-    // Set explicit context to project directory
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()];
+    }
+    
     config.context = __dirname
-    // Restrict webpack to only scan the project directory
     config.resolve.modules = [
       path.resolve(__dirname, 'src'),
       path.resolve(__dirname, 'node_modules'),
       'node_modules'
     ]
     
-    // Ignore Windows system directories and prevent scanning outside project
     config.watchOptions = {
       ...config.watchOptions,
       ignored: [
@@ -36,10 +42,8 @@ const nextConfig = {
       ],
     }
     
-    // Prevent webpack from traversing symlinks
     config.resolve.symlinks = false
     
-    // Disable snapshot to avoid permission issues on Windows
     config.snapshot = {
       managedPaths: [path.resolve(__dirname, 'node_modules')],
       immutablePaths: [],
@@ -63,4 +67,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+export default nextConfig;
