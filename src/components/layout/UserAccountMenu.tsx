@@ -22,11 +22,11 @@ export function UserAccountMenu() {
   const handleSignOut = async () => {
     try {
       await signOut()
-      toast.success('Signed out successfully')
+      toast.success('Đăng xuất thành công')
       router.push('/auth/signin')
     } catch (error) {
       console.error('Sign out error:', error)
-      toast.error('Failed to sign out')
+      toast.error('Không thể đăng xuất')
     }
   }
 
@@ -75,21 +75,21 @@ export function UserAccountMenu() {
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push('/account')} className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>Hồ sơ</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/account/settings')} className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>Cài đặt</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/activity-logs')} className="cursor-pointer">
             <Activity className="mr-2 h-4 w-4" />
-            <span>Activity Logs</span>
+            <span>Nhật ký hoạt động</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600">
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Sign Out</span>
+          <span>Đăng xuất</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

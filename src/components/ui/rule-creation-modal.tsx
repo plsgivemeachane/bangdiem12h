@@ -91,12 +91,12 @@ export function RuleCreationModal({
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      toast.error('Rule name is required')
+      toast.error('Tên quy tắc là bắt buộc')
       return false
     }
 
     if (!formData.points || isNaN(parseInt(formData.points))) {
-      toast.error('Please enter a valid number for points (positive for rewards, negative for penalties)')
+      toast.error('Vui lòng nhập số hợp lệ cho điểm (dương cho thưởng, âm cho phạt)')
       return false
     }
 
@@ -139,7 +139,7 @@ export function RuleCreationModal({
       if (mode === 'edit' && existingRule) {
         // For now, we'll handle edit as creating a new rule
         // In a real implementation, you'd want a PUT endpoint for scoring-rules
-        toast.error('Editing existing rules is not yet implemented')
+        toast.error('Chức năng chỉnh sửa quy tắc chưa được triển khai')
         return
       }
 
@@ -151,7 +151,7 @@ export function RuleCreationModal({
         points
       })
 
-      toast.success(`Rule "${newRule.name}" created successfully!`)
+      toast.success(`Quy tắc "${newRule.name}" đã được tạo thành công!`)
       onRuleCreated?.(newRule)
       onClose()
       
@@ -167,9 +167,9 @@ export function RuleCreationModal({
     } catch (error) {
       console.error('Failed to create rule:', error)
       if (error instanceof Error) {
-        toast.error(error.message || 'Failed to create rule')
+        toast.error(error.message || 'Không thể tạo quy tắc')
       } else {
-        toast.error('Failed to create rule')
+        toast.error('Không thể tạo quy tắc')
       }
     } finally {
       setIsLoading(false)
@@ -198,10 +198,10 @@ export function RuleCreationModal({
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
             <CardTitle className="text-xl font-bold">
-              {mode === 'create' ? 'Create New Scoring Rule' : 'Edit Scoring Rule'}
+              {mode === 'create' ? 'Tạo quy tắc chấm điểm mới' : 'Chỉnh sửa quy tắc chấm điểm'}
             </CardTitle>
             <CardDescription>
-              Define a new scoring rule that can be used across all groups
+              Định nghĩa quy tắc chấm điểm mới có thể được sử dụng trong tất cả các nhóm
             </CardDescription>
           </div>
           <Button 
@@ -218,45 +218,45 @@ export function RuleCreationModal({
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Basic Information</h3>
+              <h3 className="text-lg font-semibold">Thông tin cơ bản</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="rule-name">Rule Name *</Label>
+                  <Label htmlFor="rule-name">Tên quy tắc *</Label>
                   <Input
                     id="rule-name"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="e.g., Task Completion, Participation"
+                    placeholder="VD: Hoàn thành nhiệm vụ, Tham gia"
                     disabled={isLoading}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="rule-points">Points *</Label>
+                  <Label htmlFor="rule-points">Điểm *</Label>
                   <Input
                     id="rule-points"
                     type="number"
                     value={formData.points}
                     onChange={(e) => handleInputChange('points', e.target.value)}
-                    placeholder="e.g., 10 for reward, -5 for penalty"
+                    placeholder="VD: 10 cho thưởng, -5 cho phạt"
                     disabled={isLoading}
                     required
                   />
                   <p className="text-xs text-muted-foreground">
-                    Use positive numbers for rewards, negative for penalties
+                    Dùng số dương cho thưởng, số âm cho phạt
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="rule-description">Description</Label>
+                <Label htmlFor="rule-description">Mô tả</Label>
                 <Textarea
                   id="rule-description"
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Describe what this rule is for and when it should be applied..."
+                  placeholder="Mô tả quy tắc này dùng để làm gì và khi nào nên áp dụng..."
                   rows={3}
                   disabled={isLoading}
                 />
@@ -266,7 +266,7 @@ export function RuleCreationModal({
             {/* Scoring Criteria */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Scoring Criteria</h3>
+                <h3 className="text-lg font-semibold">Tiêu chí chấm điểm</h3>
                 <Select 
                   value={criteriaType} 
                   onValueChange={handleCriteriaTypeChange}
@@ -276,8 +276,8 @@ export function RuleCreationModal({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manual">Manual Selection</SelectItem>
-                    <SelectItem value="automatic">Automatic Conditions</SelectItem>
+                    <SelectItem value="manual">Chọn thủ công</SelectItem>
+                    <SelectItem value="automatic">Điều kiện tự động</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -285,12 +285,12 @@ export function RuleCreationModal({
               <div className="p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <Badge variant={criteriaType === 'manual' ? 'default' : 'secondary'}>
-                    {criteriaType === 'manual' ? 'Manual' : 'Automatic'}
+                    {criteriaType === 'manual' ? 'Thủ công' : 'Tự động'}
                   </Badge>
                   <span className="text-sm text-muted-foreground">
                     {criteriaType === 'manual' 
-                      ? 'Members will manually select this rule when recording scores'
-                      : 'Scores will be automatically calculated based on conditions'
+                      ? 'Thành viên sẽ chọn quy tắc này thủ công khi ghi điểm'
+                      : 'Điểm sẽ được tính tự động dựa trên điều kiện'
                     }
                   </span>
                 </div>
@@ -298,7 +298,7 @@ export function RuleCreationModal({
                 {criteriaType === 'automatic' && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Conditions</Label>
+                      <Label className="text-sm font-medium">Điều kiện</Label>
                       <Button
                         type="button"
                         variant="outline"
@@ -307,20 +307,20 @@ export function RuleCreationModal({
                         disabled={isLoading}
                       >
                         <Plus className="h-4 w-4 mr-1" />
-                        Add Condition
+                        Thêm điều kiện
                       </Button>
                     </div>
 
                     {criteriaConditions.length === 0 ? (
                       <p className="text-sm text-muted-foreground py-4 text-center">
-                        No conditions added yet. Add conditions to automatically trigger this rule.
+                        Chưa có điều kiện nào. Thêm điều kiện để tự động kích hoạt quy tắc này.
                       </p>
                     ) : (
                       <div className="space-y-2">
                         {criteriaConditions.map((condition, index) => (
                           <div key={index} className="flex items-center gap-2 p-2 border rounded">
                             <Input
-                              placeholder="Field"
+                              placeholder="Trường"
                               value={condition.field}
                               onChange={(e) => handleConditionChange(index, 'field', e.target.value)}
                               className="flex-1"
@@ -335,15 +335,15 @@ export function RuleCreationModal({
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="equals">equals</SelectItem>
-                                <SelectItem value="not_equals">not equals</SelectItem>
-                                <SelectItem value="greater_than">greater than</SelectItem>
-                                <SelectItem value="less_than">less than</SelectItem>
-                                <SelectItem value="contains">contains</SelectItem>
+                                <SelectItem value="equals">bằng</SelectItem>
+                                <SelectItem value="not_equals">không bằng</SelectItem>
+                                <SelectItem value="greater_than">lớn hơn</SelectItem>
+                                <SelectItem value="less_than">nhỏ hơn</SelectItem>
+                                <SelectItem value="contains">chứa</SelectItem>
                               </SelectContent>
                             </Select>
                             <Input
-                              placeholder="Value"
+                              placeholder="Giá trị"
                               value={condition.value}
                               onChange={(e) => handleConditionChange(index, 'value', e.target.value)}
                               className="flex-1"
@@ -367,7 +367,7 @@ export function RuleCreationModal({
 
                 {criteriaType === 'manual' && (
                   <p className="text-sm text-muted-foreground">
-                    This rule will appear in the rule selection list when members record scores manually.
+                    Quy tắc này sẽ xuất hiện trong danh sách chọn quy tắc khi thành viên ghi điểm thủ công.
                   </p>
                 )}
               </div>
@@ -381,7 +381,7 @@ export function RuleCreationModal({
                 onClick={handleClose}
                 disabled={isLoading}
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 type="submit"
@@ -391,12 +391,12 @@ export function RuleCreationModal({
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Saving...
+                    Đang lưu...
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Save className="h-4 w-4" />
-                    {mode === 'create' ? 'Create Rule' : 'Update Rule'}
+                    {mode === 'create' ? 'Tạo quy tắc' : 'Cập nhật quy tắc'}
                   </div>
                 )}
               </Button>

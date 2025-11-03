@@ -62,7 +62,7 @@ export default function ActivityLogsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState({
-    action: '',
+    action: 'all',
     groupId: '',
     userId: '',
     startDate: '',
@@ -102,7 +102,7 @@ export default function ActivityLogsPage() {
       const params = new URLSearchParams()
       
       // Add filters
-      if (filters.action) params.set('action', filters.action)
+      if (filters.action && filters.action !== 'all') params.set('action', filters.action)
       if (filters.groupId) params.set('groupId', filters.groupId)
       if (filters.userId) params.set('userId', filters.userId)
       if (filters.startDate) params.set('startDate', filters.startDate)
@@ -144,7 +144,7 @@ export default function ActivityLogsPage() {
 
   const handleClearFilters = () => {
     setFilters({
-      action: '',
+      action: 'all',
       groupId: '',
       userId: '',
       startDate: '',
@@ -346,7 +346,7 @@ export default function ActivityLogsPage() {
                     <SelectValue placeholder="All actions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All actions</SelectItem>
+                    <SelectItem value="all">All actions</SelectItem>
                     <SelectItem value={ActivityType.USER_REGISTERED}>User Registered</SelectItem>
                     <SelectItem value={ActivityType.USER_LOGIN}>User Login</SelectItem>
                     <SelectItem value={ActivityType.GROUP_CREATED}>Group Created</SelectItem>

@@ -10,13 +10,13 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Groups', href: '/groups', icon: Users },
-  { name: 'Analytics', href: '/analytics', icon: TrendingUp },
+  { name: 'Bảng điều khiển', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Nhóm', href: '/groups', icon: Users },
+  { name: 'Phân tích', href: '/analytics', icon: TrendingUp },
 ]
 
 const adminNavigation = [
-  { name: 'Admin', href: '/admin/users', icon: Shield },
+  { name: 'Quản trị', href: '/admin/users', icon: Shield },
 ]
 
 export function AppHeader() {
@@ -44,7 +44,7 @@ export function AppHeader() {
               GS
             </div>
             <span className="hidden font-semibold text-lg sm:inline-block">
-              Group Scoring
+              Chấm Điểm Nhóm
             </span>
           </Link>
 
@@ -108,7 +108,7 @@ export function AppHeader() {
                 className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <span className="sr-only">Open main menu</span>
+                <span className="sr-only">Mở menu chính</span>
                 {mobileMenuOpen ? (
                   <X className="h-6 w-6" aria-hidden="true" />
                 ) : (

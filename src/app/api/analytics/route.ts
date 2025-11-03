@@ -106,15 +106,23 @@ export async function GET(request: NextRequest) {
 
     // Get score records for the period (across all groups or single group)
     const groupIds = groups.map(g => g.id)
+    
+    // Build where clause - only filter by userId if explicitly requested (for admin views)
+    const whereClause: any = {
+      groupId: { in: groupIds },
+      recordedAt: {
+        gte: startDate,
+        lte: endDate
+      }
+    }
+    
+    // Only add userId filter if explicitly viewing a specific user's stats
+    if (userId) {
+      whereClause.userId = targetUserId
+    }
+    
     const scoreRecords = await prisma.scoreRecord.findMany({
-      where: {
-        groupId: { in: groupIds },
-        userId: targetUserId,
-        recordedAt: {
-          gte: startDate,
-          lte: endDate
-        }
-      },
+      where: whereClause,
       include: {
         rule: {
           select: { id: true, name: true, points: true }
@@ -173,15 +181,21 @@ export async function GET(request: NextRequest) {
     const previousStartDate = new Date(startDate.getTime() - periodDuration)
     const previousEndDate = new Date(startDate.getTime() - 1)
 
-    const previousScoreRecords = await prisma.scoreRecord.findMany({
-      where: {
-        groupId: { in: groupIds },
-        userId: targetUserId,
-        recordedAt: {
-          gte: previousStartDate,
-          lte: previousEndDate
-        }
+    // Build where clause for previous period (same logic as current period)
+    const previousWhereClause: any = {
+      groupId: { in: groupIds },
+      recordedAt: {
+        gte: previousStartDate,
+        lte: previousEndDate
       }
+    }
+    
+    if (userId) {
+      previousWhereClause.userId = targetUserId
+    }
+
+    const previousScoreRecords = await prisma.scoreRecord.findMany({
+      where: previousWhereClause
     })
 
     const previousTotalPoints = previousScoreRecords.reduce((sum, record) => sum + record.points, 0)

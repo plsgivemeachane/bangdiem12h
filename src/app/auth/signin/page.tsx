@@ -30,14 +30,14 @@ export default function SignIn() {
       })
 
       if (result?.ok) {
-        toast.success('Successfully signed in!')
+        toast.success('Đăng nhập thành công!')
         router.push('/dashboard')
       } else {
-        throw new Error(result?.error || 'Invalid credentials')
+        throw new Error(result?.error || 'Thông tin đăng nhập không hợp lệ')
       }
     } catch (error) {
       console.error('Sign in error:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to sign in')
+      toast.error(error instanceof Error ? error.message : 'Không thể đăng nhập')
     } finally {
       setIsLoading(false)
     }
@@ -47,9 +47,9 @@ export default function SignIn() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+          <CardTitle className="text-2xl font-bold">Chào mừng trở lại</CardTitle>
           <CardDescription>
-            Sign in to your Group Scoring System account
+            Đăng nhập vào Hệ thống chấm điểm nhóm
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -61,7 +61,7 @@ export default function SignIn() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Nhập email của bạn"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -72,13 +72,13 @@ export default function SignIn() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mật khẩu</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Nhập mật khẩu của bạn"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
@@ -92,25 +92,25 @@ export default function SignIn() {
               {isLoading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
-                'Sign In'
+                'Đăng nhập'
               )}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account? Contact your administrator to create one.
+              Chưa có tài khoản? Liên hệ quản trị viên để tạo tài khoản.
             </p>
           </div>
 
           <p className="text-xs text-center text-gray-600 mt-4">
-            By signing in, you agree to our{' '}
+            Bằng cách đăng nhập, bạn đồng ý với{' '}
             <Link href="/terms" className="text-primary hover:underline">
-              Terms of Service
+              Điều khoản dịch vụ
             </Link>{' '}
-            and{' '}
+            và{' '}
             <Link href="/privacy" className="text-primary hover:underline">
-              Privacy Policy
+              Chính sách bảo mật
             </Link>
           </p>
         </CardContent>

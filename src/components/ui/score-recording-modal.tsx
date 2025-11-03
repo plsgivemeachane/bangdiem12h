@@ -67,31 +67,31 @@ export function ScoreRecordingModal({
 
   const validateForm = () => {
     if (!formData.targetUserId) {
-      toast.error('Please select a member')
+      toast.error('Vui lòng chọn thành viên')
       return false
     }
 
     if (!formData.ruleId) {
-      toast.error('Please select a scoring rule')
+      toast.error('Vui lòng chọn quy tắc chấm điểm')
       return false
     }
 
     // Only validate points if override is enabled
     if (overridePoints) {
       if (!formData.points || isNaN(parseFloat(formData.points))) {
-        toast.error('Please enter valid points')
+        toast.error('Vui lòng nhập điểm hợp lệ')
         return false
       }
 
       if (parseFloat(formData.points) <= 0) {
-        toast.error('Points must be greater than 0')
+        toast.error('Điểm phải lớn hơn 0')
         return false
       }
 
       const points = parseFloat(formData.points)
       if (selectedRule && points !== selectedRule.points) {
         // Allow custom points, but warn if different from rule's default
-        if (!window.confirm(`You're recording ${points} points but the rule "${selectedRule.name}" typically gives ${selectedRule.points} points. Continue anyway?`)) {
+        if (!window.confirm(`Bạn đang ghi ${points} điểm nhưng quy tắc "${selectedRule.name}" thường cho ${selectedRule.points} điểm. Tiếp tục?`)) {
           return false
         }
       }
@@ -126,7 +126,7 @@ export function ScoreRecordingModal({
 
       const newScoreRecord = await GroupsApi.createScoreRecord(scoreData)
       
-      toast.success(`Score of ${newScoreRecord.points} points recorded successfully!`)
+      toast.success(`Đã ghi ${newScoreRecord.points} điểm thành công!`)
       onScoreRecorded?.(newScoreRecord)
       onClose()
       
@@ -143,9 +143,9 @@ export function ScoreRecordingModal({
     } catch (error) {
       console.error('Failed to record score:', error)
       if (error instanceof Error) {
-        toast.error(error.message || 'Failed to record score')
+        toast.error(error.message || 'Không thể ghi điểm')
       } else {
-        toast.error('Failed to record score')
+        toast.error('Không thể ghi điểm')
       }
     } finally {
       setIsLoading(false)
@@ -176,10 +176,10 @@ export function ScoreRecordingModal({
           <div>
             <CardTitle className="text-xl font-bold flex items-center gap-2">
               <Award className="h-5 w-5" />
-              Record Score
+              Ghi điểm
             </CardTitle>
             <CardDescription>
-              Add a new score record to {groupName}
+              Thêm bản ghi điểm mới vào {groupName}
             </CardDescription>
           </div>
           <Button 
@@ -198,7 +198,7 @@ export function ScoreRecordingModal({
             <div className="space-y-2">
               <Label htmlFor="member-select" className="text-base font-medium flex items-center gap-2">
                 <User className="h-4 w-4" />
-                Member *
+                Thành viên *
               </Label>
               <Select 
                 value={formData.targetUserId} 
@@ -206,7 +206,7 @@ export function ScoreRecordingModal({
                 disabled={isLoading}
               >
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select a member to score..." />
+                  <SelectValue placeholder="Chọn thành viên để chấm điểm..." />
                 </SelectTrigger>
                 <SelectContent>
                   {groupMembers.map((member) => (
@@ -222,7 +222,7 @@ export function ScoreRecordingModal({
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground">
-                Select which member this score is for
+                Chọn thành viên để ghi điểm
               </p>
             </div>
 
@@ -230,7 +230,7 @@ export function ScoreRecordingModal({
             <div className="space-y-4">
               <div>
                 <Label htmlFor="rule-select" className="text-base font-medium">
-                  Scoring Rule *
+                  Quy tắc chấm điểm *
                 </Label>
                 <Select 
                   value={formData.ruleId} 
@@ -238,7 +238,7 @@ export function ScoreRecordingModal({
                   disabled={isLoading}
                 >
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select a scoring rule..." />
+                    <SelectValue placeholder="Chọn quy tắc chấm điểm..." />
                   </SelectTrigger>
                   <SelectContent>
                     {availableRules.filter(rule => rule.isActive).map((rule) => (
@@ -246,7 +246,7 @@ export function ScoreRecordingModal({
                         <div className="flex items-center justify-between w-full">
                           <span>{rule.name}</span>
                           <Badge variant="outline" className="ml-2">
-                            +{rule.points} pts
+                            +{rule.points} điểm
                           </Badge>
                         </div>
                       </SelectItem>
@@ -255,7 +255,7 @@ export function ScoreRecordingModal({
                 </Select>
                 {availableRules.filter(rule => rule.isActive).length === 0 && (
                   <p className="text-sm text-muted-foreground mt-2">
-                    No active scoring rules available. Contact an admin to add rules.
+                    Không có quy tắc chấm điểm đang hoạt động. Liên hệ quản trị viên để thêm quy tắc.
                   </p>
                 )}
               </div>
@@ -275,7 +275,7 @@ export function ScoreRecordingModal({
                       </div>
                       <Badge variant="outline" className="text-primary">
                         <Target className="h-3 w-3 mr-1" />
-                        {selectedRule.points} pts
+                        {selectedRule.points} điểm
                       </Badge>
                     </div>
                     
@@ -291,7 +291,7 @@ export function ScoreRecordingModal({
                         htmlFor="override-points" 
                         className="text-sm font-normal cursor-pointer"
                       >
-                        Override default points ({selectedRule.points} pts)
+                        Ghi đè điểm mặc định ({selectedRule.points} điểm)
                       </Label>
                     </div>
                   </CardContent>
@@ -303,7 +303,7 @@ export function ScoreRecordingModal({
             {overridePoints && selectedRule && (
               <div className="space-y-2">
                 <Label htmlFor="points" className="text-base font-medium">
-                  Points *
+                  Điểm *
                 </Label>
                 <div className="relative">
                   <Input
@@ -318,12 +318,12 @@ export function ScoreRecordingModal({
                     required
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <span className="text-sm text-muted-foreground">points</span>
+                    <span className="text-sm text-muted-foreground">điểm</span>
                   </div>
                 </div>
                 {parseFloat(formData.points) !== selectedRule.points && formData.points && (
                   <p className="text-sm text-amber-600">
-                    ⚠️ This differs from the rule's default of {selectedRule.points} points
+                    ⚠️ Khác với điểm mặc định của quy tắc là {selectedRule.points} điểm
                   </p>
                 )}
               </div>
@@ -333,7 +333,7 @@ export function ScoreRecordingModal({
             <div className="space-y-2">
               <Label htmlFor="recorded-date" className="text-base font-medium flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Date *
+                Ngày *
               </Label>
               <Input
                 id="recorded-date"
@@ -349,19 +349,19 @@ export function ScoreRecordingModal({
             <div className="space-y-2">
               <Label htmlFor="notes" className="text-base font-medium flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                Notes (Optional)
+                Ghi chú (Tùy chọn)
               </Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="Add any additional context about this score..."
+                placeholder="Thêm thông tin bổ sung về điểm này..."
                 rows={3}
                 disabled={isLoading}
                 maxLength={500}
               />
               <p className="text-sm text-muted-foreground">
-                {formData.notes.length}/500 characters
+                {formData.notes.length}/500 ký tự
               </p>
             </div>
 
@@ -373,7 +373,7 @@ export function ScoreRecordingModal({
                 onClick={handleClose}
                 disabled={isLoading}
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 type="submit"
@@ -383,12 +383,12 @@ export function ScoreRecordingModal({
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Recording...
+                    Đang ghi...
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Save className="h-4 w-4" />
-                    Record Score
+                    Ghi điểm
                   </div>
                 )}
               </Button>

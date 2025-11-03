@@ -32,11 +32,11 @@ import toast from 'react-hot-toast'
 
 const groupFormSchema = z.object({
   name: z.string()
-    .min(1, 'Group name is required')
-    .max(100, 'Group name must be less than 100 characters')
+    .min(1, 'Tên nhóm là bắt buộc')
+    .max(100, 'Tên nhóm phải ít hơn 100 ký tự')
     .trim(),
   description: z.string()
-    .max(500, 'Description must be less than 500 characters')
+    .max(500, 'Mô tả phải ít hơn 500 ký tự')
     .trim()
     .optional(),
 })
@@ -82,17 +82,17 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
     try {
       if (mode === 'create') {
         const newGroup = await GroupsApi.createGroup(data as CreateGroupForm)
-        toast.success('Group created successfully!')
+        toast.success('Tạo nhóm thành công!')
         onSuccess(newGroup)
       } else {
-        if (!group?.id) throw new Error('Group ID is required for editing')
+        if (!group?.id) throw new Error('ID nhóm là bắt buộc để chỉnh sửa')
         const updatedGroup = await GroupsApi.updateGroup(group.id, data as UpdateGroupForm)
-        toast.success('Group updated successfully!')
+        toast.success('Cập nhật nhóm thành công!')
         onSuccess(updatedGroup)
       }
     } catch (error) {
       console.error('Group form error:', error)
-      toast.error(error instanceof Error ? error.message : 'An error occurred')
+      toast.error(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
     } finally {
       setIsLoading(false)
     }
@@ -110,12 +110,12 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create' ? 'Create New Group' : 'Edit Group'}
+            {mode === 'create' ? 'Tạo nhóm mới' : 'Chỉnh sửa nhóm'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'create' 
-              ? 'Create a new group to start organizing your scoring activities.'
-              : 'Make changes to your group information.'
+              ? 'Tạo nhóm mới để bắt đầu tổ chức các hoạt động chấm điểm của bạn.'
+              : 'Thay đổi thông tin nhóm của bạn.'
             }
           </DialogDescription>
         </DialogHeader>
@@ -127,16 +127,16 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Group Name *</FormLabel>
+                  <FormLabel>Tên nhóm *</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter group name"
+                      placeholder="Nhập tên nhóm"
                       {...field}
                       disabled={isLoading}
                     />
                   </FormControl>
                   <FormDescription>
-                    A unique name to identify your group
+                    Tên duy nhất để xác định nhóm của bạn
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -148,10 +148,10 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Mô tả</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter group description (optional)"
+                      placeholder="Nhập mô tả nhóm (tùy chọn)"
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -159,7 +159,7 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
                     />
                   </FormControl>
                   <FormDescription>
-                    Optional description to help members understand the group's purpose
+                    Mô tả tùy chọn để giúp thành viên hiểu mục đích của nhóm
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -173,11 +173,11 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
                 onClick={handleClose}
                 disabled={isLoading}
               >
-                Cancel
+                Hủy
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <LoadingSpinner className="mr-2" />}
-                {mode === 'create' ? 'Create Group' : 'Update Group'}
+                {mode === 'create' ? 'Tạo nhóm' : 'Cập nhật nhóm'}
               </Button>
             </DialogFooter>
           </form>
