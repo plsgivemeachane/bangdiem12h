@@ -4,6 +4,7 @@ const path = require('path')
 const nextConfig = {
   // Explicitly set project root to prevent webpack from scanning outside
   // reactStrictMode: true,
+  output: 'standalone',
   experimental: {
     outputFileTracingIgnores: ["./generated/client/**/*"],
     outputFileTracingExcludes: ["./generated/client/**/*"],
