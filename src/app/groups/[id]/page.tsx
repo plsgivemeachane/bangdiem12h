@@ -24,6 +24,13 @@ import { useAuth } from '@/hooks/use-auth'
 import { Group, GroupMember } from '@/types'
 import toast from 'react-hot-toast'
 
+const ROLE_LABELS: Record<string, string> = {
+  OWNER: 'Chủ nhóm',
+  ADMIN: 'Quản trị viên',
+  MEMBER: 'Thành viên',
+  VIEWER: 'Người xem'
+}
+
 export default function GroupDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -60,16 +67,16 @@ export default function GroupDetailPage() {
       console.error('Failed to load group:', error)
       if (error instanceof Error) {
         if (error.message.includes('Group not found')) {
-          setError('Group not found or you do not have access to this group.')
+          setError('Không tìm thấy nhóm hoặc bạn không có quyền truy cập vào nhóm này.')
         } else if (error.message.includes('Access denied')) {
-          setError('You do not have permission to view this group.')
+          setError('Bạn không có quyền xem nhóm này.')
         } else {
           setError(error.message)
         }
       } else {
-        setError('Failed to load group details')
+        setError('Không thể tải thông tin nhóm')
       }
-      toast.error('Failed to load group details')
+      toast.error('Không thể tải thông tin nhóm')
     } finally {
       setIsLoading(false)
     }
@@ -99,7 +106,7 @@ export default function GroupDetailPage() {
     setIsEditFormOpen(false)
     if (updatedGroup) {
       setGroup(updatedGroup)
-      toast.success('Group updated successfully')
+      toast.success('Cập nhật nhóm thành công')
     } else {
       loadGroup()
     }
@@ -114,7 +121,7 @@ export default function GroupDetailPage() {
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Checking authentication..." />
+        <Loading text="Đang kiểm tra xác thực..." />
       </div>
     )
   }
@@ -125,12 +132,12 @@ export default function GroupDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
+            <h2 className="text-2xl font-bold mb-4">Yêu cầu xác thực</h2>
             <p className="text-muted-foreground mb-6">
-              Please sign in to access this group.
+              Vui lòng đăng nhập để truy cập nhóm này.
             </p>
             <Button onClick={() => router.push('/auth/signin')}>
-              Sign In
+              Đăng nhập
             </Button>
           </CardContent>
         </Card>
@@ -142,7 +149,7 @@ export default function GroupDetailPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Loading group details..." />
+        <Loading text="Đang tải thông tin nhóm..." />
       </div>
     )
   }
@@ -153,17 +160,17 @@ export default function GroupDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <Card className="border-destructive">
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Group Not Found</h2>
+            <h2 className="text-2xl font-bold mb-4">Không tìm thấy nhóm</h2>
             <p className="text-muted-foreground mb-6">
-              {error || 'The group you are looking for does not exist.'}
+              {error || 'Nhóm bạn tìm kiếm không tồn tại.'}
             </p>
             <div className="flex gap-4 justify-center">
               <Button onClick={handleBackToGroups} variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Groups
+                Quay lại danh sách nhóm
               </Button>
               <Button onClick={loadGroup}>
-                Try Again
+                Thử lại
               </Button>
             </div>
           </CardContent>
@@ -184,13 +191,13 @@ export default function GroupDetailPage() {
         <div className="flex items-center gap-4">
           <Button onClick={handleBackToGroups} variant="outline" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Groups
+          Quay lại danh sách nhóm
           </Button>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-bold tracking-tight">{group.name}</h1>
               <Badge variant={group.isActive ? "default" : "secondary"}>
-                {group.isActive ? 'Active' : 'Inactive'}
+              {group.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
               </Badge>
             </div>
             {group.description && (
@@ -203,7 +210,7 @@ export default function GroupDetailPage() {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleEditGroup}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit Group
+              Chỉnh sửa nhóm
             </Button>
           </div>
         )}
@@ -213,52 +220,52 @@ export default function GroupDetailPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Members</CardTitle>
+            <CardTitle className="text-sm font-medium">Thành viên</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{group.members?.length || 0}</div>
             <p className="text-xs text-muted-foreground">
-              Active participants
+              Thành viên đang hoạt động
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Your Role</CardTitle>
+            <CardTitle className="text-sm font-medium">Vai trò của bạn</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold capitalize">{userRole.toLowerCase()}</div>
+            <div className="text-2xl font-bold capitalize">{ROLE_LABELS[userRole] || userRole}</div>
             <p className="text-xs text-muted-foreground">
-              Permission level
+              Mức quyền hạn
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Score Records</CardTitle>
+            <CardTitle className="text-sm font-medium">Lượt ghi điểm</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{group._count?.scoreRecords || 0}</div>
             <p className="text-xs text-muted-foreground">
-              Total recorded
+              Tổng số lượt ghi
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Scoring Rules</CardTitle>
+            <CardTitle className="text-sm font-medium">Quy tắc chấm điểm</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{group.scoringRules?.length || 0}</div>
             <p className="text-xs text-muted-foreground">
-              Active rules
+              Quy tắc đang hoạt động
             </p>
           </CardContent>
         </Card>
@@ -271,16 +278,16 @@ export default function GroupDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Members
+              Thành viên
             </CardTitle>
             <CardDescription>
-              Manage group members and their roles
+              Quản lý thành viên và vai trò của họ
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
-                {group.members?.length || 0} members in this group
+                Có {group.members?.length || 0} thành viên trong nhóm
               </div>
               <Button 
                 onClick={handleManageMembers}
@@ -289,11 +296,11 @@ export default function GroupDetailPage() {
                 disabled={!canManageGroup}
               >
                 <UserPlus className="mr-2 h-4 w-4" />
-                Manage Members
+                Quản lý thành viên
               </Button>
               {userRole === 'VIEWER' && (
                 <p className="text-xs text-muted-foreground">
-                  Contact an admin to manage members
+                  Liên hệ quản trị viên để quản lý thành viên
                 </p>
               )}
             </div>
@@ -305,16 +312,16 @@ export default function GroupDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              Scoring Rules
+              Quy tắc chấm điểm
             </CardTitle>
             <CardDescription>
-              Configure how points are awarded
+              Thiết lập cách tính điểm
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
-                {group.scoringRules?.length || 0} active scoring rules
+                {group.scoringRules?.length || 0} quy tắc chấm điểm đang hoạt động
               </div>
               <Button 
                 onClick={handleViewRules}
@@ -322,7 +329,7 @@ export default function GroupDetailPage() {
                 variant="outline"
               >
                 <Settings className="mr-2 h-4 w-4" />
-                View Rules
+                Xem quy tắc
               </Button>
             </div>
           </CardContent>
@@ -333,16 +340,16 @@ export default function GroupDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5" />
-              Scoring
+              Ghi điểm
             </CardTitle>
             <CardDescription>
-              Record and view scores
+              Ghi và xem điểm
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
-                {group._count?.scoreRecords || 0} score records
+                {group._count?.scoreRecords || 0} lượt ghi điểm
               </div>
               <Button 
                 onClick={handleViewScoring}
@@ -350,7 +357,7 @@ export default function GroupDetailPage() {
                 variant="outline"
               >
                 <Activity className="mr-2 h-4 w-4" />
-                View Scores
+                Xem điểm
               </Button>
             </div>
           </CardContent>
@@ -360,9 +367,9 @@ export default function GroupDetailPage() {
       {/* Members List */}
       <Card>
         <CardHeader>
-          <CardTitle>Group Members</CardTitle>
+          <CardTitle>Thành viên trong nhóm</CardTitle>
           <CardDescription>
-            People who have access to this group
+            Những người có quyền truy cập vào nhóm
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -377,19 +384,19 @@ export default function GroupDetailPage() {
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium">{member.user?.name || 'Unknown User'}</p>
-                      <p className="text-sm text-muted-foreground">{member.user?.email || 'No email'}</p>
+                      <p className="font-medium">{member.user?.name || 'Người dùng chưa xác định'}</p>
+                      <p className="text-sm text-muted-foreground">{member.user?.email || 'Không có email'}</p>
                     </div>
                   </div>
                   <Badge variant="outline" className="capitalize">
-                    {member.role.toLowerCase()}
+                    {ROLE_LABELS[member.role] || member.role}
                   </Badge>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
-              No members found in this group.
+              Không có thành viên nào trong nhóm.
             </div>
           )}
         </CardContent>
@@ -398,9 +405,9 @@ export default function GroupDetailPage() {
       {/* Group Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>Hoạt động gần đây</CardTitle>
           <CardDescription>
-            Latest actions in this group
+            Các hoạt động mới nhất trong nhóm
           </CardDescription>
         </CardHeader>
         <CardContent>

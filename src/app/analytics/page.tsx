@@ -129,16 +129,16 @@ export default function AnalyticsPage() {
     try {
       setIsLoadingGroups(true)
       const response = await fetch('/api/groups')
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch groups')
+        throw new Error('Không thể tải danh sách nhóm')
       }
 
       const data = await response.json()
       setGroups(data.groups || [])
     } catch (error) {
       console.error('Failed to load groups:', error)
-      toast.error('Failed to load groups')
+      toast.error('Không thể tải danh sách nhóm')
     } finally {
       setIsLoadingGroups(false)
     }
@@ -155,9 +155,9 @@ export default function AnalyticsPage() {
       })
 
       const response = await fetch(`/api/analytics?${params.toString()}`)
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch analytics data')
+        throw new Error('Không thể tải dữ liệu phân tích')
       }
 
       const result = await response.json()
@@ -165,8 +165,8 @@ export default function AnalyticsPage() {
 
     } catch (error) {
       console.error('Failed to load analytics data:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load analytics data')
-      toast.error('Failed to load analytics data')
+      setError(error instanceof Error ? error.message : 'Không thể tải dữ liệu phân tích')
+      toast.error('Không thể tải dữ liệu phân tích')
     } finally {
       setIsLoading(false)
     }
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Checking authentication..." />
+        <Loading text="Đang kiểm tra xác thực..." />
       </div>
     )
   }
@@ -201,12 +201,12 @@ export default function AnalyticsPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
+            <h2 className="text-2xl font-bold mb-4">Yêu cầu xác thực</h2>
             <p className="text-muted-foreground mb-6">
-              Please sign in to view analytics.
+              Vui lòng đăng nhập để xem dữ liệu phân tích.
             </p>
             <Button onClick={() => router.push('/auth/signin')}>
-              Sign In
+              Đăng nhập
             </Button>
           </CardContent>
         </Card>
@@ -217,7 +217,7 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Loading analytics data..." />
+        <Loading text="Đang tải dữ liệu phân tích..." />
       </div>
     )
   }
@@ -227,12 +227,12 @@ export default function AnalyticsPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Unable to Load Analytics</h2>
+            <h2 className="text-2xl font-bold mb-4">Không thể tải dữ liệu phân tích</h2>
             <p className="text-muted-foreground mb-6">
-              {error || 'An unexpected error occurred while loading analytics data.'}
+              {error || 'Đã xảy ra lỗi khi tải dữ liệu phân tích.'}
             </p>
             <Button onClick={loadAnalyticsData}>
-              Try Again
+              Thử lại
             </Button>
           </CardContent>
         </Card>
@@ -248,21 +248,21 @@ export default function AnalyticsPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <BarChart3 className="h-8 w-8" />
-              Analytics Dashboard
+              Bảng điều khiển phân tích
             </h1>
           </div>
           <p className="text-muted-foreground mt-1">
-            Comprehensive insights into group performance and scoring trends
+            Cung cấp cái nhìn toàn diện về hiệu suất và xu hướng ghi điểm của các nhóm
           </p>
         </div>
         
         <div className="flex gap-2">
           <Select value={selectedGroup} onValueChange={setSelectedGroup}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Select group" />
+              <SelectValue placeholder="Chọn nhóm" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Groups</SelectItem>
+              <SelectItem value="all">Tất cả các nhóm</SelectItem>
               {groups.map(group => (
                 <SelectItem key={group.id} value={group.id}>
                   {group.name}
@@ -276,16 +276,16 @@ export default function AnalyticsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 90 days</SelectItem>
-              <SelectItem value="1y">Last year</SelectItem>
+              <SelectItem value="7d">7 ngày gần đây</SelectItem>
+              <SelectItem value="30d">30 ngày gần đây</SelectItem>
+              <SelectItem value="90d">90 ngày gần đây</SelectItem>
+              <SelectItem value="1y">Năm qua</SelectItem>
             </SelectContent>
           </Select>
           
           <Button variant="outline" onClick={loadAnalyticsData}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
+            Làm mới
           </Button>
         </div>
       </div>
@@ -294,7 +294,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Points</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng điểm</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -308,20 +308,20 @@ export default function AnalyticsPage() {
               <span className={analyticsData.summary.previousPeriod.pointsChange >= 0 ? 'text-green-500' : 'text-red-500'}>
                 {Math.abs(analyticsData.summary.previousPeriod.pointsChangePercent).toFixed(1)}%
               </span>
-              <span className="text-muted-foreground">from previous period</span>
+              <span className="text-muted-foreground">so với kỳ trước</span>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Score Records</CardTitle>
+            <CardTitle className="text-sm font-medium">Lượt ghi điểm</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analyticsData.summary.recordCount}</div>
             <p className="text-xs text-muted-foreground">
-              Avg {analyticsData.summary.averagePoints.toFixed(1)} points per record
+              Trung bình {analyticsData.summary.averagePoints.toFixed(1)} điểm mỗi lượt
             </p>
           </CardContent>
         </Card>
@@ -329,7 +329,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {selectedGroup === 'all' ? 'Groups' : 'Period'}
+              {selectedGroup === 'all' ? 'Số nhóm' : 'Chu kỳ'}
             </CardTitle>
             {selectedGroup === 'all' ? (
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -342,20 +342,20 @@ export default function AnalyticsPage() {
               {selectedGroup === 'all' ? groups.length : analyticsData.period}
             </div>
             <p className="text-xs text-muted-foreground">
-              {selectedGroup === 'all' ? 'Total groups tracked' : 'Analysis period'}
+              {selectedGroup === 'all' ? 'Tổng số nhóm được theo dõi' : 'Chu kỳ phân tích'}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rules Used</CardTitle>
+            <CardTitle className="text-sm font-medium">Quy tắc được sử dụng</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analyticsData.ruleBreakdown.length}</div>
             <p className="text-xs text-muted-foreground">
-              Different scoring rules
+              Số quy tắc chấm điểm khác nhau
             </p>
           </CardContent>
         </Card>
@@ -364,9 +364,9 @@ export default function AnalyticsPage() {
       {/* Main Analytics Tabs */}
       <Tabs defaultValue="trends" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="breakdown">Group Breakdown</TabsTrigger>
-          <TabsTrigger value="rules">Rules Usage</TabsTrigger>
+          <TabsTrigger value="trends">Xu hướng</TabsTrigger>
+          <TabsTrigger value="breakdown">Phân tích theo nhóm</TabsTrigger>
+          <TabsTrigger value="rules">Sử dụng quy tắc</TabsTrigger>
         </TabsList>
 
         {/* Trends Tab */}
@@ -376,7 +376,7 @@ export default function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Points Over Time
+                  Điểm theo thời gian
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -402,7 +402,7 @@ export default function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5" />
-                  Points Trend Line
+                  Biểu đồ xu hướng điểm
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -434,10 +434,10 @@ export default function AnalyticsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <PieChartIcon className="h-5 w-5" />
-                    Groups by Total Points
+                    Nhóm theo tổng điểm
                   </CardTitle>
                   <CardDescription>
-                    Distribution of points across all groups
+                    Phân bổ điểm giữa các nhóm
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -464,9 +464,9 @@ export default function AnalyticsPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Group Performance Comparison</CardTitle>
+                  <CardTitle>So sánh hiệu suất nhóm</CardTitle>
                   <CardDescription>
-                    Score records and points by group
+                    Số lượt ghi điểm và tổng điểm theo nhóm
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -484,7 +484,7 @@ export default function AnalyticsPage() {
 
               <Card className="lg:col-span-2">
                 <CardHeader>
-                  <CardTitle>Detailed Group Statistics</CardTitle>
+                  <CardTitle>Thống kê chi tiết theo nhóm</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -499,14 +499,14 @@ export default function AnalyticsPage() {
                           <div>
                             <p className="font-medium">{group.name}</p>
                             <p className="text-sm text-muted-foreground">
-                              {group.recordCount} records
+                              {group.recordCount} lượt ghi
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="text-2xl font-bold">{group.totalPoints}</p>
                           <p className="text-xs text-muted-foreground">
-                            Avg: {group.averagePoints.toFixed(1)} pts/record
+                            Trung bình: {group.averagePoints.toFixed(1)} điểm/lượt
                           </p>
                         </div>
                       </div>
@@ -519,11 +519,11 @@ export default function AnalyticsPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Group Breakdown Not Available</h3>
+                <h3 className="text-lg font-semibold mb-2">Không có dữ liệu phân tích nhóm</h3>
                 <p className="text-muted-foreground mb-4">
                   {selectedGroup === 'all' 
-                    ? 'No data available for group comparison.' 
-                    : 'Select "All Groups" to view group breakdown and comparison.'}
+                    ? 'Không có dữ liệu để so sánh giữa các nhóm.' 
+                    : 'Chọn "Tất cả các nhóm" để xem phân tích và so sánh.'}
                 </p>
               </CardContent>
             </Card>
@@ -536,9 +536,9 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Rules by Total Points</CardTitle>
+                  <CardTitle>Quy tắc theo tổng điểm</CardTitle>
                   <CardDescription>
-                    Total points awarded per scoring rule
+                    Tổng điểm được cộng cho mỗi quy tắc chấm điểm
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -556,9 +556,9 @@ export default function AnalyticsPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Rules by Usage Count</CardTitle>
+                  <CardTitle>Quy tắc theo số lần sử dụng</CardTitle>
                   <CardDescription>
-                    How often each rule is used
+                    Tần suất mỗi quy tắc được sử dụng
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -576,7 +576,7 @@ export default function AnalyticsPage() {
 
               <Card className="lg:col-span-2">
                 <CardHeader>
-                  <CardTitle>Detailed Rules Statistics</CardTitle>
+                  <CardTitle>Thống kê chi tiết theo quy tắc</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -589,14 +589,14 @@ export default function AnalyticsPage() {
                           <div>
                             <p className="font-medium">{rule.name}</p>
                             <p className="text-sm text-muted-foreground">
-                              Used {rule.count} times
+                              Được sử dụng {rule.count} lần
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="text-2xl font-bold">{rule.totalPoints}</p>
                           <p className="text-xs text-muted-foreground">
-                            Avg: {rule.averagePoints.toFixed(1)} pts/use
+                            Trung bình: {rule.averagePoints.toFixed(1)} điểm/lần
                           </p>
                         </div>
                       </div>
@@ -609,9 +609,9 @@ export default function AnalyticsPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Rules Data Available</h3>
+                <h3 className="text-lg font-semibold mb-2">Không có dữ liệu quy tắc</h3>
                 <p className="text-muted-foreground">
-                  No scoring rules have been used in the selected period.
+                  Không có quy tắc chấm điểm nào được sử dụng trong khoảng thời gian đã chọn.
                 </p>
               </CardContent>
             </Card>

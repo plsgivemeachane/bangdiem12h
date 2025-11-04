@@ -15,6 +15,11 @@ import { User, UserRole } from '@/types'
 import { UserPlus, Search, Trash2, Edit2, KeyRound, Shield, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const ROLE_LABELS: Record<UserRole, string> = {
+  ADMIN: 'Quản trị viên',
+  USER: 'Người dùng'
+}
+
 interface UserWithStats extends User {
   _count?: {
     groups: number
@@ -62,7 +67,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     if (!authLoading && !isAdmin) {
       router.push('/dashboard')
-      toast.error('Access denied. Admin privileges required.')
+      toast.error('Từ chối truy cập. Cần quyền quản trị.')
     }
   }, [isAdmin, authLoading, router])
 
@@ -79,7 +84,7 @@ export default function AdminUsersPage() {
       if (roleFilter !== 'all') params.set('role', roleFilter)
 
       const response = await fetch(`/api/admin/users?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch users')
+      if (!response.ok) throw new Error('Không thể tải danh sách người dùng')
 
       const data: UsersResponse = await response.json()
       setUsers(data.users)
@@ -87,7 +92,7 @@ export default function AdminUsersPage() {
       setStats(data.stats)
     } catch (error) {
       console.error('Error fetching users:', error)
-      toast.error('Failed to load users')
+      toast.error('Không thể tải danh sách người dùng')
     } finally {
       setIsLoading(false)
     }
@@ -114,15 +119,15 @@ export default function AdminUsersPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to delete user')
+        throw new Error(data.error || 'Không thể xoá người dùng')
       }
 
-      toast.success('User deleted successfully')
+      toast.success('Xoá người dùng thành công')
       setDeleteDialog({ open: false, user: null })
       fetchUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to delete user')
+      toast.error(error instanceof Error ? error.message : 'Không thể xoá người dùng')
     }
   }
 
@@ -138,15 +143,15 @@ export default function AdminUsersPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to update role')
+        throw new Error(data.error || 'Không thể cập nhật vai trò')
       }
 
-      toast.success('User role updated successfully')
+      toast.success('Cập nhật vai trò người dùng thành công')
       setRoleDialog({ open: false, user: null, newRole: null })
       fetchUsers()
     } catch (error) {
       console.error('Error updating role:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to update role')
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật vai trò')
     }
   }
 
@@ -162,22 +167,22 @@ export default function AdminUsersPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to reset password')
+        throw new Error(data.error || 'Không thể đặt lại mật khẩu')
       }
 
-      toast.success('Password reset successfully')
+      toast.success('Đặt lại mật khẩu thành công')
       setPasswordDialog({ open: false, user: null })
       setNewPassword('')
       setShowPassword(false)
     } catch (error) {
       console.error('Error resetting password:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to reset password')
+      toast.error(error instanceof Error ? error.message : 'Không thể đặt lại mật khẩu')
     }
   }
 
   const formatDate = (date: Date | string | undefined) => {
-    if (!date) return 'N/A'
-    return new Date(date).toLocaleDateString('en-US', {
+    if (!date) return 'Không có'
+    return new Date(date).toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -190,7 +195,7 @@ export default function AdminUsersPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading users...</p>
+            <p className="mt-4 text-gray-600">Đang tải danh sách người dùng...</p>
           </div>
         </div>
       </div>
@@ -206,18 +211,18 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-gray-600 mt-1">Manage system users and their roles</p>
+          <h1 className="text-3xl font-bold">Quản lý người dùng</h1>
+          <p className="text-gray-600 mt-1">Quản lý người dùng hệ thống và vai trò của họ</p>
         </div>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button onClick={() => router.push('/admin/users/create')}>
               <UserPlus className="mr-2 h-4 w-4" />
-              Create User
+              Tạo người dùng
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Create a new user account</p>
+            <p>Tạo tài khoản người dùng mới</p>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -226,7 +231,7 @@ export default function AdminUsersPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Tổng số người dùng</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -238,7 +243,7 @@ export default function AdminUsersPage() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Administrators</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Quản trị viên</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -250,7 +255,7 @@ export default function AdminUsersPage() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">Regular Users</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Người dùng thông thường</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -264,14 +269,14 @@ export default function AdminUsersPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>Bộ lọc</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Search by name or email..."
+                  placeholder="Tìm theo tên hoặc email..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -283,7 +288,7 @@ export default function AdminUsersPage() {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Search users</p>
+                    <p>Tìm kiếm người dùng</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -291,12 +296,12 @@ export default function AdminUsersPage() {
             <div className="w-full md:w-48">
               <Select value={roleFilter} onValueChange={(value: any) => setRoleFilter(value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by role" />
+                  <SelectValue placeholder="Lọc theo vai trò" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="USER">User</SelectItem>
+                  <SelectItem value="all">Tất cả vai trò</SelectItem>
+                  <SelectItem value="ADMIN">Quản trị viên</SelectItem>
+                  <SelectItem value="USER">Người dùng</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -307,9 +312,9 @@ export default function AdminUsersPage() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Users</CardTitle>
+          <CardTitle>Người dùng</CardTitle>
           <CardDescription>
-            {pagination.total} total user{pagination.total !== 1 ? 's' : ''}
+            Tổng cộng {pagination.total} người dùng
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -317,26 +322,26 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4">Name</th>
+                  <th className="text-left py-3 px-4">Họ tên</th>
                   <th className="text-left py-3 px-4">Email</th>
-                  <th className="text-left py-3 px-4">Role</th>
-                  <th className="text-left py-3 px-4">Created</th>
-                  <th className="text-left py-3 px-4">Stats</th>
-                  <th className="text-right py-3 px-4">Actions</th>
+                  <th className="text-left py-3 px-4">Vai trò</th>
+                  <th className="text-left py-3 px-4">Ngày tạo</th>
+                  <th className="text-left py-3 px-4">Thống kê</th>
+                  <th className="text-right py-3 px-4">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((userData) => (
                   <tr key={userData.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">
-                      <div className="font-medium">{userData.name || 'N/A'}</div>
+                      <div className="font-medium">{userData.name || 'Không có'}</div>
                     </td>
                     <td className="py-3 px-4">
                       <div className="text-sm text-gray-600">{userData.email}</div>
                     </td>
                     <td className="py-3 px-4">
                       <Badge variant={userData.role === 'ADMIN' ? 'default' : 'secondary'}>
-                        {userData.role}
+                        {ROLE_LABELS[userData.role] || userData.role}
                       </Badge>
                     </td>
                     <td className="py-3 px-4">
@@ -346,9 +351,9 @@ export default function AdminUsersPage() {
                       <div className="text-sm text-gray-600">
                         {userData._count && (
                           <div className="flex gap-2">
-                            <span title="Groups">{userData._count.groups}g</span>
-                            <span title="Memberships">{userData._count.groupMemberships}m</span>
-                            <span title="Scores">{userData._count.scoreRecords}s</span>
+                            <span title="Nhóm">{userData._count.groups}g</span>
+                            <span title="Tham gia nhóm">{userData._count.groupMemberships}m</span>
+                            <span title="Điểm">{userData._count.scoreRecords}s</span>
                           </div>
                         )}
                       </div>
@@ -367,7 +372,7 @@ export default function AdminUsersPage() {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>{userData.id === user?.id ? 'Cannot edit own role' : 'Edit user role'}</p>
+                            <p>{userData.id === user?.id ? 'Không thể sửa vai trò của chính bạn' : 'Chỉnh sửa vai trò người dùng'}</p>
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -381,7 +386,7 @@ export default function AdminUsersPage() {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Reset user password</p>
+                            <p>Đặt lại mật khẩu người dùng</p>
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -396,7 +401,7 @@ export default function AdminUsersPage() {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>{userData.id === user?.id ? 'Cannot delete own account' : 'Delete user'}</p>
+                            <p>{userData.id === user?.id ? 'Không thể xoá tài khoản của chính bạn' : 'Xoá người dùng'}</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -411,7 +416,7 @@ export default function AdminUsersPage() {
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-gray-600">
-                Page {pagination.page} of {pagination.totalPages}
+                Trang {pagination.page}/{pagination.totalPages}
               </div>
               <div className="flex gap-2">
                 <Tooltip>
@@ -422,11 +427,11 @@ export default function AdminUsersPage() {
                       disabled={pagination.page === 1}
                       onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
                     >
-                      Previous
+                      Trước
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Go to previous page</p>
+                    <p>Đến trang trước</p>
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
@@ -437,11 +442,11 @@ export default function AdminUsersPage() {
                       disabled={!pagination.hasMore}
                       onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                     >
-                      Next
+                      Sau
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Go to next page</p>
+                    <p>Đến trang tiếp theo</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -454,17 +459,17 @@ export default function AdminUsersPage() {
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, user: null })}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
+            <DialogTitle>Xoá người dùng</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {deleteDialog.user?.name || deleteDialog.user?.email}? This action cannot be undone.
+              Bạn có chắc chắn muốn xoá {deleteDialog.user?.name || deleteDialog.user?.email}? Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialog({ open: false, user: null })}>
-              Cancel
+              Huỷ
             </Button>
             <Button variant="destructive" onClick={handleDeleteUser}>
-              Delete
+              Xoá
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -474,42 +479,42 @@ export default function AdminUsersPage() {
       <Dialog open={roleDialog.open} onOpenChange={(open) => setRoleDialog({ open, user: null, newRole: null })}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update User Role</DialogTitle>
+            <DialogTitle>Cập nhật vai trò người dùng</DialogTitle>
             <DialogDescription>
-              Change role for {roleDialog.user?.name || roleDialog.user?.email}
+              Thay đổi vai trò cho {roleDialog.user?.name || roleDialog.user?.email}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Current Role</Label>
+              <Label>Vai trò hiện tại</Label>
               <div className="mt-2">
                 <Badge variant={roleDialog.user?.role === 'ADMIN' ? 'default' : 'secondary'}>
-                  {roleDialog.user?.role}
+                  {roleDialog.user ? ROLE_LABELS[roleDialog.user.role] || roleDialog.user.role : ''}
                 </Badge>
               </div>
             </div>
             <div>
-              <Label>New Role</Label>
+              <Label>Vai trò mới</Label>
               <Select
                 value={roleDialog.newRole || roleDialog.user?.role}
                 onValueChange={(value: any) => setRoleDialog(prev => ({ ...prev, newRole: value }))}
               >
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select role" />
+                  <SelectValue placeholder="Chọn vai trò" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USER">User</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="USER">Người dùng</SelectItem>
+                  <SelectItem value="ADMIN">Quản trị viên</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRoleDialog({ open: false, user: null, newRole: null })}>
-              Cancel
+              Huỷ
             </Button>
             <Button onClick={handleUpdateRole}>
-              Update Role
+              Cập nhật vai trò
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -523,21 +528,21 @@ export default function AdminUsersPage() {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
+            <DialogTitle>Đặt lại mật khẩu</DialogTitle>
             <DialogDescription>
-              Set a new password for {passwordDialog.user?.name || passwordDialog.user?.email}
+              Đặt mật khẩu mới cho {passwordDialog.user?.name || passwordDialog.user?.email}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="newPassword">Mật khẩu mới</Label>
               <div className="relative mt-2">
                 <Input
                   id="newPassword"
                   type={showPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  placeholder="Nhập mật khẩu mới"
                 />
                 <Button
                   type="button"
@@ -546,11 +551,11 @@ export default function AdminUsersPage() {
                   className="absolute right-0 top-0 h-full px-3"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword ? 'Ẩn' : 'Hiện'}
                 </Button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Must be at least 8 characters with uppercase, lowercase, number, and special character.
+                Phải có ít nhất 8 ký tự bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
               </p>
             </div>
           </div>
@@ -563,10 +568,10 @@ export default function AdminUsersPage() {
                 setShowPassword(false)
               }}
             >
-              Cancel
+              Huỷ
             </Button>
             <Button onClick={handleResetPassword} disabled={!newPassword}>
-              Reset Password
+              Đặt lại mật khẩu
             </Button>
           </DialogFooter>
         </DialogContent>

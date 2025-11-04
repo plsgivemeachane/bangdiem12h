@@ -63,11 +63,11 @@ import toast from 'react-hot-toast'
 
 const memberFormSchema = z.object({
   email: z.string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address')
+    .min(1, 'Vui lòng nhập email')
+    .email('Vui lòng nhập địa chỉ email hợp lệ')
     .trim(),
   role: z.enum(['MEMBER', 'ADMIN'], {
-    required_error: 'Please select a role',
+    required_error: 'Vui lòng chọn vai trò',
   }),
 })
 
@@ -137,7 +137,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
         setUsers(results)
       } catch (error) {
         console.error('Error searching users:', error)
-        toast.error('Failed to search users')
+        toast.error('Không thể tìm kiếm người dùng')
         setUsers([])
       } finally {
         setIsSearching(false)
@@ -151,13 +151,13 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
     setIsLoading(true)
     try {
       const newMember = await GroupsApi.addMember(groupId, data as AddMemberForm)
-      toast.success('Member added successfully!')
+      toast.success('Thêm thành viên thành công!')
       onSuccess(newMember)
       form.reset()
       onClose()
     } catch (error) {
       console.error('Member invite error:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to add member')
+      toast.error(error instanceof Error ? error.message : 'Không thể thêm thành viên')
     } finally {
       setIsLoading(false)
     }
@@ -184,9 +184,9 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Member</DialogTitle>
+          <DialogTitle>Thêm thành viên</DialogTitle>
           <DialogDescription>
-            Add a new member to this group. The user will be able to sign in with their existing account.
+            Thêm thành viên mới vào nhóm. Người dùng có thể đăng nhập bằng tài khoản hiện có.
           </DialogDescription>
         </DialogHeader>
 
@@ -197,7 +197,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
               name="email"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Email Address *</FormLabel>
+                  <FormLabel>Địa chỉ email *</FormLabel>
                   <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -219,7 +219,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                               )}
                             </div>
                           ) : (
-                            "Search users..."
+                            "Tìm kiếm người dùng..."
                           )}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -228,7 +228,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                     <PopoverContent className="w-[400px] p-0" align="start">
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder="Search by name or email..."
+                          placeholder="Tìm theo tên hoặc email..."
                           value={searchQuery}
                           onValueChange={setSearchQuery}
                         />
@@ -238,17 +238,17 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                               <div className="flex items-center justify-center py-6">
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                 <span className="text-sm text-muted-foreground">
-                                  {searchQuery.length === 0 ? 'Loading users...' : 'Searching...'}
+                                  {searchQuery.length === 0 ? 'Đang tải danh sách người dùng...' : 'Đang tìm kiếm...'}
                                 </span>
                               </div>
                             ) : (
                               <div className="py-6 text-center text-sm text-muted-foreground">
-                                No users found
+                                    Không tìm thấy người dùng nào
                               </div>
                             )}
                           </CommandEmpty>
                           {users.length > 0 && (
-                            <CommandGroup heading={searchQuery.trim().length > 0 ? "Search Results" : "All Available Users"}>
+                            <CommandGroup heading={searchQuery.trim().length > 0 ? "Kết quả tìm kiếm" : "Tất cả người dùng hiện có"}>
                               {users.map((user) => (
                                 <CommandItem
                                   key={user.id}
@@ -275,7 +275,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                     </PopoverContent>
                   </Popover>
                   <FormDescription>
-                    Search and select a user from the system
+                    Tìm và chọn người dùng trong hệ thống
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -287,7 +287,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role *</FormLabel>
+                  <FormLabel>Vai trò *</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
@@ -295,16 +295,16 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
+                        <SelectValue placeholder="Chọn vai trò" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="MEMBER">Member</SelectItem>
-                      <SelectItem value="ADMIN">Admin</SelectItem>
+                      <SelectItem value="MEMBER">Thành viên</SelectItem>
+                      <SelectItem value="ADMIN">Quản trị viên</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Members can record scores. Admins can also manage the group.
+                    Thành viên có thể ghi điểm. Quản trị viên còn có thể quản lý nhóm.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -318,11 +318,11 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                 onClick={handleClose}
                 disabled={isLoading}
               >
-                Cancel
+                Huỷ
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <LoadingSpinner className="mr-2" />}
-                Add Member
+                Thêm thành viên
               </Button>
             </DialogFooter>
           </form>
@@ -357,17 +357,17 @@ export function MemberManagement({
     try {
       const updatedMember = await GroupsApi.updateMemberRole(groupId, memberId, newRole)
       onMemberUpdate?.(updatedMember)
-      toast.success('Member role updated successfully')
+      toast.success('Cập nhật vai trò thành viên thành công')
     } catch (error) {
       console.error('Failed to update member role:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to update member role')
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật vai trò thành viên')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleRemoveMember = async (memberId: string, memberEmail: string) => {
-    if (!window.confirm(`Are you sure you want to remove ${memberEmail} from this group?`)) {
+    if (!window.confirm(`Bạn có chắc muốn xoá ${memberEmail} khỏi nhóm này không?`)) {
       return
     }
 
@@ -375,10 +375,10 @@ export function MemberManagement({
     try {
       await GroupsApi.removeMember(groupId, memberId)
       onMemberRemove?.(memberId)
-      toast.success('Member removed successfully')
+      toast.success('Xoá thành viên thành công')
     } catch (error) {
       console.error('Failed to remove member:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to remove member')
+      toast.error(error instanceof Error ? error.message : 'Không thể xoá thành viên')
     } finally {
       setIsLoading(false)
     }
@@ -388,16 +388,16 @@ export function MemberManagement({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Manage Members</DialogTitle>
+          <DialogTitle>Quản lý thành viên</DialogTitle>
           <DialogDescription>
-            View and manage group members. You can update roles or remove members.
+            Xem và quản lý thành viên trong nhóm. Bạn có thể cập nhật vai trò hoặc xoá thành viên.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 max-h-96 overflow-y-auto">
           {members.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No members found in this group.
+              Không có thành viên nào trong nhóm này.
             </div>
           ) : (
             members.map((member) => (
@@ -409,7 +409,7 @@ export function MemberManagement({
                   <div className="font-medium">{member.user?.name || member.user?.email}</div>
                   <div className="text-sm text-muted-foreground">{member.user?.email}</div>
                   <div className="text-xs text-muted-foreground">
-                    Joined {new Date(member.joinedAt).toLocaleDateString()}
+                    Tham gia ngày {new Date(member.joinedAt).toLocaleDateString()}
                   </div>
                 </div>
                 
@@ -423,8 +423,8 @@ export function MemberManagement({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="MEMBER">Member</SelectItem>
-                      <SelectItem value="ADMIN">Admin</SelectItem>
+                      <SelectItem value="MEMBER">Thành viên</SelectItem>
+                      <SelectItem value="ADMIN">Quản trị viên</SelectItem>
                     </SelectContent>
                   </Select>
                   
@@ -434,7 +434,7 @@ export function MemberManagement({
                     onClick={() => handleRemoveMember(member.id, member.user?.email || 'Unknown')}
                     disabled={isLoading}
                   >
-                    Remove
+                    Xoá
                   </Button>
                 </div>
               </div>
@@ -444,7 +444,7 @@ export function MemberManagement({
 
         <DialogFooter>
           <Button onClick={onClose} disabled={isLoading}>
-            Close
+            Đóng
           </Button>
         </DialogFooter>
       </DialogContent>

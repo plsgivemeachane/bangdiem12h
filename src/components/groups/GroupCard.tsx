@@ -53,7 +53,7 @@ export function GroupCard({
   }
 
   const handleDelete = async () => {
-    if (onDelete && window.confirm(`Are you sure you want to delete "${group.name}"?`)) {
+    if (onDelete && window.confirm(`Bạn có chắc chắn muốn xóa "${group.name}"?`)) {
       setIsLoading(true)
       try {
         await onDelete(group)

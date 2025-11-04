@@ -113,18 +113,18 @@ export default function CreateUserPage() {
     
     // Validation
     if (!formData.email || !formData.password) {
-      toast.error('Email and password are required')
+      toast.error('Email và mật khẩu là bắt buộc')
       return
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match')
+      toast.error('Mật khẩu không khớp')
       return
     }
 
     const { strength } = checkPasswordStrength(formData.password)
     if (strength < 5) {
-      toast.error('Password does not meet all requirements')
+      toast.error('Mật khẩu không đáp ứng đủ yêu cầu')
       return
     }
 
@@ -144,11 +144,11 @@ export default function CreateUserPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to create user')
+        throw new Error(data.error || 'Không thể tạo người dùng')
       }
 
       const data = await response.json()
-      toast.success(`User ${data.user.email} created successfully!`)
+      toast.success(`Người dùng ${data.user.email} đã được tạo thành công!`)
       
       // Navigate back to users list after a brief delay
       setTimeout(() => {
@@ -156,14 +156,14 @@ export default function CreateUserPage() {
       }, 1500)
     } catch (error) {
       console.error('Error creating user:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to create user')
+      toast.error(error instanceof Error ? error.message : 'Không thể tạo người dùng')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const passwordStrength = checkPasswordStrength(formData.password)
-  const strengthLabel = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'][passwordStrength.strength - 1] || 'Very Weak'
+  const strengthLabel = ['Rất yếu', 'Yếu', 'Trung bình', 'Tốt', 'Mạnh'][passwordStrength.strength - 1] || 'Rất yếu'
   const strengthColor = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'][passwordStrength.strength - 1] || 'bg-gray-300'
 
   if (authLoading) {
@@ -172,7 +172,7 @@ export default function CreateUserPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <p className="mt-4 text-gray-600">Đang tải...</p>
           </div>
         </div>
       </div>
@@ -196,23 +196,23 @@ export default function CreateUserPage() {
               className="mb-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Users
+              Quay lại danh sách người dùng
             </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>Return to user management</p>
           </TooltipContent>
         </Tooltip>
-        <h1 className="text-3xl font-bold">Create New User</h1>
-        <p className="text-gray-600 mt-1">Add a new user to the system</p>
+        <h1 className="text-3xl font-bold">Tạo người dùng mới</h1>
+        <p className="text-gray-600 mt-1">Thêm người dùng mới vào hệ thống</p>
       </div>
 
       {/* Form */}
       <Card>
         <CardHeader>
-          <CardTitle>User Information</CardTitle>
+          <CardTitle>Thông tin người dùng</CardTitle>
           <CardDescription>
-            Fill in the details to create a new user account
+            Điền thông tin chi tiết để tạo tài khoản người dùng mới
           </CardDescription>
         </CardHeader>
         <CardContent>
