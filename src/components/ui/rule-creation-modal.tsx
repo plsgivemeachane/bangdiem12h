@@ -137,35 +137,51 @@ export function RuleCreationModal({
       const points = parseInt(formData.points)
 
       if (mode === 'edit' && existingRule) {
-        // For now, we'll handle edit as creating a new rule
-        // In a real implementation, you'd want a PUT endpoint for scoring-rules
-        toast.error('Chức năng chỉnh sửa quy tắc chưa được triển khai')
-        return
+        // Update existing rule
+        const updatedRule = await GroupsApi.updateScoringRule(existingRule.id, {
+          name: formData.name.trim(),
+          description: formData.description.trim() || undefined,
+          criteria,
+          points
+        })
+
+        toast.success(`Quy tắc "${updatedRule.name}" đã được cập nhật thành công!`)
+        onRuleCreated?.(updatedRule)
+        onClose()
+        
+        // Reset form
+        setFormData({
+          name: '',
+          description: '',
+          points: '',
+          criteria: { type: 'manual', conditions: [] }
+        })
+        setCriteriaConditions([])
+      } else {
+        // Create new rule
+        const newRule = await GroupsApi.createScoringRule({
+          name: formData.name.trim(),
+          description: formData.description.trim() || undefined,
+          criteria,
+          points
+        })
+
+        toast.success(`Quy tắc "${newRule.name}" đã được tạo thành công!`)
+        onRuleCreated?.(newRule)
+        onClose()
+        
+        // Reset form
+        setFormData({
+          name: '',
+          description: '',
+          points: '',
+          criteria: { type: 'manual', conditions: [] }
+        })
+        setCriteriaConditions([])
       }
 
-      // Create new rule
-      const newRule = await GroupsApi.createScoringRule({
-        name: formData.name.trim(),
-        description: formData.description.trim() || undefined,
-        criteria,
-        points
-      })
-
-      toast.success(`Quy tắc "${newRule.name}" đã được tạo thành công!`)
-      onRuleCreated?.(newRule)
-      onClose()
-      
-      // Reset form
-      setFormData({
-        name: '',
-        description: '',
-        points: '',
-        criteria: { type: 'manual', conditions: [] }
-      })
-      setCriteriaConditions([])
-
     } catch (error) {
-      console.error('Tạo quy tắc thất bại:', error)
+      console.error('Failed to create rule:', error)
       if (error instanceof Error) {
         toast.error(error.message || 'Không thể tạo quy tắc')
       } else {
