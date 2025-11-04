@@ -79,16 +79,16 @@ export default function GroupRulesPage() {
       console.error('Failed to load group data:', error)
       if (error instanceof Error) {
         if (error.message.includes('Group not found')) {
-          setError('Group not found or you do not have access to this group.')
+          setError('Nhóm không tìm thấy hoặc bạn không có quyền truy cập vào nhóm này.')
         } else if (error.message.includes('Access denied')) {
-          setError('You do not have permission to view this group.')
+          setError('Bạn không có quyền xem nhóm này.')
         } else {
           setError(error.message)
         }
       } else {
-        setError('Failed to load group data')
+        setError('Không thể tải dữ liệu nhóm')
       }
-      toast.error('Failed to load group data')
+      toast.error('Không thể tải dữ liệu nhóm')
     } finally {
       setIsLoading(false)
     }
@@ -109,29 +109,29 @@ export default function GroupRulesPage() {
   const handleRuleCreated = (newRule: ScoringRule) => {
     // Refresh both lists (new rule will appear in available rules)
     loadGroupData()
-    toast.success(`Rule "${newRule.name}" created! Use "Add to Group" button to activate it.`)
+    toast.success(`Quy tắc "${newRule.name}" đã được tạo! Sử dụng nút "Thêm vào nhóm" để kích hoạt.`)
   }
 
   const handleAddRuleToGroup = async (rule: ScoringRule) => {
     try {
       await GroupsApi.addRuleToGroup(groupId, rule.id)
-      toast.success(`Rule "${rule.name}" added to group`)
+      toast.success(`Quy tắc "${rule.name}" đã được thêm vào nhóm`)
       loadGroupData() // Refresh to show the rule
     } catch (error) {
       console.error('Failed to add rule to group:', error)
-      toast.error('Failed to add rule to group')
+      toast.error('Không thể thêm quy tắc vào nhóm')
     }
   }
 
   const handleRemoveRuleFromGroup = async (rule: ScoringRule) => {
-    if (window.confirm(`Are you sure you want to remove the rule "${rule.name}" from this group?`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa quy tắc "${rule.name}" khỏi nhóm này không?`)) {
       try {
         await GroupsApi.removeRuleFromGroup(groupId, rule.id)
-        toast.success(`Rule "${rule.name}" removed from group`)
+        toast.success(`Quy tắc "${rule.name}" đã được xóa khỏi nhóm`)
         loadGroupData() // Refresh both lists (rule moves to available)
       } catch (error) {
         console.error('Failed to remove rule from group:', error)
-        toast.error('Failed to remove rule from group')
+        toast.error('Không thể xóa quy tắc khỏi nhóm')
       }
     }
   }
@@ -139,9 +139,9 @@ export default function GroupRulesPage() {
   const handleToggleRule = async (rule: ScoringRule) => {
     try {
       // This would typically call an API to toggle the rule status globally
-      toast.success(`Rule "${rule.name}" status updated globally`)
+      toast.success(`Trạng thái quy tắc "${rule.name}" đã được cập nhật toàn cầu`)
       // For now, just update locally
-      setGroupRules(prev => prev.map(r => 
+      setGroupRules(prev => prev.map(r =>
         r.id === rule.id ? { ...r, isActive: !r.isActive } : r
       ))
     } catch (error) {
@@ -163,7 +163,7 @@ export default function GroupRulesPage() {
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Checking authentication..." />
+        <Loading text="Đang kiểm tra xác thực..." />
       </div>
     )
   }
@@ -174,12 +174,12 @@ export default function GroupRulesPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
+            <h2 className="text-2xl font-bold mb-4">Yêu cầu xác thực</h2>
             <p className="text-muted-foreground mb-6">
-              Please sign in to access this group's rules.
+              Vui lòng đăng nhập để truy cập quy tắc nhóm này.
             </p>
             <Button onClick={() => router.push('/auth/signin')}>
-              Sign In
+              Đăng nhập
             </Button>
           </CardContent>
         </Card>
@@ -191,7 +191,7 @@ export default function GroupRulesPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Loading group rules..." />
+        <Loading text="Đang tải quy tắc nhóm..." />
       </div>
     )
   }
@@ -202,17 +202,17 @@ export default function GroupRulesPage() {
       <div className="container mx-auto px-4 py-8">
         <Card className="border-destructive">
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Group Not Found</h2>
+            <h2 className="text-2xl font-bold mb-4">Không tìm thấy nhóm</h2>
             <p className="text-muted-foreground mb-6">
-              {error || 'The group you are looking for does not exist.'}
+              {error || 'Nhóm bạn đang tìm kiếm không tồn tại.'}
             </p>
             <div className="flex gap-4 justify-center">
               <Button onClick={handleBackToGroup} variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Group
+                Quay lại nhóm
               </Button>
               <Button onClick={loadGroupData}>
-                Try Again
+                Thử lại
               </Button>
             </div>
           </CardContent>
@@ -228,17 +228,17 @@ export default function GroupRulesPage() {
         <div className="flex items-center gap-4">
           <Button onClick={handleBackToGroup} variant="outline" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Group
+            Quay lại nhóm
           </Button>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                 <List className="h-8 w-8" />
-                Group Rules
+                Quy tắc nhóm
               </h1>
             </div>
             <p className="text-muted-foreground mt-1">
-              Managing rules available to {group.name}
+              Quản lý quy tắc có sẵn cho {group.name}
             </p>
           </div>
         </div>
@@ -247,12 +247,12 @@ export default function GroupRulesPage() {
           <div className="flex gap-2">
             <Button onClick={handleRefresh} variant="outline" size="sm">
               <Settings className="mr-2 h-4 w-4" />
-              Refresh
+              Tải lại
             </Button>
             {user?.role === 'ADMIN' && (
               <Button onClick={handleCreateRule}>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Global Rule
+                Tạo quy tắc toàn cục
               </Button>
             )}
           </div>
@@ -263,44 +263,44 @@ export default function GroupRulesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Rules</CardTitle>
+            <CardTitle className="text-sm font-medium">Quy tắc đang hoạt động</CardTitle>
             <List className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{groupRules.length}</div>
             <p className="text-xs text-muted-foreground">
-              Rules in this group
+              Quy tắc trong nhóm này
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Global</CardTitle>
+            <CardTitle className="text-sm font-medium">Quy tắc toàn cục có sẵn</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{availableRules.length}</div>
             <p className="text-xs text-muted-foreground">
-              Rules to add
+              Quy tắc để thêm
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Point Range</CardTitle>
+            <CardTitle className="text-sm font-medium">Phạm vi điểm</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {groupRules.length > 0 ? 
-                `${Math.min(...groupRules.map(r => r.points))} - ${Math.max(...groupRules.map(r => r.points))}` : 
+              {groupRules.length > 0 ?
+                `${Math.min(...groupRules.map(r => r.points))} - ${Math.max(...groupRules.map(r => r.points))}` :
                 '0 - 0'
               }
             </div>
             <p className="text-xs text-muted-foreground">
-              Points range
+              Phạm vi điểm
             </p>
           </CardContent>
         </Card>
@@ -311,10 +311,10 @@ export default function GroupRulesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>✅</span>
-            Active Rules in This Group
+            Quy tắc đang hoạt động trong nhóm này
           </CardTitle>
           <CardDescription>
-            Rules that members can use when recording scores
+            Quy tắc mà thành viên có thể sử dụng khi ghi điểm
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -330,29 +330,29 @@ export default function GroupRulesPage() {
                       <div className="flex items-center gap-2">
                         <p className="font-medium">{rule.name}</p>
                         <Badge variant={rule.points >= 0 ? 'default' : 'destructive'}>
-                          {rule.points >= 0 ? `+${rule.points}` : rule.points} pts
+                          {rule.points >= 0 ? `+${rule.points}` : rule.points} điểm
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {rule.description || 'No description provided'}
+                        {rule.description || 'Không có mô tả'}
                       </p>
                       <div className="flex items-center gap-4 mt-1">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <span>Created {new Date(rule.createdAt).toLocaleDateString()}</span>
+                          <span>Được tạo {new Date(rule.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {canManageGroup && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="text-destructive hover:text-destructive"
                         onClick={() => handleRemoveRuleFromGroup(rule)}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Remove
+                        Xóa
                       </Button>
                     )}
                   </div>
@@ -362,9 +362,9 @@ export default function GroupRulesPage() {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <List className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No active rules in this group</p>
+              <p className="text-lg font-medium mb-2">Không có quy tắc đang hoạt động trong nhóm này</p>
               <p className="text-sm">
-                Add global rules from the section below to activate them for this group.
+                Thêm quy tắc toàn cục từ phần bên dưới để kích hoạt chúng cho nhóm này.
               </p>
             </div>
           )}
@@ -376,10 +376,10 @@ export default function GroupRulesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>🌐</span>
-            Available Global Rules
+            Quy tắc toàn cục có sẵn
           </CardTitle>
           <CardDescription>
-            Global rules that can be added to this group
+            Quy tắc toàn cục có thể được thêm vào nhóm này
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -395,28 +395,28 @@ export default function GroupRulesPage() {
                       <div className="flex items-center gap-2">
                         <p className="font-medium">{rule.name}</p>
                         <Badge variant={rule.points >= 0 ? 'default' : 'destructive'}>
-                          {rule.points >= 0 ? `+${rule.points}` : rule.points} pts
+                          {rule.points >= 0 ? `+${rule.points}` : rule.points} điểm
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {rule.description || 'No description provided'}
+                        {rule.description || 'Không có mô tả'}
                       </p>
                       <div className="flex items-center gap-4 mt-1">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <span>Created {new Date(rule.createdAt).toLocaleDateString()}</span>
+                          <span>Được tạo {new Date(rule.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {canManageGroup && (
-                      <Button 
-                        variant="default" 
+                      <Button
+                        variant="default"
                         size="sm"
                         onClick={() => handleAddRuleToGroup(rule)}
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        Add to Group
+                        Thêm vào nhóm
                       </Button>
                     )}
                   </div>
@@ -426,16 +426,16 @@ export default function GroupRulesPage() {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Target className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No global rules available</p>
+              <p className="text-lg font-medium mb-2">Không có quy tắc toàn cục nào có sẵn</p>
               <p className="text-sm mb-4">
-                {user?.role === 'ADMIN' 
-                  ? 'Create new global rules that can be added to groups.' 
-                  : 'Contact an admin to create global rules.'}
+                {user?.role === 'ADMIN'
+                  ? 'Tạo quy tắc toàn cục mới có thể được thêm vào các nhóm.'
+                  : 'Liên hệ quản trị viên để tạo quy tắc toàn cục.'}
               </p>
               {user?.role === 'ADMIN' && (
                 <Button onClick={handleCreateRule}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Global Rule
+                  Tạo quy tắc toàn cục
                 </Button>
               )}
             </div>

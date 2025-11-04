@@ -91,11 +91,11 @@ export default function AccountPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.message || 'Failed to update profile')
+        throw new Error(error.message || 'Không thể cập nhật hồ sơ')
       }
 
       await refreshSession()
-      toast.success('Profile updated successfully')
+      toast.success('Cập nhật hồ sơ thành công')
       setIsEditing(false)
     } catch (error) {
       console.error('Error updating profile:', error)

@@ -33,17 +33,17 @@ export default function SettingsPage() {
 
     // Validation
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      toast.error('All password fields are required')
+      toast.error('Tất cả các trường mật khẩu là bắt buộc')
       return
     }
 
     if (passwordForm.newPassword.length < 8) {
-      toast.error('New password must be at least 8 characters')
+      toast.error('Mật khẩu mới phải có ít nhất 8 ký tự')
       return
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('New passwords do not match')
+      toast.error('Mật khẩu mới không khớp')
       return
     }
 
@@ -61,10 +61,10 @@ export default function SettingsPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to change password')
+        throw new Error(data.message || 'Không thể thay đổi mật khẩu')
       }
 
-      toast.success('Password changed successfully')
+      toast.success('Đổi mật khẩu thành công')
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
@@ -72,7 +72,7 @@ export default function SettingsPage() {
       })
     } catch (error) {
       console.error('Error changing password:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to change password')
+      toast.error(error instanceof Error ? error.message : 'Không thể thay đổi mật khẩu')
     } finally {
       setIsChangingPassword(false)
     }
@@ -81,7 +81,7 @@ export default function SettingsPage() {
   if (authLoading || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Loading settings..." />
+        <Loading text="Đang tải cài đặt..." />
       </div>
     )
   }
@@ -91,8 +91,8 @@ export default function SettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
-        <p className="text-muted-foreground">Manage your account security and preferences</p>
+        <h1 className="text-3xl font-bold tracking-tight">Cài đặt tài khoản</h1>
+        <p className="text-muted-foreground">Quản lý bảo mật và tùy chọn tài khoản của bạn</p>
       </div>
 
       <div className="space-y-6">
@@ -101,19 +101,19 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Change Password
+              Đổi mật khẩu
             </CardTitle>
             <CardDescription>
               {hasPassword
-                ? 'Update your password to keep your account secure'
-                : 'You are using OAuth authentication. Password management is not available.'}
+                ? 'Cập nhật mật khẩu để bảo vệ tài khoản của bạn'
+                : 'Bạn đang sử dụng xác thực OAuth. Quản lý mật khẩu không khả dụng.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {hasPassword ? (
               <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
                   <Input
                     id="currentPassword"
                     type="password"
@@ -121,13 +121,13 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
                     }
-                    placeholder="Enter your current password"
+                    placeholder="Nhập mật khẩu hiện tại của bạn"
                     disabled={isChangingPassword}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
+                  <Label htmlFor="newPassword">Mật khẩu mới</Label>
                   <Input
                     id="newPassword"
                     type="password"
@@ -135,13 +135,13 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, newPassword: e.target.value })
                     }
-                    placeholder="Enter your new password (min 8 characters)"
+                    placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)"
                     disabled={isChangingPassword}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -149,19 +149,19 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
                     }
-                    placeholder="Re-enter your new password"
+                    placeholder="Nhập lại mật khẩu mới của bạn"
                     disabled={isChangingPassword}
                   />
                 </div>
 
                 <Button type="submit" disabled={isChangingPassword}>
-                  {isChangingPassword ? 'Changing Password...' : 'Change Password'}
+                  {isChangingPassword ? 'Đang đổi mật khẩu...' : 'Đổi mật khẩu'}
                 </Button>
               </form>
             ) : (
               <div className="text-sm text-muted-foreground">
-                Your account is connected through a third-party OAuth provider. Password management
-                should be done through your OAuth provider's settings.
+                Tài khoản của bạn được kết nối thông qua nhà cung cấp OAuth bên thứ ba. Quản lý mật khẩu
+                nên được thực hiện thông qua cài đặt của nhà cung cấp OAuth của bạn.
               </div>
             )}
           </CardContent>
@@ -170,12 +170,12 @@ export default function SettingsPage() {
         {/* Notifications Section (Placeholder) */}
         <Card>
           <CardHeader>
-            <CardTitle>Email Notifications</CardTitle>
-            <CardDescription>Manage your email notification preferences</CardDescription>
+            <CardTitle>Thông báo email</CardTitle>
+            <CardDescription>Quản lý tùy chọn thông báo email của bạn</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">
-              Email notification preferences will be available in a future update.
+              Tùy chọn thông báo email sẽ có sẵn trong bản cập nhật tương lai.
             </div>
           </CardContent>
         </Card>
@@ -183,12 +183,12 @@ export default function SettingsPage() {
         {/* Privacy Section (Placeholder) */}
         <Card>
           <CardHeader>
-            <CardTitle>Privacy Settings</CardTitle>
-            <CardDescription>Control your privacy and data sharing preferences</CardDescription>
+            <CardTitle>Cài đặt quyền riêng tư</CardTitle>
+            <CardDescription>Kiểm soát quyền riêng tư và tùy chọn chia sẻ dữ liệu của bạn</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">
-              Privacy settings will be available in a future update.
+              Cài đặt quyền riêng tư sẽ có sẵn trong bản cập nhật tương lai.
             </div>
           </CardContent>
         </Card>
@@ -198,20 +198,20 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
-              Danger Zone
+              Khu vực nguy hiểm
             </CardTitle>
-            <CardDescription>Irreversible and destructive actions</CardDescription>
+            <CardDescription>Hành động không thể đảo ngược và có thể gây tổn hại</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-semibold mb-2">Delete Account</h4>
+                <h4 className="text-sm font-semibold mb-2">Xóa tài khoản</h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Once you delete your account, there is no going back. This will permanently delete
-                  your account and remove all associated data.
+                  Một khi bạn xóa tài khoản, không thể hoàn tác. Điều này sẽ vĩnh viễn xóa
+                  tài khoản của bạn và loại bỏ tất cả dữ liệu liên quan.
                 </p>
                 <Button variant="destructive" disabled>
-                  Delete Account (Coming Soon)
+                  Xóa tài khoản (Sắp ra mắt)
                 </Button>
               </div>
             </div>

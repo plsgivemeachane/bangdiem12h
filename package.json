@@ -12,7 +12,7 @@
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "seed:admin": "node prisma/seed.js",
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "vercel-build": "npx prisma generate && npm run build",
     "postinstall": "npx prisma generate"
   },

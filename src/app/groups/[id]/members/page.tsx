@@ -69,16 +69,16 @@ export default function GroupMembersPage() {
       console.error('Failed to load group data:', error)
       if (error instanceof Error) {
         if (error.message.includes('Group not found')) {
-          setError('Group not found or you do not have access to this group.')
+          setError('Nhóm không tìm thấy hoặc bạn không có quyền truy cập vào nhóm này.')
         } else if (error.message.includes('Access denied')) {
-          setError('You do not have permission to view this group.')
+          setError('Bạn không có quyền xem nhóm này.')
         } else {
           setError(error.message)
         }
       } else {
-        setError('Failed to load group data')
+        setError('Không thể tải dữ liệu nhóm')
       }
-      toast.error('Failed to load group data')
+      toast.error('Không thể tải dữ liệu nhóm')
     } finally {
       setIsLoading(false)
     }
@@ -169,7 +169,7 @@ export default function GroupMembersPage() {
 
   const formatJoinDate = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date
-    return dateObj.toLocaleDateString('en-US', {
+    return dateObj.toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -180,7 +180,7 @@ export default function GroupMembersPage() {
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Checking authentication..." />
+        <Loading text="Đang kiểm tra xác thực..." />
       </div>
     )
   }
@@ -191,12 +191,12 @@ export default function GroupMembersPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
+            <h2 className="text-2xl font-bold mb-4">Yêu cầu xác thực</h2>
             <p className="text-muted-foreground mb-6">
-              Please sign in to access this group's members.
+              Vui lòng đăng nhập để truy cập thành viên nhóm này.
             </p>
             <Button onClick={() => router.push('/auth/signin')}>
-              Sign In
+              Đăng nhập
             </Button>
           </CardContent>
         </Card>
@@ -208,7 +208,7 @@ export default function GroupMembersPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Loading group members..." />
+        <Loading text="Đang tải thành viên nhóm..." />
       </div>
     )
   }
@@ -219,17 +219,17 @@ export default function GroupMembersPage() {
       <div className="container mx-auto px-4 py-8">
         <Card className="border-destructive">
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Group Not Found</h2>
+            <h2 className="text-2xl font-bold mb-4">Không tìm thấy nhóm</h2>
             <p className="text-muted-foreground mb-6">
-              {error || 'The group you are looking for does not exist.'}
+              {error || 'Nhóm bạn đang tìm kiếm không tồn tại.'}
             </p>
             <div className="flex gap-4 justify-center">
               <Button onClick={handleBackToGroup} variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Groups
+                Quay lại danh sách nhóm
               </Button>
               <Button onClick={loadGroupData}>
-                Try Again
+                Thử lại
               </Button>
             </div>
           </CardContent>
@@ -245,17 +245,17 @@ export default function GroupMembersPage() {
         <div className="flex items-center gap-4">
           <Button onClick={handleBackToGroup} variant="outline" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Group
+            Quay lại nhóm
           </Button>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                 <Users className="h-8 w-8" />
-                Members
+                Thành viên
               </h1>
             </div>
             <p className="text-muted-foreground mt-1">
-              Managing members for {group.name}
+              Quản lý thành viên cho {group.name}
             </p>
           </div>
         </div>
@@ -263,17 +263,17 @@ export default function GroupMembersPage() {
         {canManageGroup && (
           <div className="flex gap-2">
             {isOwner && (
-              <Button 
+              <Button
                 onClick={() => setIsTransferOwnershipOpen(true)}
                 variant="outline"
               >
                 <Crown className="mr-2 h-4 w-4" />
-                Transfer Ownership
+                Chuyển quyền sở hữu
               </Button>
             )}
             <Button onClick={() => setIsInviteModalOpen(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
-              Add Member
+              Thêm thành viên
             </Button>
           </div>
         )}
@@ -283,20 +283,20 @@ export default function GroupMembersPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng thành viên</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{members.length}</div>
             <p className="text-xs text-muted-foreground">
-              Active participants
+              Thành viên đang hoạt động
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Your Role</CardTitle>
+            <CardTitle className="text-sm font-medium">Vai trò của bạn</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -305,14 +305,14 @@ export default function GroupMembersPage() {
               {userRole.toLowerCase()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Permission level
+              Mức quyền hạn
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Admins</CardTitle>
+            <CardTitle className="text-sm font-medium">Quản trị viên</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -320,7 +320,7 @@ export default function GroupMembersPage() {
               {members.filter(m => ['OWNER', 'ADMIN'].includes(m.role)).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Administrators
+              Người quản trị
             </p>
           </CardContent>
         </Card>
@@ -329,9 +329,9 @@ export default function GroupMembersPage() {
       {/* Members List */}
       <Card>
         <CardHeader>
-          <CardTitle>Group Members</CardTitle>
+          <CardTitle>Thành viên nhóm</CardTitle>
           <CardDescription>
-            People who have access to this group
+            Những người có quyền truy cập vào nhóm này
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -350,13 +350,13 @@ export default function GroupMembersPage() {
                         <p className="font-medium">{member.user?.name}</p>
                         {member.userId === user?.id && (
                           <Badge variant="outline" className="text-xs">
-                            You
+                            Bạn
                           </Badge>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">{member.user?.email}</p>
                       <p className="text-xs text-muted-foreground">
-                        Joined {formatJoinDate(member.joinedAt)}
+                        Tham gia {formatJoinDate(member.joinedAt)}
                       </p>
                     </div>
                   </div>
@@ -382,14 +382,14 @@ export default function GroupMembersPage() {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No members found</p>
+              <p className="text-lg font-medium mb-2">Không tìm thấy thành viên</p>
               <p className="text-sm mb-4">
-                {canManageGroup ? 'Add the first member to get started.' : 'No one has been added to this group yet.'}
+                {canManageGroup ? 'Thêm thành viên đầu tiên để bắt đầu.' : 'Chưa có ai được thêm vào nhóm này.'}
               </p>
               {canManageGroup && (
                 <Button onClick={() => setIsInviteModalOpen(true)}>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Add First Member
+                  Thêm thành viên đầu tiên
                 </Button>
               )}
             </div>

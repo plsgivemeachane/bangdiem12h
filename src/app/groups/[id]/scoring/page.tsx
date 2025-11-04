@@ -109,7 +109,7 @@ export default function GroupScoringPage() {
     if (group?.scoringRules && group.scoringRules.filter(rule => rule.isActive).length > 0) {
       setShowScoreModal(true)
     } else {
-      toast.error('No active scoring rules available for this group')
+      toast.error('Không có quy tắc chấm điểm đang hoạt động cho nhóm này')
     }
   }
 
@@ -120,7 +120,7 @@ export default function GroupScoringPage() {
   const handleScoreRecorded = (newScoreRecord: any) => {
     // Add the new score record to the list
     setScoreRecords(prev => [newScoreRecord, ...prev])
-    toast.success(`Score of ${newScoreRecord.points} points recorded!`)
+    toast.success(`Điểm ${newScoreRecord.points} đã được ghi!`)
   }
 
   // Get user's role in the group
@@ -154,7 +154,7 @@ export default function GroupScoringPage() {
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Checking authentication..." />
+        <Loading text="Đang kiểm tra xác thực..." />
       </div>
     )
   }
@@ -165,12 +165,12 @@ export default function GroupScoringPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
+            <h2 className="text-2xl font-bold mb-4">Yêu cầu xác thực</h2>
             <p className="text-muted-foreground mb-6">
-              Please sign in to access this group's scoring.
+              Vui lòng đăng nhập để truy cập chấm điểm nhóm này.
             </p>
             <Button onClick={() => router.push('/auth/signin')}>
-              Sign In
+              Đăng nhập
             </Button>
           </CardContent>
         </Card>
@@ -182,7 +182,7 @@ export default function GroupScoringPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Loading scoring data..." />
+        <Loading text="Đang tải dữ liệu chấm điểm..." />
       </div>
     )
   }
@@ -193,17 +193,17 @@ export default function GroupScoringPage() {
       <div className="container mx-auto px-4 py-8">
         <Card className="border-destructive">
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Group Not Found</h2>
+            <h2 className="text-2xl font-bold mb-4">Không tìm thấy nhóm</h2>
             <p className="text-muted-foreground mb-6">
-              {error || 'The group you are looking for does not exist.'}
+              {error || 'Nhóm bạn đang tìm kiếm không tồn tại.'}
             </p>
             <div className="flex gap-4 justify-center">
               <Button onClick={handleBackToGroup} variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Groups
+                Quay lại danh sách nhóm
               </Button>
               <Button onClick={loadGroupData}>
-                Try Again
+                Thử lại
               </Button>
             </div>
           </CardContent>
@@ -219,17 +219,17 @@ export default function GroupScoringPage() {
         <div className="flex items-center gap-4">
           <Button onClick={handleBackToGroup} variant="outline" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Group
+            Quay lại nhóm
           </Button>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                 <Trophy className="h-8 w-8" />
-                Scoring
+                Chấm điểm
               </h1>
             </div>
             <p className="text-muted-foreground mt-1">
-              Score tracking for {group.name}
+              Theo dõi điểm số cho {group.name}
             </p>
           </div>
         </div>
@@ -237,12 +237,12 @@ export default function GroupScoringPage() {
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
+            Tải lại
           </Button>
           {canRecordScores && (
             <Button onClick={handleRecordScore} disabled={isRecordingScore}>
               <Plus className="mr-2 h-4 w-4" />
-              Record Score
+              Ghi điểm
             </Button>
           )}
         </div>
@@ -252,52 +252,52 @@ export default function GroupScoringPage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Points</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng điểm</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPoints}</div>
             <p className="text-xs text-muted-foreground">
-              All time
+              Tất cả thời gian
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Records</CardTitle>
+            <CardTitle className="text-sm font-medium">Bản ghi</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{scoreRecords.length}</div>
             <p className="text-xs text-muted-foreground">
-              Score entries
+              Số lần ghi điểm
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average</CardTitle>
+            <CardTitle className="text-sm font-medium">Trung bình</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{Math.round(averagePoints * 10) / 10}</div>
             <p className="text-xs text-muted-foreground">
-              Points per record
+              Điểm trung bình mỗi lần
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Week</CardTitle>
+            <CardTitle className="text-sm font-medium">Tuần này</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{thisWeekRecords.length}</div>
             <p className="text-xs text-muted-foreground">
-              Recent activity
+              Hoạt động gần đây
             </p>
           </CardContent>
         </Card>
@@ -309,14 +309,14 @@ export default function GroupScoringPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Filters
+              Bộ lọc
             </CardTitle>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
             >
-              {showFilters ? 'Hide' : 'Show'}
+              {showFilters ? 'Ẩn' : 'Hiển thị'}
             </Button>
           </div>
         </CardHeader>
@@ -324,7 +324,7 @@ export default function GroupScoringPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Start Date</label>
+                <label className="text-sm font-medium">Ngày bắt đầu</label>
                 <input
                   type="date"
                   value={filters.startDate}
@@ -333,7 +333,7 @@ export default function GroupScoringPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">End Date</label>
+                <label className="text-sm font-medium">Ngày kết thúc</label>
                 <input
                   type="date"
                   value={filters.endDate}
@@ -343,7 +343,7 @@ export default function GroupScoringPage() {
               </div>
             </div>
             <Button className="mt-4" onClick={handleFilterChange}>
-              Apply Filters
+              Áp dụng bộ lọc
             </Button>
           </CardContent>
         )}
@@ -352,9 +352,9 @@ export default function GroupScoringPage() {
       {/* Score Records */}
       <Card>
         <CardHeader>
-          <CardTitle>Score Records</CardTitle>
+          <CardTitle>Bản ghi điểm số</CardTitle>
           <CardDescription>
-            Your scoring activity in this group
+            Hoạt động chấm điểm của bạn trong nhóm này
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -367,7 +367,7 @@ export default function GroupScoringPage() {
                       <Trophy className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">{record.rule?.name || 'Unknown Rule'}</p>
+                      <p className="font-medium">{record.rule?.name || 'Quy tắc không xác định'}</p>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>{formatDate(record.recordedAt)}</span>
@@ -384,7 +384,7 @@ export default function GroupScoringPage() {
                       +{record.points}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      points
+                      điểm
                     </p>
                   </div>
                 </div>
@@ -393,14 +393,14 @@ export default function GroupScoringPage() {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Trophy className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No score records yet</p>
+              <p className="text-lg font-medium mb-2">Chưa có bản ghi điểm nào</p>
               <p className="text-sm mb-4">
-                {canRecordScores ? 'Record your first score to get started.' : 'No scores have been recorded in this group yet.'}
+                {canRecordScores ? 'Ghi điểm đầu tiên của bạn để bắt đầu.' : 'Chưa có điểm nào được ghi trong nhóm này.'}
               </p>
               {canRecordScores && (
                 <Button onClick={handleRecordScore} disabled={isRecordingScore}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Record First Score
+                  Ghi điểm đầu tiên
                 </Button>
               )}
             </div>
@@ -412,9 +412,9 @@ export default function GroupScoringPage() {
       {group.scoringRules && group.scoringRules.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Available Scoring Rules</CardTitle>
+            <CardTitle>Quy tắc chấm điểm có sẵn</CardTitle>
             <CardDescription>
-              Rules you can use to record scores
+              Quy tắc bạn có thể sử dụng để ghi điểm
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -424,7 +424,7 @@ export default function GroupScoringPage() {
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium">{rule.name}</h3>
                     <Badge variant="outline" className="text-primary">
-                      +{rule.points} pts
+                      +{rule.points} điểm
                     </Badge>
                   </div>
                   {rule.description && (
@@ -433,7 +433,7 @@ export default function GroupScoringPage() {
                     </p>
                   )}
                   <div className="text-xs text-muted-foreground">
-                    Created {formatDate(rule.createdAt)}
+                    Được tạo {formatDate(rule.createdAt)}
                   </div>
                 </div>
               ))}
