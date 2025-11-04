@@ -68,7 +68,7 @@ export default function DashboardClient() {
       })
 
     } catch (err) {
-      console.error('Error fetching dashboard data:', err)
+      console.error('Không thể tải dữ liệu bảng điều khiển:', err)
       setError(err instanceof Error ? err.message : 'Không thể tải dữ liệu bảng điều khiển')
     } finally {
       setLoading(false)

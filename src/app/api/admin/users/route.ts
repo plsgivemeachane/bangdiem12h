@@ -9,7 +9,7 @@ import { UserRole } from '../../../../../node_modules/.prisma/client'
 export async function GET(request: NextRequest) {
   const authReq = await requireAdmin()
   if (!authReq) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
   }
 
   try {
@@ -89,9 +89,9 @@ export async function GET(request: NextRequest) {
       stats
     })
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.error('Lỗi tải danh sách người dùng:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch users' },
+      { error: 'Không thể tải danh sách người dùng' },
       { status: 500 }
     )
   }
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const authReq = await requireAdmin()
   if (!authReq) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
   }
 
   try {
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email và mật khẩu là bắt buộc' },
         { status: 400 }
       )
     }
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: 'Định dạng email không hợp lệ' },
         { status: 400 }
       )
     }
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Email already registered' },
+        { error: 'Email đã được đăng ký' },
         { status: 400 }
       )
     }
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
     const validation = validatePasswordStrength(password)
     if (!validation.isValid) {
       return NextResponse.json(
-        { error: 'Password does not meet requirements', details: validation.errors },
+        { error: 'Mật khẩu không đáp ứng yêu cầu', details: validation.errors },
         { status: 400 }
       )
     }
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
     // Check if password is common
     if (isCommonPassword(password)) {
       return NextResponse.json(
-        { error: 'This password is too common. Please choose a more secure password.' },
+        { error: 'Mật khẩu này quá phổ biến. Vui lòng chọn mật khẩu an toàn hơn.' },
         { status: 400 }
       )
     }
@@ -192,9 +192,9 @@ export async function POST(request: NextRequest) {
       user
     }, { status: 201 })
   } catch (error) {
-    console.error('Error creating user:', error)
+    console.error('Lỗi tạo người dùng:', error)
     return NextResponse.json(
-      { error: 'Failed to create user' },
+      { error: 'Không thể tạo người dùng' },
       { status: 500 }
     )
   }

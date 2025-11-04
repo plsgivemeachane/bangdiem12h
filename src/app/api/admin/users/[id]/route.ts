@@ -10,7 +10,7 @@ export async function GET(
 ) {
   const authReq = await requireAdmin()
   if (!authReq) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
   }
 
   try {
@@ -37,14 +37,14 @@ export async function GET(
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy người dùng' }, { status: 404 })
     }
 
     return NextResponse.json({ user })
   } catch (error) {
-    console.error('Error fetching user:', error)
+    console.error('Lỗi tải thông tin người dùng:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch user' },
+      { error: 'Không thể tải thông tin người dùng' },
       { status: 500 }
     )
   }
@@ -57,7 +57,7 @@ export async function PATCH(
 ) {
   const authReq = await requireAdmin()
   if (!authReq) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
   }
 
   try {
@@ -71,13 +71,13 @@ export async function PATCH(
     })
 
     if (!currentUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy người dùng' }, { status: 404 })
     }
 
     // Prevent admin from updating their own role
     if (params.id === authReq.user.id && role && role !== currentUser.role) {
       return NextResponse.json(
-        { error: 'Cannot change your own role' },
+        { error: 'Không thể tự thay đổi vai trò của bạn' },
         { status: 400 }
       )
     }
@@ -90,7 +90,7 @@ export async function PATCH(
 
       if (adminCount <= 1) {
         return NextResponse.json(
-          { error: 'Cannot demote the last admin. Promote another user to admin first.' },
+          { error: 'Không thể hạ cấp quản trị viên cuối cùng. Hãy thăng cấp người dùng khác trước.' },
           { status: 400 }
         )
       }
@@ -104,7 +104,7 @@ export async function PATCH(
 
       if (existingUser && existingUser.id !== params.id) {
         return NextResponse.json(
-          { error: 'Email already in use' },
+          { error: 'Email đã được sử dụng' },
           { status: 400 }
         )
       }
@@ -113,7 +113,7 @@ export async function PATCH(
     // Validate role if provided
     if (role && role !== 'USER' && role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Invalid role. Must be USER or ADMIN' },
+        { error: 'Vai trò không hợp lệ. Chỉ cho phép USER hoặc ADMIN' },
         { status: 400 }
       )
     }
@@ -146,7 +146,7 @@ export async function PATCH(
         data: {
           userId: params.id,
           action: ActivityType.ADMIN_USER_ROLE_UPDATED,
-          description: `User role updated from ${currentUser.role} to ${role} by admin ${authReq.user.email}`,
+          description: `Vai trò người dùng được cập nhật từ ${currentUser.role} thành ${role} bởi quản trị viên ${authReq.user.email}`,
           metadata: {
             previousRole: currentUser.role,
             newRole: role,
@@ -162,9 +162,9 @@ export async function PATCH(
       user: updatedUser
     })
   } catch (error) {
-    console.error('Error updating user:', error)
+    console.error('Lỗi cập nhật người dùng:', error)
     return NextResponse.json(
-      { error: 'Failed to update user' },
+      { error: 'Không thể cập nhật người dùng' },
       { status: 500 }
     )
   }
@@ -177,14 +177,14 @@ export async function DELETE(
 ) {
   const authReq = await requireAdmin()
   if (!authReq) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
   }
 
   try {
     // Prevent admin from deleting themselves
     if (params.id === authReq.user.id) {
       return NextResponse.json(
-        { error: 'Cannot delete your own account' },
+        { error: 'Không thể xóa tài khoản của chính bạn' },
         { status: 400 }
       )
     }
@@ -196,7 +196,7 @@ export async function DELETE(
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy người dùng' }, { status: 404 })
     }
 
     // If deleting an admin, check if this is the last admin
@@ -207,7 +207,7 @@ export async function DELETE(
 
       if (adminCount <= 1) {
         return NextResponse.json(
-          { error: 'Cannot delete the last admin' },
+          { error: 'Không thể xóa quản trị viên cuối cùng' },
           { status: 400 }
         )
       }
@@ -218,7 +218,7 @@ export async function DELETE(
       data: {
         userId: params.id,
         action: ActivityType.ADMIN_USER_DELETED,
-        description: `User ${user.email} (${user.name || 'No name'}) deleted by admin ${authReq.user.email}`,
+        description: `Người dùng ${user.email} (${user.name || 'Không có tên'}) đã bị xóa bởi quản trị viên ${authReq.user.email}`,
         metadata: {
           deletedUser: {
             id: user.id,
@@ -239,12 +239,12 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'User deleted successfully'
+      message: 'Đã xóa người dùng thành công'
     })
   } catch (error) {
-    console.error('Error deleting user:', error)
+    console.error('Lỗi xóa người dùng:', error)
     return NextResponse.json(
-      { error: 'Failed to delete user' },
+      { error: 'Không thể xóa người dùng' },
       { status: 500 }
     )
   }

@@ -66,11 +66,11 @@ export default function GroupMembersPage() {
       setGroup(groupData)
       setMembers(membersData)
     } catch (error) {
-      console.error('Failed to load group data:', error)
+      console.error('Không thể tải dữ liệu nhóm:', error)
       if (error instanceof Error) {
-        if (error.message.includes('Group not found')) {
+        if (error.message.includes('Group not found') || error.message.includes('Không tìm thấy nhóm')) {
           setError('Nhóm không tìm thấy hoặc bạn không có quyền truy cập vào nhóm này.')
-        } else if (error.message.includes('Access denied')) {
+        } else if (error.message.includes('Access denied') || error.message.includes('Không đủ quyền')) {
           setError('Bạn không có quyền xem nhóm này.')
         } else {
           setError(error.message)

@@ -11,7 +11,7 @@ export async function PUT(
 ) {
   const authReq = await requireAdmin()
   if (!authReq) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
   }
 
   try {
@@ -20,7 +20,7 @@ export async function PUT(
 
     if (!newPassword) {
       return NextResponse.json(
-        { error: 'New password is required' },
+        { error: 'Mật khẩu mới là bắt buộc' },
         { status: 400 }
       )
     }
@@ -32,14 +32,14 @@ export async function PUT(
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy người dùng' }, { status: 404 })
     }
 
     // Validate password strength
     const validation = validatePasswordStrength(newPassword)
     if (!validation.isValid) {
       return NextResponse.json(
-        { error: 'Password does not meet requirements', details: validation.errors },
+        { error: 'Mật khẩu không đáp ứng yêu cầu', details: validation.errors },
         { status: 400 }
       )
     }
@@ -47,7 +47,7 @@ export async function PUT(
     // Check if password is common
     if (isCommonPassword(newPassword)) {
       return NextResponse.json(
-        { error: 'This password is too common. Please choose a more secure password.' },
+        { error: 'Mật khẩu này quá phổ biến. Vui lòng chọn mật khẩu an toàn hơn.' },
         { status: 400 }
       )
     }
@@ -66,7 +66,7 @@ export async function PUT(
       data: {
         userId: params.id,
         action: ActivityType.ADMIN_PASSWORD_RESET_BY_ADMIN,
-        description: `Password reset by admin ${authReq.user.email} for user ${user.email}`,
+        description: `Quản trị viên ${authReq.user.email} đã đặt lại mật khẩu cho người dùng ${user.email}`,
         metadata: {
           resetBy: authReq.user.id,
           resetByEmail: authReq.user.email,
@@ -81,12 +81,12 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      message: 'Password reset successfully'
+      message: 'Đặt lại mật khẩu thành công'
     })
   } catch (error) {
-    console.error('Error resetting password:', error)
+    console.error('Lỗi đặt lại mật khẩu:', error)
     return NextResponse.json(
-      { error: 'Failed to reset password' },
+      { error: 'Không thể đặt lại mật khẩu' },
       { status: 500 }
     )
   }

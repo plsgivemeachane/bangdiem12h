@@ -75,19 +75,19 @@ export default function GroupScoringPage() {
       setGroup(groupData)
       setScoreRecords(scoreData.scoreRecords)
     } catch (error) {
-      console.error('Failed to load group data:', error)
+      console.error('Không thể tải dữ liệu nhóm:', error)
       if (error instanceof Error) {
-        if (error.message.includes('Group not found')) {
-          setError('Group not found or you do not have access to this group.')
-        } else if (error.message.includes('Access denied')) {
-          setError('You do not have permission to view this group.')
+        if (error.message.includes('Group not found') || error.message.includes('Không tìm thấy nhóm')) {
+          setError('Không tìm thấy nhóm hoặc bạn không có quyền truy cập.')
+        } else if (error.message.includes('Access denied') || error.message.includes('Không đủ quyền')) {
+          setError('Bạn không có quyền xem nhóm này.')
         } else {
           setError(error.message)
         }
       } else {
-        setError('Failed to load group data')
+        setError('Không thể tải dữ liệu nhóm')
       }
-      toast.error('Failed to load group data')
+      toast.error('Không thể tải dữ liệu nhóm')
     } finally {
       setIsLoading(false)
     }
@@ -141,7 +141,7 @@ export default function GroupScoringPage() {
 
   const formatDate = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date
-    return dateObj.toLocaleDateString('en-US', {
+    return dateObj.toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

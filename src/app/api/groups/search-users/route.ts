@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ users })
   } catch (error) {
-    console.error('Error searching users:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi tìm kiếm người dùng:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }

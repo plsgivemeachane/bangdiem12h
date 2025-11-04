@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
       const data = await response.json()
       setGroups(data.groups || [])
     } catch (error) {
-      console.error('Failed to load groups:', error)
+      console.error('Không thể tải danh sách nhóm:', error)
       toast.error('Không thể tải danh sách nhóm')
     } finally {
       setIsLoadingGroups(false)
@@ -164,7 +164,7 @@ export default function AnalyticsPage() {
       setAnalyticsData(result.analytics)
 
     } catch (error) {
-      console.error('Failed to load analytics data:', error)
+      console.error('Không thể tải dữ liệu phân tích:', error)
       setError(error instanceof Error ? error.message : 'Không thể tải dữ liệu phân tích')
       toast.error('Không thể tải dữ liệu phân tích')
     } finally {

@@ -141,7 +141,7 @@ export function ScoreRecordingModal({
       setOverridePoints(false)
 
     } catch (error) {
-      console.error('Failed to record score:', error)
+      console.error('Ghi điểm thất bại:', error)
       if (error instanceof Error) {
         toast.error(error.message || 'Không thể ghi điểm')
       } else {

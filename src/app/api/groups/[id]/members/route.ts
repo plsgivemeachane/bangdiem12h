@@ -12,7 +12,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     // Fetch group and members (no access check - users can view all groups)
@@ -35,7 +35,7 @@ export async function GET(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     return NextResponse.json({ 
@@ -49,8 +49,8 @@ export async function GET(
       }))
     })
   } catch (error) {
-    console.error('Error fetching group members:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi tải thành viên nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -61,13 +61,13 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const { email, role = GroupRole.MEMBER } = await request.json()
 
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Email là bắt buộc' }, { status: 400 })
     }
 
     // Verify user has admin permissions for this group
@@ -81,12 +81,12 @@ export async function POST(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     const userMember = group.members[0]
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+      return NextResponse.json({ error: 'Không đủ quyền' }, { status: 403 })
     }
 
     // Find the user to add
@@ -101,7 +101,7 @@ export async function POST(
     })
 
     if (!userToAdd) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy người dùng' }, { status: 404 })
     }
 
     // Check if user is already a member
@@ -115,7 +115,7 @@ export async function POST(
     })
 
     if (existingMember) {
-      return NextResponse.json({ error: 'User is already a member of this group' }, { status: 400 })
+      return NextResponse.json({ error: 'Người dùng đã là thành viên của nhóm này' }, { status: 400 })
     }
 
     // Create the group member
@@ -143,7 +143,7 @@ export async function POST(
       userId: session.user.id,
       groupId: params.id,
       action: ActivityType.MEMBER_INVITED,
-      description: `Added ${userToAdd.email} as ${role} to group "${group.name}"`,
+      description: `Đã thêm ${userToAdd.email} với vai trò ${role} vào nhóm "${group.name}"`,
       metadata: { 
         memberEmail: userToAdd.email, 
         memberId: userToAdd.id,
@@ -162,8 +162,8 @@ export async function POST(
       }
     }, { status: 201 })
   } catch (error) {
-    console.error('Error adding group member:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi thêm thành viên nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -174,13 +174,13 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const { memberId, role } = await request.json()
 
     if (!memberId || !role) {
-      return NextResponse.json({ error: 'Member ID and role are required' }, { status: 400 })
+      return NextResponse.json({ error: 'Cần cung cấp mã thành viên và vai trò' }, { status: 400 })
     }
 
     // Verify user has admin permissions for this group
@@ -192,12 +192,12 @@ export async function PATCH(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     const userMember = group.members.find(m => m.userId === session.user.id)
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+      return NextResponse.json({ error: 'Không đủ quyền' }, { status: 403 })
     }
 
     // Get the member being updated
@@ -217,19 +217,19 @@ export async function PATCH(
     })
 
     if (!targetMember) {
-      return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy thành viên' }, { status: 404 })
     }
 
     // Check if this is an ownership transfer
     if (role === GroupRole.OWNER) {
       // Only current owner can transfer ownership
       if (userMember.role !== GroupRole.OWNER) {
-        return NextResponse.json({ error: 'Only the current owner can transfer ownership' }, { status: 403 })
+        return NextResponse.json({ error: 'Chỉ chủ sở hữu hiện tại mới có thể chuyển quyền' }, { status: 403 })
       }
 
       // Cannot transfer ownership to yourself
       if (targetMember.userId === session.user.id) {
-        return NextResponse.json({ error: 'You are already the owner' }, { status: 400 })
+        return NextResponse.json({ error: 'Bạn đã là chủ nhóm' }, { status: 400 })
       }
 
       // Perform ownership transfer (update both members in a transaction)
@@ -273,7 +273,7 @@ export async function PATCH(
         userId: session.user.id,
         groupId: params.id,
         action: ActivityType.OWNERSHIP_TRANSFERRED,
-        description: `Transferred ownership of "${group.name}" from ${downgradedOwner.user.email} to ${updatedMember.user.email}`,
+        description: `Đã chuyển quyền sở hữu "${group.name}" từ ${downgradedOwner.user.email} sang ${updatedMember.user.email}`,
         metadata: { 
           previousOwnerId: downgradedOwner.userId,
           previousOwnerEmail: downgradedOwner.user.email,
@@ -315,7 +315,7 @@ export async function PATCH(
       userId: session.user.id,
       groupId: params.id,
       action: ActivityType.MEMBER_ROLE_UPDATED,
-      description: `Updated ${updatedMember.user.email} role to ${role} in group "${group.name}"`,
+      description: `Đã cập nhật vai trò của ${updatedMember.user.email} thành ${role} trong nhóm "${group.name}"`,
       metadata: { 
         memberId: updatedMember.id,
         memberEmail: updatedMember.user.email,
@@ -333,8 +333,8 @@ export async function PATCH(
       }
     })
   } catch (error) {
-    console.error('Error updating group member:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi cập nhật thành viên nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -345,14 +345,14 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
     const memberId = searchParams.get('memberId')
 
     if (!memberId) {
-      return NextResponse.json({ error: 'Member ID is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Cần cung cấp mã thành viên' }, { status: 400 })
     }
 
     // Verify user has admin permissions for this group
@@ -366,12 +366,12 @@ export async function DELETE(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     const userMember = group.members[0]
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+      return NextResponse.json({ error: 'Không đủ quyền' }, { status: 403 })
     }
 
     // Get the member to be removed
@@ -389,12 +389,12 @@ export async function DELETE(
     })
 
     if (!memberToRemove) {
-      return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy thành viên' }, { status: 404 })
     }
 
     // Don't allow removing the group owner
     if (memberToRemove.role === 'OWNER') {
-      return NextResponse.json({ error: 'Cannot remove group owner' }, { status: 403 })
+      return NextResponse.json({ error: 'Không thể xóa chủ nhóm' }, { status: 403 })
     }
 
     // Remove the member
@@ -407,16 +407,16 @@ export async function DELETE(
       userId: session.user.id,
       groupId: params.id,
       action: ActivityType.MEMBER_REMOVED,
-      description: `Removed ${memberToRemove.user.email} from group "${group.name}"`,
+      description: `Đã xóa ${memberToRemove.user.email} khỏi nhóm "${group.name}"`,
       metadata: { 
         removedMemberId: memberToRemove.id,
         removedMemberEmail: memberToRemove.user.email
       }
     })
 
-    return NextResponse.json({ message: 'Member removed successfully' })
+    return NextResponse.json({ message: 'Đã xóa thành viên thành công' })
   } catch (error) {
-    console.error('Error removing group member:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi xóa thành viên nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }

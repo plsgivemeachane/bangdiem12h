@@ -91,7 +91,7 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
         onSuccess(updatedGroup)
       }
     } catch (error) {
-      console.error('Group form error:', error)
+      console.error('Lỗi biểu mẫu nhóm:', error)
       toast.error(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
     } finally {
       setIsLoading(false)

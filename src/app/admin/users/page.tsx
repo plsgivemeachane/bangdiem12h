@@ -91,7 +91,7 @@ export default function AdminUsersPage() {
       setPagination(data.pagination)
       setStats(data.stats)
     } catch (error) {
-      console.error('Error fetching users:', error)
+      console.error('Lỗi tải danh sách người dùng:', error)
       toast.error('Không thể tải danh sách người dùng')
     } finally {
       setIsLoading(false)
@@ -126,7 +126,7 @@ export default function AdminUsersPage() {
       setDeleteDialog({ open: false, user: null })
       fetchUsers()
     } catch (error) {
-      console.error('Error deleting user:', error)
+      console.error('Lỗi xóa người dùng:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể xoá người dùng')
     }
   }
@@ -150,7 +150,7 @@ export default function AdminUsersPage() {
       setRoleDialog({ open: false, user: null, newRole: null })
       fetchUsers()
     } catch (error) {
-      console.error('Error updating role:', error)
+      console.error('Lỗi cập nhật vai trò:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể cập nhật vai trò')
     }
   }
@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
       setNewPassword('')
       setShowPassword(false)
     } catch (error) {
-      console.error('Error resetting password:', error)
+      console.error('Lỗi đặt lại mật khẩu:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể đặt lại mật khẩu')
     }
   }

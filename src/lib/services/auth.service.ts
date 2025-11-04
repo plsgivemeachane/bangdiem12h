@@ -58,7 +58,7 @@ export class AuthService {
       if (existingUser) {
         return {
           success: false,
-          error: 'User with this email already exists'
+          error: 'Người dùng với email này đã tồn tại'
         }
       }
 
@@ -99,19 +99,19 @@ export class AuthService {
         data: result as UserData,
       }
     } catch (error) {
-      console.error('User creation failed:', error)
+      console.error('Tạo người dùng thất bại:', error)
       
       if (error instanceof Error) {
         // Handle specific database errors
         if (error.message.includes('Unique constraint')) {
           return {
             success: false,
-            error: 'User with this email already exists'
+            error: 'Người dùng với email này đã tồn tại'
           }
         }
       }
       
-      throw new DatabaseError('Failed to create user', error)
+      throw new DatabaseError('Không thể tạo người dùng', error)
     }
   }
 
@@ -138,7 +138,7 @@ export class AuthService {
         await logLoginFailed(loginData.email, 'user_not_found')
         return {
           success: false,
-          error: 'Invalid email or password'
+          error: 'Email hoặc mật khẩu không hợp lệ'
         }
       }
 
@@ -147,7 +147,7 @@ export class AuthService {
         await logLoginFailed(loginData.email, 'oauth_user_no_password')
         return {
           success: false,
-          error: 'Invalid email or password'
+          error: 'Email hoặc mật khẩu không hợp lệ'
         }
       }
 
@@ -158,7 +158,7 @@ export class AuthService {
         await logLoginFailed(loginData.email, 'invalid_password')
         return {
           success: false,
-          error: 'Invalid email or password'
+          error: 'Email hoặc mật khẩu không hợp lệ'
         }
       }
 
@@ -175,10 +175,10 @@ export class AuthService {
         data: userData as UserData,
       }
     } catch (error) {
-      console.error('Login failed:', error)
+      console.error('Đăng nhập thất bại:', error)
       await logLoginFailed(loginData.email, 'system_error')
       
-      throw new DatabaseError('Login failed', error)
+      throw new DatabaseError('Đăng nhập thất bại', error)
     }
   }
 
@@ -202,8 +202,8 @@ export class AuthService {
         success: true,
       }
     } catch (error) {
-      console.error('Password update failed:', error)
-      throw new DatabaseError('Failed to update password', error)
+      console.error('Cập nhật mật khẩu thất bại:', error)
+      throw new DatabaseError('Không thể cập nhật mật khẩu', error)
     }
   }
 
@@ -226,7 +226,7 @@ export class AuthService {
       if (!user) {
         return {
           success: false,
-          error: 'User not found'
+          error: 'Không tìm thấy người dùng'
         }
       }
 
@@ -235,8 +235,8 @@ export class AuthService {
         data: user as UserData,
       }
     } catch (error) {
-      console.error('User lookup failed:', error)
-      throw new DatabaseError('Failed to find user', error)
+      console.error('Tra cứu người dùng thất bại:', error)
+      throw new DatabaseError('Không thể tìm người dùng', error)
     }
   }
 
@@ -259,7 +259,7 @@ export class AuthService {
       if (!user) {
         return {
           success: false,
-          error: 'User not found'
+          error: 'Không tìm thấy người dùng'
         }
       }
 
@@ -268,8 +268,8 @@ export class AuthService {
         data: user as UserData,
       }
     } catch (error) {
-      console.error('User lookup failed:', error)
-      throw new DatabaseError('Failed to find user', error)
+      console.error('Tra cứu người dùng thất bại:', error)
+      throw new DatabaseError('Không thể tìm người dùng', error)
     }
   }
 
@@ -285,7 +285,7 @@ export class AuthService {
 
       return user?.role === UserRole.ADMIN
     } catch (error) {
-      console.error('Admin check failed:', error)
+      console.error('Kiểm tra quyền quản trị thất bại:', error)
       return false
     }
   }
@@ -306,8 +306,8 @@ export class AuthService {
         success: true,
       }
     } catch (error) {
-      console.error('User deletion failed:', error)
-      throw new DatabaseError('Failed to delete user', error)
+      console.error('Xóa người dùng thất bại:', error)
+      throw new DatabaseError('Không thể xóa người dùng', error)
     }
   }
 }

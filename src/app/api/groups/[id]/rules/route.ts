@@ -13,7 +13,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const groupId = params.id
@@ -29,7 +29,7 @@ export async function GET(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     // No access check for viewing - all users can view all groups
@@ -59,8 +59,8 @@ export async function GET(
 
     return NextResponse.json({ rules: availableRules })
   } catch (error) {
-    console.error('Error fetching group rules:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi tải quy tắc nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -72,14 +72,14 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const groupId = params.id
     const { ruleId } = await request.json()
 
     if (!ruleId) {
-      return NextResponse.json({ error: 'Rule ID is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Cần cung cấp mã quy tắc' }, { status: 400 })
     }
 
     // Verify user has admin/owner permissions for this group
@@ -93,13 +93,13 @@ export async function POST(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     const userMember = group.members[0]
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
       return NextResponse.json({ 
-        error: 'Admin/Owner access required to manage group rules' 
+        error: 'Chỉ chủ nhóm hoặc quản trị viên mới có thể quản lý quy tắc' 
       }, { status: 403 })
     }
 
@@ -109,11 +109,11 @@ export async function POST(
     })
 
     if (!rule) {
-      return NextResponse.json({ error: 'Scoring rule not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy quy tắc chấm điểm' }, { status: 404 })
     }
 
     if (!rule.isActive) {
-      return NextResponse.json({ error: 'Cannot add inactive rule to group' }, { status: 400 })
+      return NextResponse.json({ error: 'Không thể thêm quy tắc đang bị vô hiệu hóa vào nhóm' }, { status: 400 })
     }
 
     // Check if rule is already available to this group
@@ -129,7 +129,7 @@ export async function POST(
     if (existingGroupRule) {
       if (existingGroupRule.isActive) {
         return NextResponse.json({ 
-          error: 'Rule is already available to this group' 
+          error: 'Quy tắc đã có sẵn cho nhóm này' 
         }, { status: 400 })
       } else {
         // Reactivate the rule if it was previously removed
@@ -147,7 +147,7 @@ export async function POST(
         await logActivity({
           userId: session.user.id,
           action: ActivityType.RULE_ADDED_TO_GROUP,
-          description: `Reactivated scoring rule "${rule.name}" for group "${group.name}"`,
+          description: `Đã kích hoạt lại quy tắc "${rule.name}" cho nhóm "${group.name}"`,
           metadata: { 
             groupId, 
             ruleId, 
@@ -158,7 +158,7 @@ export async function POST(
 
         return NextResponse.json({ 
           groupRule: reactivatedGroupRule,
-          message: 'Rule reactivated for group'
+          message: 'Đã kích hoạt lại quy tắc cho nhóm'
         })
       }
     }
@@ -176,7 +176,7 @@ export async function POST(
     await logActivity({
       userId: session.user.id,
       action: ActivityType.RULE_ADDED_TO_GROUP,
-      description: `Added scoring rule "${rule.name}" to group "${group.name}"`,
+      description: `Đã thêm quy tắc "${rule.name}" vào nhóm "${group.name}"`,
       metadata: { 
         groupId, 
         ruleId, 
@@ -187,8 +187,8 @@ export async function POST(
 
     return NextResponse.json({ groupRule }, { status: 201 })
   } catch (error) {
-    console.error('Error adding rule to group:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi thêm quy tắc vào nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -200,7 +200,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const groupId = params.id
@@ -208,7 +208,7 @@ export async function DELETE(
     const ruleId = searchParams.get('ruleId')
 
     if (!ruleId) {
-      return NextResponse.json({ error: 'Rule ID is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Cần cung cấp mã quy tắc' }, { status: 400 })
     }
 
     // Verify user has admin/owner permissions for this group
@@ -222,13 +222,13 @@ export async function DELETE(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     const userMember = group.members[0]
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
       return NextResponse.json({ 
-        error: 'Admin/Owner access required to manage group rules' 
+        error: 'Chỉ chủ nhóm hoặc quản trị viên mới có thể quản lý quy tắc' 
       }, { status: 403 })
     }
 
@@ -238,7 +238,7 @@ export async function DELETE(
     })
 
     if (!rule) {
-      return NextResponse.json({ error: 'Scoring rule not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy quy tắc chấm điểm' }, { status: 404 })
     }
 
     // Check if rule is currently available to this group
@@ -252,11 +252,11 @@ export async function DELETE(
     })
 
     if (!existingGroupRule) {
-      return NextResponse.json({ error: 'Rule is not available to this group' }, { status: 400 })
+      return NextResponse.json({ error: 'Quy tắc không tồn tại trong nhóm này' }, { status: 400 })
     }
 
     if (!existingGroupRule.isActive) {
-      return NextResponse.json({ error: 'Rule is already unavailable to this group' }, { status: 400 })
+      return NextResponse.json({ error: 'Quy tắc này đã bị vô hiệu trong nhóm' }, { status: 400 })
     }
 
     // Deactivate the rule for this group (soft delete)
@@ -274,7 +274,7 @@ export async function DELETE(
     await logActivity({
       userId: session.user.id,
       action: ActivityType.RULE_REMOVED_FROM_GROUP,
-      description: `Removed scoring rule "${rule.name}" from group "${group.name}"`,
+      description: `Đã gỡ quy tắc "${rule.name}" khỏi nhóm "${group.name}"`,
       metadata: { 
         groupId, 
         ruleId, 
@@ -284,10 +284,10 @@ export async function DELETE(
     })
 
     return NextResponse.json({ 
-      message: 'Rule removed from group successfully' 
+      message: 'Đã xóa quy tắc khỏi nhóm thành công' 
     })
   } catch (error) {
-    console.error('Error removing rule from group:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi xóa quy tắc khỏi nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }

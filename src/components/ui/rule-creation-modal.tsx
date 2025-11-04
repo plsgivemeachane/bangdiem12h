@@ -165,7 +165,7 @@ export function RuleCreationModal({
       setCriteriaConditions([])
 
     } catch (error) {
-      console.error('Failed to create rule:', error)
+      console.error('Tạo quy tắc thất bại:', error)
       if (error instanceof Error) {
         toast.error(error.message || 'Không thể tạo quy tắc')
       } else {

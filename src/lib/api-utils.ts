@@ -20,7 +20,7 @@ export async function parseJsonRequest<T>(request: NextRequest): Promise<T> {
   try {
     return await request.json()
   } catch (error) {
-    throw new Error('Invalid JSON in request body')
+    throw new Error('JSON trong nội dung yêu cầu không hợp lệ')
   }
 }
 
@@ -31,7 +31,7 @@ export function validateRequiredFields<T extends Record<string, any>>(
   const missing = requiredFields.filter(field => !data[field] && data[field] !== 0)
   
   if (missing.length > 0) {
-    throw new Error(`Missing required fields: ${missing.join(', ')}`)
+    throw new Error(`Thiếu các trường bắt buộc: ${missing.join(', ')}`)
   }
 }
 
@@ -61,22 +61,26 @@ export async function handleApiError(error: unknown, context: string): Promise<N
   console.error(`API Error in ${context}:`, error)
   
   if (error instanceof Error) {
-    if (error.message.includes('Missing required fields')) {
+    if (error.message.includes('Missing required fields') || error.message.includes('Thiếu các trường bắt buộc')) {
       return createErrorResponse(error.message, 400)
     }
-    if (error.message.includes('Invalid JSON')) {
+    if (error.message.includes('Invalid JSON') || error.message.includes('JSON trong nội dung yêu cầu không hợp lệ')) {
       return createErrorResponse(error.message, 400)
     }
     if (error.message.includes('not found')) {
       return createErrorResponse(error.message, 404)
     }
-    if (error.message.includes('Access denied') || error.message.includes('Insufficient permissions')) {
+    if (
+      error.message.includes('Access denied') ||
+      error.message.includes('Insufficient permissions') ||
+      error.message.includes('Không đủ quyền')
+    ) {
       return createErrorResponse(error.message, 403)
     }
-    if (error.message.includes('Unauthorized')) {
+    if (error.message.includes('Unauthorized') || error.message.includes('Chưa được xác thực')) {
       return createErrorResponse(error.message, 401)
     }
   }
   
-  return createErrorResponse('Internal server error', 500)
+  return createErrorResponse('Lỗi máy chủ nội bộ', 500)
 }

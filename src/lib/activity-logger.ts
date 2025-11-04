@@ -27,7 +27,7 @@ export async function logActivity({
       },
     })
   } catch (error) {
-    console.error('Failed to log activity:', error)
+    console.error('Ghi nhật ký hoạt động thất bại:', error)
     // Don't throw error to avoid breaking the main flow
   }
 }
@@ -45,7 +45,7 @@ export async function logUserRegistration(userId: string, userData: {
   return logActivity({
     userId,
     action: ActivityType.USER_REGISTERED,
-    description: `User registered with email ${userData.email}`,
+    description: `Người dùng đăng ký với email ${userData.email}`,
     metadata: {
       email: userData.email,
       name: userData.name,
@@ -62,10 +62,11 @@ export async function logUserLogin(userId: string, loginData: {
   method: 'password' | 'oauth'
   provider?: string
 }) {
+  const methodLabel = loginData.method === 'password' ? 'mật khẩu' : 'OAuth'
   return logActivity({
     userId,
     action: ActivityType.USER_LOGIN,
-    description: `User logged in via ${loginData.method}`,
+    description: `Người dùng đăng nhập qua ${methodLabel}`,
     metadata: {
       email: loginData.email,
       loginMethod: loginData.method,
@@ -81,7 +82,7 @@ export async function logLoginFailed(email: string, reason: string, ipAddress?: 
   return logActivity({
     userId: null, // No valid user for failed login attempts
     action: ActivityType.LOGIN_FAILED,
-    description: `Failed login attempt for ${email}`,
+    description: `Đăng nhập thất bại cho ${email}`,
     metadata: {
       email,
       reason,
@@ -98,7 +99,7 @@ export async function logPasswordResetRequested(userId: string, email: string, i
   return logActivity({
     userId,
     action: ActivityType.PASSWORD_RESET_REQUESTED,
-    description: `Password reset requested for ${email}`,
+    description: `Yêu cầu đặt lại mật khẩu cho ${email}`,
     metadata: {
       email,
       ipAddress,
@@ -113,7 +114,7 @@ export async function logPasswordResetCompleted(userId: string, email: string, i
   return logActivity({
     userId,
     action: ActivityType.PASSWORD_RESET_COMPLETED,
-    description: `Password reset completed for ${email}`,
+    description: `Hoàn tất đặt lại mật khẩu cho ${email}`,
     metadata: {
       email,
       ipAddress,
@@ -132,7 +133,7 @@ export async function logAdminUserCreated(userId: string, adminData: {
   return logActivity({
     userId,
     action: ActivityType.ADMIN_USER_CREATED,
-    description: `Admin user created: ${adminData.email}`,
+    description: `Tài khoản quản trị được tạo: ${adminData.email}`,
     metadata: {
       email: adminData.email,
       name: adminData.name,

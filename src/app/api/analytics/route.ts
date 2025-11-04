@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       })
 
       if (!group) {
-        return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+        return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
       }
 
       // If userId is specified, verify admin access
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
           member.userId === session.user.id && (member.role === 'OWNER' || member.role === 'ADMIN')
         )
         if (!hasAdminAccess) {
-          return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+          return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
         }
       }
       
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
         const ruleKey = record.rule.id
         if (!ruleBreakdown[ruleKey]) {
           ruleBreakdown[ruleKey] = {
-            name: record.rule.name || 'Unknown Rule',
+            name: record.rule.name || 'Quy tắc không xác định',
             points: 0,
             count: 0
           }
@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
       
       groups.forEach(group => {
         groupStats[group.id] = {
-          name: group.name || 'Unknown Group',
+          name: group.name || 'Nhóm không xác định',
           points: 0,
           count: 0
         }
@@ -257,7 +257,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error fetching analytics:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi tải dữ liệu phân tích:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }

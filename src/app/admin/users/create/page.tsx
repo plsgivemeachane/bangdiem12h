@@ -83,7 +83,7 @@ export default function CreateUserPage() {
   useEffect(() => {
     if (!authLoading && !isAdmin) {
       router.push('/dashboard')
-      toast.error('Access denied. Admin privileges required.')
+      toast.error('Truy cập bị từ chối. Cần quyền quản trị viên.')
     }
   }, [isAdmin, authLoading, router])
 
@@ -94,17 +94,17 @@ export default function CreateUserPage() {
       password,
       confirmPassword: password
     }))
-    toast.success('Secure password generated!')
+    toast.success('Đã tạo mật khẩu an toàn!')
   }
 
   const handleCopyPassword = async () => {
     try {
       await navigator.clipboard.writeText(formData.password)
       setPasswordCopied(true)
-      toast.success('Password copied to clipboard!')
+      toast.success('Đã sao chép mật khẩu vào clipboard!')
       setTimeout(() => setPasswordCopied(false), 3000)
     } catch (error) {
-      toast.error('Failed to copy password')
+      toast.error('Không thể sao chép mật khẩu')
     }
   }
 
@@ -155,7 +155,7 @@ export default function CreateUserPage() {
         router.push('/admin/users')
       }, 1500)
     } catch (error) {
-      console.error('Error creating user:', error)
+      console.error('Không thể tạo người dùng:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể tạo người dùng')
     } finally {
       setIsSubmitting(false)

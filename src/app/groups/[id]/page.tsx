@@ -64,11 +64,11 @@ export default function GroupDetailPage() {
       const groupData = await GroupsApi.getGroup(groupId)
       setGroup(groupData)
     } catch (error) {
-      console.error('Failed to load group:', error)
+      console.error('Không thể tải thông tin nhóm:', error)
       if (error instanceof Error) {
-        if (error.message.includes('Group not found')) {
+        if (error.message.includes('Group not found') || error.message.includes('Không tìm thấy nhóm')) {
           setError('Không tìm thấy nhóm hoặc bạn không có quyền truy cập vào nhóm này.')
-        } else if (error.message.includes('Access denied')) {
+        } else if (error.message.includes('Access denied') || error.message.includes('Không đủ quyền')) {
           setError('Bạn không có quyền xem nhóm này.')
         } else {
           setError(error.message)

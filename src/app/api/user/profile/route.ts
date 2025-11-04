@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
+        { success: false, message: 'Chưa được xác thực' },
         { status: 401 }
       )
     }
@@ -21,21 +21,21 @@ export async function PATCH(req: NextRequest) {
     // Validation
     if (name !== undefined && typeof name !== 'string') {
       return NextResponse.json(
-        { success: false, message: 'Name must be a string' },
+        { success: false, message: 'Tên phải là chuỗi' },
         { status: 400 }
       )
     }
 
     if (name !== undefined && name.trim().length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Name cannot be empty' },
+        { success: false, message: 'Tên không được để trống' },
         { status: 400 }
       )
     }
 
     if (image !== undefined && typeof image !== 'string') {
       return NextResponse.json(
-        { success: false, message: 'Image must be a string URL' },
+        { success: false, message: 'Ảnh phải là chuỗi URL hợp lệ' },
         { status: 400 }
       )
     }
@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
     await logActivity({
       userId: session.user.id,
       action: ActivityType.USER_LOGIN, // We can use a generic action or add a new one
-      description: `User profile updated`,
+      description: 'Người dùng đã cập nhật hồ sơ',
       metadata: {
         updatedFields: Object.keys(updateData),
       },
@@ -77,14 +77,14 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({
       success: true,
       user: updatedUser,
-      message: 'Profile updated successfully',
+      message: 'Cập nhật hồ sơ thành công',
     })
   } catch (error) {
-    console.error('Error updating profile:', error)
+    console.error('Lỗi cập nhật hồ sơ:', error)
     return NextResponse.json(
       {
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to update profile',
+        message: error instanceof Error ? error.message : 'Không thể cập nhật hồ sơ',
       },
       { status: 500 }
     )

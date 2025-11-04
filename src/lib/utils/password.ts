@@ -20,19 +20,19 @@ export const PASSWORD_CONFIG = {
 export async function hashPassword(password: string): Promise<string> {
   // Validate password length
   if (password.length < PASSWORD_CONFIG.minLength) {
-    throw new Error('Password must be at least 8 characters long');
+    throw new Error('Mật khẩu phải có ít nhất 8 ký tự');
   }
   
   if (password.length > PASSWORD_CONFIG.maxLength) {
-    throw new Error('Password must not exceed 100 characters');
+    throw new Error('Mật khẩu không được vượt quá 100 ký tự');
   }
 
   try {
     const hashedPassword = await bcrypt.hash(password, PASSWORD_CONFIG.rounds);
     return hashedPassword;
   } catch (error) {
-    console.error('Password hashing failed:', error);
-    throw new Error('Password processing failed');
+    console.error('Băm mật khẩu thất bại:', error);
+    throw new Error('Xử lý mật khẩu thất bại');
   }
 }
 
@@ -51,7 +51,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
     const isValid = await bcrypt.compare(password, hashedPassword);
     return isValid;
   } catch (error) {
-    console.error('Password verification failed:', error);
+    console.error('Xác minh mật khẩu thất bại:', error);
     return false;
   }
 }
@@ -71,7 +71,7 @@ export function validatePasswordStrength(password: string): {
 
   // Length validation
   if (password.length < PASSWORD_CONFIG.minLength) {
-    errors.push(`Password must be at least ${PASSWORD_CONFIG.minLength} characters long`);
+    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minLength} ký tự`);
   } else if (password.length >= 12) {
     score += 2; // Bonus for long passwords
   } else {
@@ -87,25 +87,25 @@ export function validatePasswordStrength(password: string): {
   if (uppercaseCount >= PASSWORD_CONFIG.minUppercase) {
     score += 1;
   } else {
-    errors.push(`Password must contain at least ${PASSWORD_CONFIG.minUppercase} uppercase letter(s)`);
+    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minUppercase} chữ hoa`);
   }
 
   if (lowercaseCount >= PASSWORD_CONFIG.minLowercase) {
     score += 1;
   } else {
-    errors.push(`Password must contain at least ${PASSWORD_CONFIG.minLowercase} lowercase letter(s)`);
+    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minLowercase} chữ thường`);
   }
 
   if (numberCount >= PASSWORD_CONFIG.minNumbers) {
     score += 1;
   } else {
-    errors.push(`Password must contain at least ${PASSWORD_CONFIG.minNumbers} number(s)`);
+    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minNumbers} chữ số`);
   }
 
   if (specialCount >= PASSWORD_CONFIG.minSpecial) {
     score += 1;
   } else {
-    errors.push(`Password must contain at least ${PASSWORD_CONFIG.minSpecial} special character(s)`);
+    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minSpecial} ký tự đặc biệt`);
   }
 
   // Additional strength indicators

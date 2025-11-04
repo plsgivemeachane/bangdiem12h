@@ -31,7 +31,7 @@ export async function sendEmail({
     })
     console.log(`Email sent to ${to}`)
   } catch (error) {
-    console.error('Failed to send email:', error)
+    console.error('Gửi email thất bại:', error)
     throw error
   }
 }
@@ -61,6 +61,37 @@ export async function sendInvitationEmail({
       <p>${invitationLink}</p>
       <hr>
       <p><small>This invitation will expire in 7 days.</small></p>
+    </div>
+  `
+  
+  await sendEmail({
+    to,
+    subject,
+    html,
+  })
+}
+
+export async function sendPasswordResetEmail({
+  to,
+  resetToken,
+}: {
+  to: string
+  resetToken: string
+}) {
+  const subject = 'Password Reset Request'
+  const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>Password Reset Request</h2>
+      <p>Hello,</p>
+      <p>You have requested to reset your password. Click the button below to set a new password:</p>
+      <a href="${resetUrl}" style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+        Reset Password
+      </a>
+      <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+      <p>${resetUrl}</p>
+      <hr>
+      <p><small>This password reset link will expire in 1 hour. If you didn't request this, please ignore this email.</small></p>
     </div>
   `
   

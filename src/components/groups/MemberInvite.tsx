@@ -107,7 +107,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
           const results = await GroupsApi.searchUsers('')
           setUsers(results)
         } catch (error) {
-          console.error('Error loading initial users:', error)
+          console.error('Không thể tải danh sách người dùng ban đầu:', error)
           // Don't show error toast for initial load
         } finally {
           setIsSearching(false)
@@ -136,7 +136,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
         const results = await GroupsApi.searchUsers(debouncedSearchQuery)
         setUsers(results)
       } catch (error) {
-        console.error('Error searching users:', error)
+        console.error('Không thể tìm kiếm người dùng:', error)
         toast.error('Không thể tìm kiếm người dùng')
         setUsers([])
       } finally {
@@ -156,7 +156,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
       form.reset()
       onClose()
     } catch (error) {
-      console.error('Member invite error:', error)
+      console.error('Lỗi thêm thành viên:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể thêm thành viên')
     } finally {
       setIsLoading(false)
@@ -359,7 +359,7 @@ export function MemberManagement({
       onMemberUpdate?.(updatedMember)
       toast.success('Cập nhật vai trò thành viên thành công')
     } catch (error) {
-      console.error('Failed to update member role:', error)
+      console.error('Không thể cập nhật vai trò thành viên:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể cập nhật vai trò thành viên')
     } finally {
       setIsLoading(false)
@@ -377,7 +377,7 @@ export function MemberManagement({
       onMemberRemove?.(memberId)
       toast.success('Xoá thành viên thành công')
     } catch (error) {
-      console.error('Failed to remove member:', error)
+      console.error('Không thể xoá thành viên:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể xoá thành viên')
     } finally {
       setIsLoading(false)
@@ -431,7 +431,7 @@ export function MemberManagement({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleRemoveMember(member.id, member.user?.email || 'Unknown')}
+                    onClick={() => handleRemoveMember(member.id, member.user?.email || 'Không xác định')}
                     disabled={isLoading}
                   >
                     Xoá

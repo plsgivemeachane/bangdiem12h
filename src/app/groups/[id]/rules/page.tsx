@@ -76,11 +76,11 @@ export default function GroupRulesPage() {
       setAvailableRules(available)
       
     } catch (error) {
-      console.error('Failed to load group data:', error)
+      console.error('Không thể tải dữ liệu nhóm:', error)
       if (error instanceof Error) {
-        if (error.message.includes('Group not found')) {
+        if (error.message.includes('Group not found') || error.message.includes('Không tìm thấy nhóm')) {
           setError('Nhóm không tìm thấy hoặc bạn không có quyền truy cập vào nhóm này.')
-        } else if (error.message.includes('Access denied')) {
+        } else if (error.message.includes('Access denied') || error.message.includes('Không đủ quyền')) {
           setError('Bạn không có quyền xem nhóm này.')
         } else {
           setError(error.message)
@@ -118,7 +118,7 @@ export default function GroupRulesPage() {
       toast.success(`Quy tắc "${rule.name}" đã được thêm vào nhóm`)
       loadGroupData() // Refresh to show the rule
     } catch (error) {
-      console.error('Failed to add rule to group:', error)
+      console.error('Không thể thêm quy tắc vào nhóm:', error)
       toast.error('Không thể thêm quy tắc vào nhóm')
     }
   }
@@ -130,7 +130,7 @@ export default function GroupRulesPage() {
         toast.success(`Quy tắc "${rule.name}" đã được xóa khỏi nhóm`)
         loadGroupData() // Refresh both lists (rule moves to available)
       } catch (error) {
-        console.error('Failed to remove rule from group:', error)
+        console.error('Không thể xóa quy tắc khỏi nhóm:', error)
         toast.error('Không thể xóa quy tắc khỏi nhóm')
       }
     }
@@ -145,8 +145,8 @@ export default function GroupRulesPage() {
         r.id === rule.id ? { ...r, isActive: !r.isActive } : r
       ))
     } catch (error) {
-      console.error('Failed to toggle rule:', error)
-      toast.error('Failed to update rule status')
+      console.error('Không thể thay đổi trạng thái quy tắc:', error)
+      toast.error('Không thể cập nhật trạng thái quy tắc')
     }
   }
 

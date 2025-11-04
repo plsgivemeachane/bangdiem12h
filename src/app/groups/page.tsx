@@ -44,7 +44,7 @@ export default function GroupsPage() {
       const groupsData = await GroupsApi.getGroups()
       setGroups(groupsData)
     } catch (error) {
-      console.error('Failed to load groups:', error)
+      console.error('Không thể tải danh sách nhóm:', error)
       setError(error instanceof Error ? error.message : 'Không thể tải danh sách nhóm')
       toast.error('Không thể tải danh sách nhóm')
     } finally {
@@ -68,7 +68,7 @@ export default function GroupsPage() {
       setGroups(prev => prev.filter(g => g.id !== group.id))
       toast.success('Xóa nhóm thành công')
     } catch (error) {
-      console.error('Failed to delete group:', error)
+      console.error('Không thể xóa nhóm:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể xóa nhóm')
       throw error // Re-throw for GroupCard to handle loading state
     }

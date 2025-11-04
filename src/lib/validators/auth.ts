@@ -4,40 +4,40 @@ import { PASSWORD_CONFIG } from '@/lib/utils/password'
 // Base email validation schema
 export const emailSchema = z
   .string()
-  .min(1, 'Email is required')
-  .email('Invalid email format')
-  .max(254, 'Email is too long')
+  .min(1, 'Email là bắt buộc')
+  .email('Định dạng email không hợp lệ')
+  .max(254, 'Email quá dài')
   .transform((email) => email.toLowerCase().trim())
 
 // Password validation schema with strength requirements
 export const passwordSchema = z
   .string()
-  .min(PASSWORD_CONFIG.minLength, `Password must be at least ${PASSWORD_CONFIG.minLength} characters long`)
-  .max(PASSWORD_CONFIG.maxLength, `Password must not exceed ${PASSWORD_CONFIG.maxLength} characters`)
+  .min(PASSWORD_CONFIG.minLength, `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minLength} ký tự`)
+  .max(PASSWORD_CONFIG.maxLength, `Mật khẩu không được vượt quá ${PASSWORD_CONFIG.maxLength} ký tự`)
   .refine((password) => {
     const uppercaseCount = (password.match(/[A-Z]/g) || []).length
     return uppercaseCount >= PASSWORD_CONFIG.minUppercase
-  }, `Password must contain at least ${PASSWORD_CONFIG.minUppercase} uppercase letter(s)`)
+  }, `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minUppercase} chữ hoa`)
   .refine((password) => {
     const lowercaseCount = (password.match(/[a-z]/g) || []).length
     return lowercaseCount >= PASSWORD_CONFIG.minLowercase
-  }, `Password must contain at least ${PASSWORD_CONFIG.minLowercase} lowercase letter(s)`)
+  }, `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minLowercase} chữ thường`)
   .refine((password) => {
     const numberCount = (password.match(/\d/g) || []).length
     return numberCount >= PASSWORD_CONFIG.minNumbers
-  }, `Password must contain at least ${PASSWORD_CONFIG.minNumbers} number(s)`)
+  }, `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minNumbers} chữ số`)
   .refine((password) => {
     const specialCount = (password.match(/[^A-Za-z0-9]/g) || []).length
     return specialCount >= PASSWORD_CONFIG.minSpecial
-  }, `Password must contain at least ${PASSWORD_CONFIG.minSpecial} special character(s)`)
+  }, `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minSpecial} ký tự đặc biệt`)
 
 // Registration form validation schema
 export const registerSchema = z
   .object({
     name: z
       .string()
-      .min(1, 'Name is required')
-      .max(100, 'Name is too long')
+      .min(1, 'Tên là bắt buộc')
+      .max(100, 'Tên quá dài')
       .trim(),
     email: emailSchema,
     password: passwordSchema,
@@ -50,7 +50,7 @@ export const registerSchema = z
     ]
     return !commonPasswords.includes(data.password.toLowerCase())
   }, {
-    message: 'Password is too common. Please choose a more secure password.',
+    message: 'Mật khẩu quá phổ biến. Vui lòng chọn mật khẩu an toàn hơn.',
     path: ['password'],
   })
 
@@ -60,7 +60,7 @@ export const loginSchema = z
     email: emailSchema,
     password: z
       .string()
-      .min(1, 'Password is required'),
+      .min(1, 'Mật khẩu là bắt buộc'),
   })
 
 // Password reset request schema
@@ -74,8 +74,8 @@ export const resetPasswordConfirmSchema = z
   .object({
     token: z
       .string()
-      .min(1, 'Reset token is required')
-      .max(500, 'Reset token is invalid'),
+      .min(1, 'Mã đặt lại là bắt buộc')
+      .max(500, 'Mã đặt lại không hợp lệ'),
     password: passwordSchema,
   })
 
@@ -84,18 +84,18 @@ export const changePasswordSchema = z
   .object({
     currentPassword: z
       .string()
-      .min(1, 'Current password is required'),
+      .min(1, 'Mật khẩu hiện tại là bắt buộc'),
     newPassword: passwordSchema,
     confirmPassword: z
       .string()
-      .min(1, 'Password confirmation is required'),
+      .min(1, 'Xác nhận mật khẩu là bắt buộc'),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
+    message: 'Mật khẩu không khớp',
     path: ['confirmPassword'],
   })
   .refine((data) => data.currentPassword !== data.newPassword, {
-    message: 'New password must be different from current password',
+    message: 'Mật khẩu mới phải khác mật khẩu hiện tại',
     path: ['newPassword'],
   })
 
@@ -104,8 +104,8 @@ export const updateProfileSchema = z
   .object({
     name: z
       .string()
-      .min(1, 'Name is required')
-      .max(100, 'Name is too long')
+      .min(1, 'Tên là bắt buộc')
+      .max(100, 'Tên quá dài')
       .trim()
       .optional(),
     email: emailSchema.optional(),
@@ -116,8 +116,8 @@ export const createAdminUserSchema = z
   .object({
     name: z
       .string()
-      .min(1, 'Name is required')
-      .max(100, 'Name is too long')
+      .min(1, 'Tên là bắt buộc')
+      .max(100, 'Tên quá dài')
       .trim(),
     email: emailSchema,
     password: passwordSchema,
@@ -161,7 +161,7 @@ export function validateFormData<T>(schema: z.ZodSchema<T>, data: unknown): {
 // Password strength checker
 export function getPasswordStrength(password: string): {
   score: number // 0-5
-  label: 'Very Weak' | 'Weak' | 'Fair' | 'Good' | 'Strong' | 'Very Strong'
+  label: 'Rất yếu' | 'Yếu' | 'Trung bình' | 'Tốt' | 'Mạnh' | 'Rất mạnh'
   feedback: string[]
 } {
   let score = 0
@@ -180,33 +180,33 @@ export function getPasswordStrength(password: string): {
   
   // Additional checks
   if (password.length < PASSWORD_CONFIG.minLength) {
-    feedback.push(`Password must be at least ${PASSWORD_CONFIG.minLength} characters`)
+    feedback.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minLength} ký tự`)
   }
   
   if (!/[A-Z]/.test(password)) {
-    feedback.push('Add uppercase letters')
+    feedback.push('Thêm chữ hoa')
   }
   
   if (!/[a-z]/.test(password)) {
-    feedback.push('Add lowercase letters')
+    feedback.push('Thêm chữ thường')
   }
   
   if (!/\d/.test(password)) {
-    feedback.push('Add numbers')
+    feedback.push('Thêm chữ số')
   }
   
   if (!/[^A-Za-z0-9]/.test(password)) {
-    feedback.push('Add special characters')
+    feedback.push('Thêm ký tự đặc biệt')
   }
   
   // Determine label
-  let label: 'Very Weak' | 'Weak' | 'Fair' | 'Good' | 'Strong' | 'Very Strong'
-  if (score <= 1) label = 'Very Weak'
-  else if (score <= 2) label = 'Weak'
-  else if (score <= 3) label = 'Fair'
-  else if (score <= 4) label = 'Good'
-  else if (score <= 5) label = 'Strong'
-  else label = 'Very Strong'
+  let label: 'Rất yếu' | 'Yếu' | 'Trung bình' | 'Tốt' | 'Mạnh' | 'Rất mạnh'
+  if (score <= 1) label = 'Rất yếu'
+  else if (score <= 2) label = 'Yếu'
+  else if (score <= 3) label = 'Trung bình'
+  else if (score <= 4) label = 'Tốt'
+  else if (score <= 5) label = 'Mạnh'
+  else label = 'Rất mạnh'
   
   return {
     score,

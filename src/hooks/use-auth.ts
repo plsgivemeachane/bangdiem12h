@@ -64,7 +64,7 @@ export function useAuth(): UseAuthReturn {
 
       return result
     } catch (error) {
-      console.error('Sign in error:', error)
+      console.error('Lỗi đăng nhập:', error)
       throw error
     }
   }, [])
@@ -73,7 +73,7 @@ export function useAuth(): UseAuthReturn {
     try {
       await signOut({ redirect: false })
     } catch (error) {
-      console.error('Sign out error:', error)
+      console.error('Lỗi đăng xuất:', error)
       throw error
     }
   }, [])

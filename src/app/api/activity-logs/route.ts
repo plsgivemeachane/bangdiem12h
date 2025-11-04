@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Chưa được xác thực' },
         { status: 401 }
       )
     }
@@ -130,9 +130,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Failed to fetch activity logs:', error)
+    console.error('Không thể tải nhật ký hoạt động:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch activity logs' },
+      { error: 'Không thể tải nhật ký hoạt động' },
       { status: 500 }
     )
   }
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Chưa được xác thực' },
         { status: 401 }
       )
     }
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!action || !description) {
       return NextResponse.json(
-        { error: 'Action and description are required' },
+        { error: 'Cần cung cấp hành động và mô tả' },
         { status: 400 }
       )
     }
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
 
       if (!membership && session.user.role !== 'ADMIN') {
         return NextResponse.json(
-          { error: 'Access denied to this group' },
+          { error: 'Không có quyền truy cập nhóm này' },
           { status: 403 }
         )
       }
@@ -214,9 +214,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(activityLog)
 
   } catch (error) {
-    console.error('Failed to create activity log:', error)
+    console.error('Không thể tạo nhật ký hoạt động:', error)
     return NextResponse.json(
-      { error: 'Failed to create activity log' },
+      { error: 'Không thể tạo nhật ký hoạt động' },
       { status: 500 }
     )
   }

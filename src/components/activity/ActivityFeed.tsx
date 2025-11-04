@@ -68,7 +68,7 @@ export function ActivityFeed({
       const data = await response.json()
       setActivities(data.activityLogs || [])
     } catch (error) {
-      console.error('Failed to load activities:', error)
+      console.error('Không thể tải hoạt động:', error)
       setError(error instanceof Error ? error.message : 'Không thể tải hoạt động')
     } finally {
       setIsLoading(false)

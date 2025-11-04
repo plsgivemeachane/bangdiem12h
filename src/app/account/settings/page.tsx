@@ -71,7 +71,7 @@ export default function SettingsPage() {
         confirmPassword: '',
       })
     } catch (error) {
-      console.error('Error changing password:', error)
+      console.error('Lỗi đổi mật khẩu:', error)
       toast.error(error instanceof Error ? error.message : 'Không thể thay đổi mật khẩu')
     } finally {
       setIsChangingPassword(false)

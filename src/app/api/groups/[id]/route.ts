@@ -12,7 +12,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const group = await prisma.group.findUnique({
@@ -53,7 +53,7 @@ export async function GET(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     // No access check - all users can view all groups (read-only permission)
@@ -66,8 +66,8 @@ export async function GET(
 
     return NextResponse.json({ group: groupWithScoringRules })
   } catch (error) {
-    console.error('Error fetching group:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi tải thông tin nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -78,7 +78,7 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const { name, description, isActive } = await request.json()
@@ -94,12 +94,12 @@ export async function PATCH(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     const userMember = group.members[0]
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+      return NextResponse.json({ error: 'Không đủ quyền' }, { status: 403 })
     }
 
     const updatedGroup = await prisma.group.update({
@@ -136,14 +136,14 @@ export async function PATCH(
       userId: session.user.id,
       groupId: updatedGroup.id,
       action: ActivityType.GROUP_UPDATED,
-      description: `Updated group "${updatedGroup.name}"`,
+      description: `Đã cập nhật nhóm "${updatedGroup.name}"`,
       metadata: { changes: { name, description, isActive } }
     })
 
     return NextResponse.json({ group: updatedGroup })
   } catch (error) {
-    console.error('Error updating group:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi cập nhật nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -154,7 +154,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     // Check if user is OWNER/ADMIN of the group
@@ -177,18 +177,18 @@ export async function DELETE(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     const userMember = group.members[0]
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
-      return NextResponse.json({ error: 'Only group administrators can delete the group' }, { status: 403 })
+      return NextResponse.json({ error: 'Chỉ quản trị viên nhóm mới có thể xóa nhóm' }, { status: 403 })
     }
 
     // Warn if group has data
     if (group._count.scoreRecords > 0 || group._count.groupRules > 0) {
       return NextResponse.json({ 
-        error: 'Cannot delete group with existing score records or scoring rules' 
+        error: 'Không thể xóa nhóm khi còn bản ghi điểm hoặc quy tắc chấm điểm' 
       }, { status: 400 })
     }
 
@@ -200,13 +200,13 @@ export async function DELETE(
     await logActivity({
       userId: session.user.id,
       action: ActivityType.GROUP_DELETED,
-      description: `Deleted group "${group.name}"`,
+      description: `Đã xóa nhóm "${group.name}"`,
       metadata: { groupId: params.id, groupName: group.name }
     })
 
-    return NextResponse.json({ message: 'Group deleted successfully' })
+    return NextResponse.json({ message: 'Đã xóa nhóm thành công' })
   } catch (error) {
-    console.error('Error deleting group:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi xóa nhóm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }

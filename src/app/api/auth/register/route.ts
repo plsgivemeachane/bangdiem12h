@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Validation failed',
+          error: 'Xác thực dữ liệu thất bại',
           details: validationResult.error.errors
         },
         { status: 400 }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'User registered successfully',
+        message: 'Đăng ký người dùng thành công',
         user: userData
       },
       { status: 201 }
@@ -54,11 +54,11 @@ export async function POST(request: NextRequest) {
     
     // Handle specific error types
     if (error instanceof Error) {
-      if (error.message.includes('Database')) {
+      if (error.name === 'DatabaseError') {
         return NextResponse.json(
           {
             success: false,
-            error: 'Registration failed. Please try again later.'
+            error: 'Đăng ký thất bại. Vui lòng thử lại sau.'
           },
           { status: 500 }
         )
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Registration failed. Please try again.'
+        error: 'Đăng ký thất bại. Vui lòng thử lại.'
       },
       { status: 500 }
     )
@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json(
     {
-      message: 'Registration endpoint - POST with name, email, and password to register',
+      message: 'Endpoint đăng ký - gửi POST với name, email và password để đăng ký',
       requiredFields: {
-        name: 'string (min 1, max 100 chars)',
-        email: 'string (valid email format)',
-        password: 'string (min 8 chars, uppercase, lowercase, numbers, special chars)'
+        name: 'chuỗi (tối thiểu 1, tối đa 100 ký tự)',
+        email: 'chuỗi (định dạng email hợp lệ)',
+        password: 'chuỗi (tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt)'
       }
     }
   )

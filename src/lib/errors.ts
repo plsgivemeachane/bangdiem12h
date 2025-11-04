@@ -27,28 +27,28 @@ export class ValidationError extends AppError {
 }
 
 export class AuthError extends AppError {
-  constructor(message: string = 'Authentication failed') {
+  constructor(message: string = 'Xác thực thất bại') {
     super(message, 401, true)
     this.name = 'AuthError'
   }
 }
 
 export class AuthorizationError extends AppError {
-  constructor(message: string = 'Insufficient permissions') {
+  constructor(message: string = 'Không đủ quyền') {
     super(message, 403, true)
     this.name = 'AuthorizationError'
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(message: string = 'Resource not found') {
+  constructor(message: string = 'Không tìm thấy tài nguyên') {
     super(message, 404, true)
     this.name = 'NotFoundError'
   }
 }
 
 export class DatabaseError extends AppError {
-  constructor(message: string = 'Database operation failed', originalError?: any) {
+  constructor(message: string = 'Thao tác cơ sở dữ liệu thất bại', originalError?: any) {
     super(message, 500, true)
     this.name = 'DatabaseError'
     
@@ -59,14 +59,14 @@ export class DatabaseError extends AppError {
 }
 
 export class RateLimitError extends AppError {
-  constructor(message: string = 'Too many requests') {
+  constructor(message: string = 'Quá nhiều yêu cầu') {
     super(message, 429, true)
     this.name = 'RateLimitError'
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(message: string = 'Resource conflict') {
+  constructor(message: string = 'Xung đột tài nguyên') {
     super(message, 409, true)
     this.name = 'ConflictError'
   }
@@ -82,7 +82,7 @@ export function handleError(error: unknown): AppError {
     return new AppError(error.message, 500, false)
   }
   
-  return new AppError('An unknown error occurred', 500, false)
+  return new AppError('Đã xảy ra lỗi không xác định', 500, false)
 }
 
 export function isValidationError(error: unknown): error is ValidationError {

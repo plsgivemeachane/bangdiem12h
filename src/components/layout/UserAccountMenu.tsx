@@ -25,7 +25,7 @@ export function UserAccountMenu() {
       toast.success('Đăng xuất thành công')
       router.push('/auth/signin')
     } catch (error) {
-      console.error('Sign out error:', error)
+      console.error('Lỗi đăng xuất:', error)
       toast.error('Không thể đăng xuất')
     }
   }

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
+        { success: false, message: 'Chưa được xác thực' },
         { status: 401 }
       )
     }
@@ -22,21 +22,21 @@ export async function POST(req: NextRequest) {
     // Validation
     if (!currentPassword || typeof currentPassword !== 'string') {
       return NextResponse.json(
-        { success: false, message: 'Current password is required' },
+        { success: false, message: 'Mật khẩu hiện tại là bắt buộc' },
         { status: 400 }
       )
     }
 
     if (!newPassword || typeof newPassword !== 'string') {
       return NextResponse.json(
-        { success: false, message: 'New password is required' },
+        { success: false, message: 'Mật khẩu mới là bắt buộc' },
         { status: 400 }
       )
     }
 
     if (newPassword.length < 8) {
       return NextResponse.json(
-        { success: false, message: 'New password must be at least 8 characters' },
+        { success: false, message: 'Mật khẩu mới phải có ít nhất 8 ký tự' },
         { status: 400 }
       )
     }
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, message: 'User not found' },
+        { success: false, message: 'Không tìm thấy người dùng' },
         { status: 404 }
       )
     }
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Password change not available for OAuth accounts',
+          message: 'Không thể đổi mật khẩu cho tài khoản đăng nhập bằng OAuth',
         },
         { status: 400 }
       )
@@ -76,14 +76,14 @@ export async function POST(req: NextRequest) {
       await logActivity({
         userId: session.user.id,
         action: ActivityType.LOGIN_FAILED,
-        description: 'Failed password change attempt - incorrect current password',
+        description: 'Đổi mật khẩu thất bại - mật khẩu hiện tại không chính xác',
         metadata: {
-          reason: 'Invalid current password',
+          reason: 'Mật khẩu hiện tại không hợp lệ',
         },
       })
 
       return NextResponse.json(
-        { success: false, message: 'Current password is incorrect' },
+        { success: false, message: 'Mật khẩu hiện tại không chính xác' },
         { status: 401 }
       )
     }
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
     await logActivity({
       userId: session.user.id,
       action: ActivityType.PASSWORD_RESET_COMPLETED,
-      description: 'User successfully changed their password',
+      description: 'Người dùng đã đổi mật khẩu thành công',
       metadata: {
         timestamp: new Date().toISOString(),
       },
@@ -109,14 +109,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Password changed successfully',
+      message: 'Đổi mật khẩu thành công',
     })
   } catch (error) {
-    console.error('Error changing password:', error)
+    console.error('Lỗi đổi mật khẩu:', error)
     return NextResponse.json(
       {
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to change password',
+        message: error instanceof Error ? error.message : 'Không thể đổi mật khẩu',
       },
       { status: 500 }
     )
