@@ -25,7 +25,9 @@ import { GroupCardProps } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
+import { LABELS, ACTIONS, MESSAGES, GROUP_ROLES } from '@/lib/translations'
 import { LoadingSpinner } from '@/components/ui/loading'
+import { vi } from 'date-fns/locale'
 
 export function GroupCard({ 
   group, 
@@ -53,7 +55,7 @@ export function GroupCard({
   }
 
   const handleDelete = async () => {
-    if (onDelete && window.confirm(`Bạn có chắc chắn muốn xóa "${group.name}"?`)) {
+    if (onDelete && window.confirm(`${MESSAGES.CONFIRM.DELETE} "${group.name}"`)) {
       setIsLoading(true)
       try {
         await onDelete(group)
@@ -107,7 +109,7 @@ export function GroupCard({
           
           <div className="flex items-center gap-2">
             <Badge variant={group.isActive ? "default" : "secondary"}>
-              {group.isActive ? 'Active' : 'Inactive'}
+              {group.isActive ? LABELS.ACTIVE : LABELS.INACTIVE}
             </Badge>
             
             <DropdownMenu>
@@ -123,14 +125,14 @@ export function GroupCard({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleViewDetails}>
                   <Activity className="mr-2 h-4 w-4" />
-                  View Details
+                  {LABELS.VIEW_DETAILS}
                 </DropdownMenuItem>
                 
                 {/* Only Group ADMINs can manage members */}
                 {isGroupAdmin && (
                   <DropdownMenuItem onClick={handleManageMembers}>
                     <Users className="mr-2 h-4 w-4" />
-                    Manage Members
+                    {ACTIONS.MANAGE} {LABELS.MEMBERS}
                   </DropdownMenuItem>
                 )}
                 
@@ -138,7 +140,7 @@ export function GroupCard({
                 {isGroupAdmin && (
                   <DropdownMenuItem onClick={handleEdit}>
                     <Edit className="mr-2 h-4 w-4" />
-                    Edit Group
+                    {ACTIONS.EDIT} {LABELS.GROUP}
                   </DropdownMenuItem>
                 )}
                 
@@ -146,12 +148,12 @@ export function GroupCard({
                 {isGroupAdmin && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={handleDelete}
                       className="text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Group
+                      {ACTIONS.DELETE} {LABELS.GROUP}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -166,15 +168,15 @@ export function GroupCard({
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
-            <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
+            <span>{memberCount} {LABELS.MEMBERS}</span>
           </div>
           <div className="flex items-center gap-1">
             <Trophy className="h-4 w-4" />
-            <span>{activeRulesCount} rule{activeRulesCount !== 1 ? 's' : ''}</span>
+            <span>{activeRulesCount} {LABELS.RULES}</span>
           </div>
           <div className="flex items-center gap-1">
             <Calendar className="h-4 w-4" />
-            <span>{scoreRecordsCount} record{scoreRecordsCount !== 1 ? 's' : ''}</span>
+            <span>{scoreRecordsCount} {ACTIONS.SCORE_RECORDS_LABEL}</span>
           </div>
         </div>
 
@@ -182,10 +184,10 @@ export function GroupCard({
         {group.createdBy && (
           <div className="flex items-center justify-between text-sm">
             <div className="text-muted-foreground">
-              Created by {group.createdBy.name || group.createdBy.email}
+              {LABELS.CREATED_BY} {group.createdBy.name || group.createdBy.email}
             </div>
             <Badge variant={getRoleBadgeVariant(userRole)} className="text-xs">
-              {userRole.toLowerCase()}
+                {GROUP_ROLES[userRole as keyof typeof GROUP_ROLES] || userRole}
             </Badge>
           </div>
         )}
@@ -195,33 +197,33 @@ export function GroupCard({
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
             <span>
-              Created {formatDistanceToNow(new Date(group.createdAt), { addSuffix: true })}
+              {LABELS.CREATED} {formatDistanceToNow(new Date(group.createdAt), { addSuffix: true, locale: vi })}
             </span>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleViewDetails}
             className="flex-1"
           >
             <Activity className="mr-2 h-4 w-4" />
-            Details
+            {LABELS.VIEW_DETAILS}
           </Button>
           
           {/* Only Group ADMINs can manage members */}
           {isGroupAdmin && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleManageMembers}
               className="flex-1"
             >
               <UserPlus className="mr-2 h-4 w-4" />
-              Members
+              {LABELS.MEMBERS}
             </Button>
           )}
         </div>

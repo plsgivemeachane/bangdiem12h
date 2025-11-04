@@ -9,7 +9,7 @@ export class GroupsApi {
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to fetch groups')
+      throw new Error(error.error || 'Không thể tải danh sách nhóm')
     }
 
     const data = await response.json()
@@ -22,7 +22,7 @@ export class GroupsApi {
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to fetch group')
+      throw new Error(error.error || 'Không thể tải thông tin nhóm')
     }
 
     const data = await response.json()
@@ -41,7 +41,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to create group')
+      throw new Error(error.error || 'Không thể tạo nhóm')
     }
 
     const data = await response.json()
@@ -60,7 +60,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to update group')
+      throw new Error(error.error || 'Không thể cập nhật nhóm')
     }
 
     const data = await response.json()
@@ -75,7 +75,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to delete group')
+      throw new Error(error.error || 'Không thể xóa nhóm')
     }
   }
 
@@ -91,7 +91,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to add member')
+      throw new Error(error.error || 'Không thể thêm thành viên')
     }
 
     const data = await response.json()
@@ -106,7 +106,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to remove member')
+      throw new Error(error.error || 'Không thể xóa thành viên')
     }
   }
 
@@ -122,7 +122,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to update member role')
+      throw new Error(error.error || 'Không thể cập nhật vai trò thành viên')
     }
 
     const data = await response.json()
@@ -135,7 +135,7 @@ export class GroupsApi {
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to fetch group members')
+      throw new Error(error.error || 'Không thể tải danh sách thành viên')
     }
 
     const data = await response.json()
@@ -148,7 +148,7 @@ export class GroupsApi {
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to search users')
+      throw new Error(error.error || 'Không thể tìm kiếm người dùng')
     }
 
     const data = await response.json()
@@ -175,14 +175,14 @@ export class GroupsApi {
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to fetch score records')
+      throw new Error(error.error || 'Không thể tải bản ghi điểm')
     }
 
     return await response.json()
   }
 
   // Create a new score record
-  static async createScoreRecord(formData: { groupId: string; ruleId: string; targetUserId: string; criteria?: any; notes?: string }): Promise<any> {
+  static async createScoreRecord(formData: { groupId: string; ruleId: string; targetUserId: string; criteria?: any; notes?: string; points?: number; recordedAt?: Date }): Promise<any> {
     const response = await fetch('/api/score-records', {
       method: 'POST',
       headers: {
@@ -193,7 +193,26 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to create score record')
+      throw new Error(error.error || 'Không thể tạo bản ghi điểm')
+    }
+
+    const data = await response.json()
+    return data.scoreRecord
+  }
+
+  // Update an existing score record
+  static async updateScoreRecord(id: string, formData: { points?: number; notes?: string; recordedAt?: Date }): Promise<any> {
+    const response = await fetch('/api/score-records', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id, ...formData }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Không thể cập nhật bản ghi điểm')
     }
 
     const data = await response.json()
@@ -207,7 +226,7 @@ export class GroupsApi {
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to fetch scoring rules')
+      throw new Error(error.error || 'Không thể tải quy tắc chấm điểm')
     }
 
     const data = await response.json()
@@ -220,7 +239,7 @@ export class GroupsApi {
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to fetch global rules')
+      throw new Error(error.error || 'Không thể tải quy tắc toàn cục')
     }
 
     const data = await response.json()
@@ -239,7 +258,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to create scoring rule')
+      throw new Error(error.error || 'Không thể tạo quy tắc chấm điểm')
     }
 
     const data = await response.json()
@@ -258,7 +277,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to add rule to group')
+      throw new Error(error.error || 'Không thể thêm quy tắc vào nhóm')
     }
 
     const data = await response.json()
@@ -273,7 +292,7 @@ export class GroupsApi {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Failed to remove rule from group')
+      throw new Error(error.error || 'Không thể xóa quy tắc khỏi nhóm')
     }
   }
 }

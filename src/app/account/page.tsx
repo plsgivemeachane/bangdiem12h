@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge'
 import { User, Mail, Calendar, Shield, Users, Trophy, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import { ACTIONS, LABELS, MESSAGES, PLACEHOLDERS, USER_ROLES } from '@/lib/translations'
 
 interface UserStats {
   totalGroups: number
@@ -77,7 +79,7 @@ export default function AccountPage() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error('Name is required')
+      toast.error(MESSAGES.ERROR.NAME_REQUIRED)
       return
     }
 
@@ -99,7 +101,7 @@ export default function AccountPage() {
       setIsEditing(false)
     } catch (error) {
       console.error('Error updating profile:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to update profile')
+      toast.error(error instanceof Error ? error.message : MESSAGES.ERROR.FAILED_TO_UPDATE)
     } finally {
       setIsLoading(false)
     }
@@ -122,7 +124,7 @@ export default function AccountPage() {
   if (authLoading || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Loading profile..." />
+        <Loading text={ACTIONS.LOADING_PROFILE} />
       </div>
     )
   }
@@ -132,28 +134,28 @@ export default function AccountPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Account Profile</h1>
-        <p className="text-muted-foreground">Manage your account information and view your activity</p>
+        <h1 className="text-3xl font-bold tracking-tight">{ACTIONS.ACCOUNT_PROFILE}</h1>
+        <p className="text-muted-foreground">{ACTIONS.MANAGE_ACCOUNT_INFO}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Profile Card */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Update your personal information</CardDescription>
+            <CardTitle>{ACTIONS.PROFILE_INFORMATION}</CardTitle>
+            <CardDescription>{ACTIONS.UPDATE_PERSONAL_INFO}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Avatar Section */}
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+                <AvatarImage src={user.image || undefined} alt={user.name || 'Người dùng'} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold">{user.name || 'User'}</h3>
+                <h3 className="font-semibold">{user.name || ACTIONS.UNKNOWN}</h3>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
             </div>
@@ -161,48 +163,48 @@ export default function AccountPage() {
             {/* Form Fields */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{LABELS.NAME}</Label>
                 {isEditing ? (
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
+                    placeholder={PLACEHOLDERS.ENTER_NAME}
                   />
                 ) : (
                   <div className="flex items-center gap-2 text-sm">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <span>{user.name || 'Not set'}</span>
+                    <span>{user.name || ACTIONS.NOT_SET}</span>
                   </div>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{LABELS.EMAIL}</Label>
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <span>{user.email}</span>
                   {user.emailVerified && (
-                    <Badge variant="outline" className="ml-2">Verified</Badge>
+                    <Badge variant="outline" className="ml-2">{ACTIONS.VERIFIED}</Badge>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>{LABELS.ROLE}</Label>
                 <div className="flex items-center gap-2 text-sm">
                   <Shield className="h-4 w-4 text-muted-foreground" />
                   <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                    {user.role}
+                    {USER_ROLES[user.role as keyof typeof USER_ROLES] || user.role}
                   </Badge>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Member Since</Label>
+                <Label>{LABELS.CREATED_AT}</Label>
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{user.createdAt ? format(new Date(user.createdAt), 'MMMM d, yyyy') : 'Unknown'}</span>
+                  <span>{user.createdAt ? format(new Date(user.createdAt), 'dd/MM/yyyy', { locale: vi }) : ACTIONS.UNKNOWN}</span>
                 </div>
               </div>
             </div>
@@ -212,7 +214,7 @@ export default function AccountPage() {
               {isEditing ? (
                 <>
                   <Button onClick={handleSave} disabled={isLoading}>
-                    {isLoading ? 'Saving...' : 'Save Changes'}
+                    {isLoading ? ACTIONS.SAVING : ACTIONS.SAVE_CHANGES}
                   </Button>
                   <Button
                     variant="outline"
@@ -222,11 +224,11 @@ export default function AccountPage() {
                     }}
                     disabled={isLoading}
                   >
-                    Cancel
+                    {ACTIONS.CANCEL}
                   </Button>
                 </>
               ) : (
-                <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                <Button onClick={() => setIsEditing(true)}>{ACTIONS.EDIT_PROFILE}</Button>
               )}
             </div>
           </CardContent>
@@ -235,8 +237,8 @@ export default function AccountPage() {
         {/* Stats Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Statistics</CardTitle>
-            <CardDescription>Your activity overview</CardDescription>
+            <CardTitle>{ACTIONS.YOUR_STATISTICS}</CardTitle>
+            <CardDescription>{ACTIONS.ACTIVITY_OVERVIEW}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
@@ -244,7 +246,7 @@ export default function AccountPage() {
                 <Users className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Groups</p>
+                <p className="text-sm text-muted-foreground">{ACTIONS.TOTAL_GROUPS_LABEL}</p>
                 <p className="text-2xl font-bold">{stats.totalGroups}</p>
               </div>
             </div>
@@ -254,7 +256,7 @@ export default function AccountPage() {
                 <Trophy className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Score Records</p>
+                <p className="text-sm text-muted-foreground">{ACTIONS.SCORE_RECORDS_LABEL}</p>
                 <p className="text-2xl font-bold">{stats.totalScoreRecords}</p>
               </div>
             </div>
@@ -264,7 +266,7 @@ export default function AccountPage() {
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Points</p>
+                <p className="text-sm text-muted-foreground">{ACTIONS.TOTAL_POINTS_LABEL}</p>
                 <p className="text-2xl font-bold">{stats.totalPoints}</p>
               </div>
             </div>

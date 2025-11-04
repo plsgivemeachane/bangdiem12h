@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { GroupMember } from '@/types'
+import { MESSAGES, LABELS, ACTIONS, DESCRIPTIONS, PLACEHOLDERS, GROUP_ROLES } from '@/lib/translations'
 import toast from 'react-hot-toast'
 
 interface OwnerTransferDialogProps {
@@ -60,7 +61,7 @@ export function OwnerTransferDialog({
 
   const handleTransfer = async () => {
     if (!selectedMemberId || !confirmChecked) {
-      toast.error('Please select a member and confirm the transfer')
+      toast.error('Vui lòng chọn một thành viên và xác nhận việc chuyển giao')
       return
     }
 
@@ -80,20 +81,20 @@ export function OwnerTransferDialog({
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to transfer ownership')
+        throw new Error(error.error || 'Không thể chuyển quyền sở hữu')
       }
 
       const data = await response.json()
       
-      toast.success(`Ownership transferred to ${selectedMember?.user?.name || 'new owner'}`)
+      toast.success(`Quyền sở hữu đã được chuyển cho ${selectedMember?.user?.name || 'chủ sở hữu mới'}`)
       onSuccess(data.member)
       handleClose()
     } catch (error) {
-      console.error('Error transferring ownership:', error)
+      console.error('Lỗi khi chuyển quyền sở hữu:', error)
       if (error instanceof Error) {
         toast.error(error.message)
       } else {
-        toast.error('Failed to transfer ownership')
+        toast.error('Không thể chuyển quyền sở hữu')
       }
     } finally {
       setIsLoading(false)
@@ -112,10 +113,10 @@ export function OwnerTransferDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-yellow-600" />
-            Transfer Group Ownership
+            {MESSAGES.OWNER_TRANSFER.TRANSFER_OWNERSHIP}
           </DialogTitle>
           <DialogDescription>
-            Transfer ownership of "{groupName}" to another member
+            {MESSAGES.OWNER_TRANSFER.TRANSFER_DESCRIPTION.replace('{groupName}', groupName)}
           </DialogDescription>
         </DialogHeader>
 
@@ -123,29 +124,28 @@ export function OwnerTransferDialog({
           {/* Warning Alert */}
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>This action is permanent</AlertTitle>
+            <AlertTitle>{MESSAGES.OWNER_TRANSFER.THIS_ACTION_PERMANENT}</AlertTitle>
             <AlertDescription>
-              Once you transfer ownership, you will become an admin and will not be able to undo this action.
-              The new owner will have full control over the group.
+              {MESSAGES.OWNER_TRANSFER.PERMANENT_DESCRIPTION}
             </AlertDescription>
           </Alert>
 
           {/* Member Selection */}
           <div className="space-y-2">
-            <Label htmlFor="member-select">Select New Owner</Label>
+            <Label htmlFor="member-select">{MESSAGES.OWNER_TRANSFER.SELECT_NEW_OWNER}</Label>
             {eligibleMembers.length > 0 ? (
               <Select
                 value={selectedMemberId}
                 onValueChange={setSelectedMemberId}
               >
                 <SelectTrigger id="member-select">
-                  <SelectValue placeholder="Choose a member..." />
+                  <SelectValue placeholder={PLACEHOLDERS.CHOOSE_MEMBER} />
                 </SelectTrigger>
                 <SelectContent>
                   {eligibleMembers.map((member) => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
-                        <span>{member.user?.name || 'Unknown User'}</span>
+                        <span>{member.user?.name || DESCRIPTIONS.UNKNOWN_USER}</span>
                         <span className="text-xs text-muted-foreground">
                           ({member.user?.email})
                         </span>
@@ -156,7 +156,7 @@ export function OwnerTransferDialog({
               </Select>
             ) : (
               <p className="text-sm text-muted-foreground">
-                No eligible members found. Add more members to transfer ownership.
+                {MESSAGES.OWNER_TRANSFER.NO_ELIGIBLE_MEMBERS}
               </p>
             )}
           </div>
@@ -164,19 +164,19 @@ export function OwnerTransferDialog({
           {/* Transfer Summary */}
           {selectedMember && (
             <div className="rounded-lg border p-4 space-y-2">
-              <h4 className="font-medium text-sm">Transfer Summary</h4>
+              <h4 className="font-medium text-sm">{MESSAGES.OWNER_TRANSFER.TRANSFER_SUMMARY}</h4>
               <div className="text-sm space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">New Owner:</span>
+                  <span className="text-muted-foreground">{MESSAGES.OWNER_TRANSFER.NEW_OWNER}:</span>
                   <span className="font-medium">{selectedMember.user?.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Email:</span>
+                  <span className="text-muted-foreground">{LABELS.EMAIL}:</span>
                   <span className="font-medium">{selectedMember.user?.email}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Your New Role:</span>
-                  <span className="font-medium">Admin</span>
+                  <span className="text-muted-foreground">{MESSAGES.OWNER_TRANSFER.YOUR_NEW_ROLE}:</span>
+                  <span className="font-medium">{GROUP_ROLES.ADMIN}</span>
                 </div>
               </div>
             </div>
@@ -194,7 +194,7 @@ export function OwnerTransferDialog({
               htmlFor="confirm"
               className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              I understand that this action is permanent and I will become an admin after the transfer
+              {MESSAGES.OWNER_TRANSFER.CONFIRMATION_TEXT}
             </Label>
           </div>
         </div>
@@ -205,7 +205,7 @@ export function OwnerTransferDialog({
             onClick={handleClose}
             disabled={isLoading}
           >
-            Cancel
+            {ACTIONS.CANCEL}
           </Button>
           <Button
             variant="destructive"
@@ -213,7 +213,7 @@ export function OwnerTransferDialog({
             disabled={!selectedMemberId || !confirmChecked || isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Transfer Ownership
+            {MESSAGES.OWNER_TRANSFER.TRANSFER_OWNERSHIP}
           </Button>
         </DialogFooter>
       </DialogContent>

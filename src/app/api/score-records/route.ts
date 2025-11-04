@@ -5,18 +5,127 @@ import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
 import { ActivityType } from '@/types'
 
+// PUT endpoint for updating individual score records
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+    }
+
+    const { id, points, notes, recordedAt } = await request.json()
+
+    if (!id) {
+      return NextResponse.json({
+        error: 'Cần cung cấp mã bản ghi điểm'
+      }, { status: 400 })
+    }
+
+    // Get the existing score record
+    const existingRecord = await prisma.scoreRecord.findUnique({
+      where: { id },
+      include: {
+        group: {
+          include: {
+            members: {
+              where: { userId: session.user.id }
+            }
+          }
+        }
+      }
+    })
+
+    if (!existingRecord) {
+      return NextResponse.json({
+        error: 'Không tìm thấy bản ghi điểm'
+      }, { status: 404 })
+    }
+
+    // Verify current user is ADMIN/OWNER of the group
+    const currentUserMember = existingRecord.group.members[0]
+    if (!currentUserMember) {
+      return NextResponse.json({
+        error: 'Bạn không phải thành viên của nhóm này'
+      }, { status: 403 })
+    }
+
+    if (!['OWNER', 'ADMIN'].includes(currentUserMember.role)) {
+      return NextResponse.json({
+        error: 'Chỉ quản trị viên hoặc chủ nhóm mới có thể chỉnh sửa bản ghi điểm'
+      }, { status: 403 })
+    }
+
+    // Build update data
+    const updateData: any = {}
+    if (points !== undefined) {
+      if (isNaN(parseFloat(points.toString()))) {
+        return NextResponse.json({
+          error: 'Điểm phải là một số hợp lệ'
+        }, { status: 400 })
+      }
+      updateData.points = parseFloat(points)
+    }
+    if (notes !== undefined) {
+      updateData.notes = notes.trim() || null
+    }
+    if (recordedAt !== undefined) {
+      try {
+        updateData.recordedAt = new Date(recordedAt)
+      } catch (error) {
+        return NextResponse.json({
+          error: 'Định dạng ngày không hợp lệ'
+        }, { status: 400 })
+      }
+    }
+
+    // Update the score record
+    const updatedRecord = await prisma.scoreRecord.update({
+      where: { id },
+      data: updateData,
+      include: {
+        rule: {
+          select: { id: true, name: true, points: true }
+        },
+        group: {
+          select: { id: true, name: true }
+        },
+        user: {
+          select: { id: true, name: true, email: true }
+        }
+      }
+    })
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      groupId: existingRecord.groupId,
+      action: ActivityType.SCORE_UPDATED,
+      description: `Đã cập nhật bản ghi điểm cho ${updatedRecord.user.name || updatedRecord.user.email}: ${updateData.points || existingRecord.points} điểm`,
+      metadata: {
+        scoreRecordId: id,
+        changes: updateData
+      }
+    })
+
+    return NextResponse.json({ scoreRecord: updatedRecord })
+  } catch (error) {
+    console.error('Lỗi cập nhật bản ghi điểm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
-    const { groupId, ruleId, criteria, notes, targetUserId, points: customPoints } = await request.json()
+    const { groupId, ruleId, criteria, notes, targetUserId, points: customPoints, recordedAt } = await request.json()
 
     if (!groupId || !ruleId || !targetUserId) {
-      return NextResponse.json({ 
-        error: 'Group ID, rule ID, and target user ID are required' 
+      return NextResponse.json({
+        error: 'Cần cung cấp mã nhóm, mã quy tắc và mã người nhận điểm'
       }, { status: 400 })
     }
 
@@ -31,20 +140,20 @@ export async function POST(request: NextRequest) {
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
     const currentUserMember = group.members[0]
     if (!currentUserMember) {
-      return NextResponse.json({ 
-        error: 'You are not a member of this group' 
+      return NextResponse.json({
+        error: 'Bạn không phải thành viên của nhóm này'
       }, { status: 403 })
     }
 
     // Only Group ADMINs can record scores
     if (!['OWNER', 'ADMIN'].includes(currentUserMember.role)) {
-      return NextResponse.json({ 
-        error: 'Only group administrators can record scores' 
+      return NextResponse.json({
+        error: 'Chỉ quản trị viên hoặc chủ nhóm mới có thể ghi điểm'
       }, { status: 403 })
     }
 
@@ -59,8 +168,8 @@ export async function POST(request: NextRequest) {
     })
 
     if (!targetMember) {
-      return NextResponse.json({ 
-        error: 'Target user is not a member of this group' 
+      return NextResponse.json({
+        error: 'Người dùng mục tiêu không thuộc nhóm này'
       }, { status: 404 })
     }
 
@@ -70,8 +179,8 @@ export async function POST(request: NextRequest) {
     })
 
     if (!rule || !rule.isActive) {
-      return NextResponse.json({ 
-        error: 'Scoring rule not found or inactive' 
+      return NextResponse.json({
+        error: 'Không tìm thấy quy tắc chấm điểm hoặc quy tắc đang bị vô hiệu'
       }, { status: 404 })
     }
 
@@ -81,8 +190,8 @@ export async function POST(request: NextRequest) {
     })
 
     if (!groupRule) {
-      return NextResponse.json({ 
-        error: 'Scoring rule does not belong to this group' 
+      return NextResponse.json({
+        error: 'Quy tắc chấm điểm này không thuộc về nhóm'
       }, { status: 400 })
     }
 
@@ -98,6 +207,7 @@ export async function POST(request: NextRequest) {
         points: finalPoints,
         criteria: criteria || rule.criteria,
         notes: notes?.trim() || null,
+        recordedAt: recordedAt ? new Date(recordedAt) : new Date(),
       },
       include: {
         rule: {
@@ -117,20 +227,20 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       groupId,
       action: ActivityType.SCORE_RECORDED,
-      description: `Recorded ${finalPoints} points for ${scoreRecord.user.name || scoreRecord.user.email} using rule "${rule.name}"`,
-      metadata: { 
-        ruleName: rule.name, 
-        points: finalPoints, 
+      description: `Đã ghi ${finalPoints} điểm cho ${scoreRecord.user.name || scoreRecord.user.email} bằng quy tắc "${rule.name}"`,
+      metadata: {
+        ruleName: rule.name,
+        points: finalPoints,
         scoreRecordId: scoreRecord.id,
         targetUserId,
-        criteria 
+        criteria
       }
     })
 
     return NextResponse.json({ scoreRecord }, { status: 201 })
   } catch (error) {
-    console.error('Error recording score:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi ghi điểm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -138,7 +248,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -199,7 +309,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error fetching score records:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi tải bản ghi điểm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }

@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  Activity, 
-  Filter, 
-  Search, 
+import {
+  Activity,
+  Filter,
+  Search,
   Calendar,
   User,
   Group,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Download,
   Settings
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +22,9 @@ import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/hooks/use-auth'
 import { ActivityType } from '@/types'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import { DESCRIPTIONS, LABELS, PLACEHOLDERS, ACTIONS, ACTIVITY_TYPES, USER_ROLES, NAV, MESSAGES } from '@/lib/translations'
 import toast from 'react-hot-toast'
 
 interface ActivityLog {
@@ -78,6 +80,7 @@ export default function ActivityLogsPage() {
     hasPrev: false
   })
   const [showFilters, setShowFilters] = useState(false)
+  const fallbackError = MESSAGES.ERROR.ACTIVITY_LOGS_LOAD_FAILED
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -115,7 +118,7 @@ export default function ActivityLogsPage() {
       const response = await fetch(`/api/activity-logs?${params.toString()}`)
       
       if (!response.ok) {
-        throw new Error('Failed to fetch activity logs')
+        throw new Error(fallbackError)
       }
 
       const data: ActivityLogsResponse = await response.json()
@@ -129,9 +132,10 @@ export default function ActivityLogsPage() {
       }))
 
     } catch (error) {
-      console.error('Failed to load activity logs:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load activity logs')
-      toast.error('Failed to load activity logs')
+      console.error('Không thể tải nhật ký hoạt động:', error)
+      const message = error instanceof Error ? error.message : fallbackError
+      setError(message)
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -159,13 +163,7 @@ export default function ActivityLogsPage() {
   }
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return format(new Date(date), 'HH:mm dd/MM/yyyy', { locale: vi })
   }
 
   const getActionBadgeVariant = (action: ActivityType) => {
@@ -206,7 +204,7 @@ export default function ActivityLogsPage() {
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Checking authentication..." />
+        <Loading text={ACTIONS.CHECKING_AUTHENTICATION} />
       </div>
     )
   }
@@ -217,12 +215,12 @@ export default function ActivityLogsPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
+            <h2 className="text-2xl font-bold mb-4">{DESCRIPTIONS.AUTHENTICATION_REQUIRED}</h2>
             <p className="text-muted-foreground mb-6">
-              Please sign in to view activity logs.
+              {DESCRIPTIONS.PLEASE_SIGN_IN}
             </p>
             <Button onClick={() => router.push('/auth/signin')}>
-              Sign In
+              {NAV.SIGN_IN}
             </Button>
           </CardContent>
         </Card>
@@ -238,22 +236,22 @@ export default function ActivityLogsPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <Activity className="h-8 w-8" />
-              Activity Logs
+              {NAV.ACTIVITY_LOGS}
             </h1>
           </div>
           <p className="text-muted-foreground mt-1">
-            Monitor all system activities and user actions
+            {DESCRIPTIONS.SYSTEM_ACTIVITIES}
           </p>
         </div>
         
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="mr-2 h-4 w-4" />
-            Filters
+            {ACTIONS.FILTER}
           </Button>
           <Button variant="outline" onClick={loadActivityLogs}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
+            {ACTIONS.RELOAD}
           </Button>
         </div>
       </div>
@@ -262,33 +260,33 @@ export default function ActivityLogsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Logs</CardTitle>
+            <CardTitle className="text-sm font-medium">{DESCRIPTIONS.TOTAL_LOGS}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pagination.totalCount}</div>
             <p className="text-xs text-muted-foreground">
-              Activity records
+              {DESCRIPTIONS.ACTIVITY_RECORDS}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Page</CardTitle>
+            <CardTitle className="text-sm font-medium">{LABELS.THIS_PAGE}</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activityLogs.length}</div>
             <p className="text-xs text-muted-foreground">
-              Showing now
+              {DESCRIPTIONS.SHOWING_NOW}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pages</CardTitle>
+            <CardTitle className="text-sm font-medium">{LABELS.CURRENT_PAGE}</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -296,20 +294,20 @@ export default function ActivityLogsPage() {
               {pagination.page} / {pagination.totalPages || 1}
             </div>
             <p className="text-xs text-muted-foreground">
-              Current page
+              {DESCRIPTIONS.CURRENT_PAGE}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Your Role</CardTitle>
+            <CardTitle className="text-sm font-medium">{LABELS.YOUR_ROLE}</CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold capitalize">{user?.role.toLowerCase()}</div>
+            <div className="text-2xl font-bold">{user?.role ? USER_ROLES[user.role as keyof typeof USER_ROLES] || user.role : ''}</div>
             <p className="text-xs text-muted-foreground">
-              View permissions
+              {DESCRIPTIONS.VIEW_PERMISSIONS}
             </p>
           </CardContent>
         </Card>
@@ -322,14 +320,14 @@ export default function ActivityLogsPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Filter className="h-5 w-5" />
-                Filters
+                {LABELS.FILTERS}
               </CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={handleClearFilters}>
-                  Clear All
+                  {ACTIONS.CLEAR_ALL}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
-                  Hide
+                  {ACTIONS.HIDE}
                 </Button>
               </div>
             </div>
@@ -337,28 +335,28 @@ export default function ActivityLogsPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium">Action Type</label>
+                <label className="text-sm font-medium">{LABELS.ACTION_TYPE}</label>
                 <Select 
                   value={filters.action} 
                   onValueChange={(value) => handleFilterChange('action', value)}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="All actions" />
+                    <SelectValue placeholder={PLACEHOLDERS.ALL_ACTIONS} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All actions</SelectItem>
-                    <SelectItem value={ActivityType.USER_REGISTERED}>User Registered</SelectItem>
-                    <SelectItem value={ActivityType.USER_LOGIN}>User Login</SelectItem>
-                    <SelectItem value={ActivityType.GROUP_CREATED}>Group Created</SelectItem>
-                    <SelectItem value={ActivityType.MEMBER_ADDED}>Member Added</SelectItem>
-                    <SelectItem value={ActivityType.SCORING_RULE_CREATED}>Rule Created</SelectItem>
-                    <SelectItem value={ActivityType.SCORE_RECORDED}>Score Recorded</SelectItem>
+                    <SelectItem value="all">{PLACEHOLDERS.ALL_ACTIONS}</SelectItem>
+                    <SelectItem value={ActivityType.USER_REGISTERED}>{ACTIVITY_TYPES.USER_REGISTERED}</SelectItem>
+                    <SelectItem value={ActivityType.USER_LOGIN}>{ACTIVITY_TYPES.USER_LOGIN}</SelectItem>
+                    <SelectItem value={ActivityType.GROUP_CREATED}>{ACTIVITY_TYPES.GROUP_CREATED}</SelectItem>
+                    <SelectItem value={ActivityType.MEMBER_ADDED}>{ACTIVITY_TYPES.MEMBER_ADDED}</SelectItem>
+                    <SelectItem value={ActivityType.SCORING_RULE_CREATED}>{ACTIVITY_TYPES.SCORING_RULE_CREATED}</SelectItem>
+                    <SelectItem value={ActivityType.SCORE_RECORDED}>{ACTIVITY_TYPES.SCORE_RECORDED}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="text-sm font-medium">Start Date</label>
+                <label className="text-sm font-medium">{LABELS.START_DATE}</label>
                 <Input
                   type="date"
                   value={filters.startDate}
@@ -368,7 +366,7 @@ export default function ActivityLogsPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium">End Date</label>
+                <label className="text-sm font-medium">{LABELS.END_DATE}</label>
                 <Input
                   type="date"
                   value={filters.endDate}
@@ -384,19 +382,19 @@ export default function ActivityLogsPage() {
       {/* Activity Logs */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>{DESCRIPTIONS.RECENT_ACTIVITY}</CardTitle>
           <CardDescription>
-            System activities and user actions
+            {DESCRIPTIONS.SYSTEM_ACTIVITIES_USER_ACTIONS}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <Loading text="Loading activity logs..." />
+            <Loading text={DESCRIPTIONS.LOADING_ACTIVITY_LOGS} />
           ) : error ? (
             <div className="text-center py-8">
-              <p className="text-destructive mb-4">{error}</p>
+              <p className="text-destructive mb-4">{error || fallbackError}</p>
               <Button onClick={loadActivityLogs} variant="outline">
-                Try Again
+                {ACTIONS.TRY_AGAIN}
               </Button>
             </div>
           ) : activityLogs.length > 0 ? (
@@ -410,7 +408,7 @@ export default function ActivityLogsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <Badge className={getActionBadgeVariant(log.action)}>
-                        {log.action.replace(/_/g, ' ').toLowerCase()}
+                        {ACTIVITY_TYPES[log.action] || log.action.replace(/_/g, ' ').toLowerCase()}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
                         {formatDate(log.createdAt)}
@@ -438,7 +436,7 @@ export default function ActivityLogsPage() {
                     {log.metadata && Object.keys(log.metadata).length > 0 && (
                       <details className="mt-2">
                         <summary className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
-                          View details
+                          {DESCRIPTIONS.VIEW_DETAILS}
                         </summary>
                         <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">
                           {JSON.stringify(log.metadata, null, 2)}
@@ -452,11 +450,11 @@ export default function ActivityLogsPage() {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Activity className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No activity logs found</p>
+              <p className="text-lg font-medium mb-2">{DESCRIPTIONS.NO_ACTIVITY_LOGS_FOUND}</p>
               <p className="text-sm">
-                {Object.values(filters).some(f => f) 
-                  ? 'Try adjusting your filter criteria.' 
-                  : 'No activities have been recorded yet.'
+                {Object.values(filters).some(f => f)
+                  ? DESCRIPTIONS.TRY_ADJUSTING_FILTER_CRITERIA
+                  : DESCRIPTIONS.NO_ACTIVITIES_RECORDED_YET
                 }
               </p>
             </div>
@@ -466,9 +464,11 @@ export default function ActivityLogsPage() {
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between pt-6 border-t">
               <div className="text-sm text-muted-foreground">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.totalCount)} of{' '}
-                {pagination.totalCount} results
+                {DESCRIPTIONS.SHOWING_RANGE_RESULTS
+                  .replace('{start}', ((pagination.page - 1) * pagination.limit + 1).toString())
+                  .replace('{end}', Math.min(pagination.page * pagination.limit, pagination.totalCount).toString())
+                  .replace('{total}', pagination.totalCount.toString())
+                }
               </div>
               
               <div className="flex items-center gap-2">
@@ -479,7 +479,7 @@ export default function ActivityLogsPage() {
                   disabled={!pagination.hasPrev}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  {ACTIONS.PREVIOUS_PAGE}
                 </Button>
                 
                 <div className="flex items-center gap-1">
@@ -505,7 +505,7 @@ export default function ActivityLogsPage() {
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={!pagination.hasNext}
                 >
-                  Next
+                  {ACTIONS.NEXT_PAGE}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

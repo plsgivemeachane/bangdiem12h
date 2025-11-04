@@ -5,11 +5,93 @@ import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
 import { ActivityType } from '@/types'
 
+// PUT endpoint for updating individual scoring rules
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+    }
+
+    const { id, name, description, criteria, points, isActive } = await request.json()
+
+    if (!id) {
+      return NextResponse.json({
+        error: 'Cần cung cấp mã quy tắc'
+      }, { status: 400 })
+    }
+
+    // Get the existing rule
+    const existingRule = await prisma.scoringRule.findUnique({
+      where: { id }
+    })
+
+    if (!existingRule) {
+      return NextResponse.json({
+        error: 'Không tìm thấy quy tắc chấm điểm'
+      }, { status: 404 })
+    }
+
+    // Build update data
+    const updateData: any = {}
+    if (name !== undefined) updateData.name = name.trim()
+    if (description !== undefined) updateData.description = description.trim() || null
+    if (criteria !== undefined) updateData.criteria = criteria
+    if (points !== undefined) {
+      if (isNaN(parseInt(points.toString()))) {
+        return NextResponse.json({
+          error: 'Điểm phải là một số hợp lệ'
+        }, { status: 400 })
+      }
+      updateData.points = parseInt(points)
+    }
+    if (isActive !== undefined) updateData.isActive = isActive
+
+    // Check if name is being changed and if it would conflict
+    if (updateData.name && updateData.name !== existingRule.name) {
+      const existingWithName = await prisma.scoringRule.findFirst({
+        where: {
+          name: updateData.name,
+          id: { not: id }
+        }
+      })
+
+      if (existingWithName) {
+        return NextResponse.json({
+          error: 'Tên quy tắc này đã tồn tại'
+        }, { status: 400 })
+      }
+    }
+
+    // Update the rule
+    const updatedRule = await prisma.scoringRule.update({
+      where: { id },
+      data: updateData
+    })
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: ActivityType.SCORING_RULE_UPDATED,
+      description: `Đã cập nhật quy tắc chấm điểm "${updatedRule.name}"`,
+      metadata: {
+        ruleId: id,
+        changes: updateData
+      }
+    })
+
+    return NextResponse.json({ scoringRule: updatedRule })
+  } catch (error) {
+    console.error('Lỗi cập nhật quy tắc chấm điểm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -51,8 +133,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ scoringRules })
   } catch (error) {
-    console.error('Error fetching scoring rules:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi tải quy tắc chấm điểm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
 
@@ -66,8 +148,8 @@ export async function POST(request: NextRequest) {
     const { name, description, criteria, points, groupId } = await request.json()
 
     if (!name || criteria === undefined || points === undefined) {
-      return NextResponse.json({ 
-        error: 'Name, criteria, and points are required' 
+      return NextResponse.json({
+        error: 'Cần cung cấp tên, tiêu chí và điểm'
       }, { status: 400 })
     }
 
@@ -84,13 +166,13 @@ export async function POST(request: NextRequest) {
       })
 
       if (!group) {
-        return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+        return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
       }
 
       const member = group.members[0]
       if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
-        return NextResponse.json({ 
-          error: 'Only group administrators can create rules for this group' 
+        return NextResponse.json({
+          error: 'Chỉ quản trị viên hoặc chủ nhóm mới có thể tạo quy tắc cho nhóm này'
         }, { status: 403 })
       }
 
@@ -106,8 +188,8 @@ export async function POST(request: NextRequest) {
       })
 
       if (existingGroupRule) {
-        return NextResponse.json({ 
-          error: 'A rule with this name already exists in this group' 
+        return NextResponse.json({
+          error: 'Tên quy tắc này đã tồn tại trong nhóm'
         }, { status: 400 })
       }
 
@@ -135,7 +217,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         groupId,
         action: ActivityType.SCORING_RULE_CREATED,
-        description: `Created scoring rule "${scoringRule.name}" for group "${group.name}"`,
+        description: `Đã tạo quy tắc chấm điểm "${scoringRule.name}" cho nhóm "${group.name}"`,
         metadata: { ruleName: scoringRule.name, points: scoringRule.points, criteria }
       })
 
@@ -144,8 +226,8 @@ export async function POST(request: NextRequest) {
 
     // CASE 2: Global rule - System ADMIN only
     if (session.user.role !== 'ADMIN') {
-      return NextResponse.json({ 
-        error: 'Admin access required to create global rules' 
+      return NextResponse.json({
+        error: 'Cần quyền quản trị viên để tạo quy tắc toàn cục'
       }, { status: 403 })
     }
 
@@ -157,8 +239,8 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingRule) {
-      return NextResponse.json({ 
-        error: 'A scoring rule with this name already exists globally' 
+      return NextResponse.json({
+        error: 'Tên quy tắc này đã tồn tại trên toàn hệ thống'
       }, { status: 400 })
     }
 
@@ -175,13 +257,13 @@ export async function POST(request: NextRequest) {
     await logActivity({
       userId: session.user.id,
       action: ActivityType.SCORING_RULE_CREATED,
-      description: `Created global scoring rule "${scoringRule.name}" with ${scoringRule.points} points`,
+      description: `Đã tạo quy tắc chấm điểm toàn cục "${scoringRule.name}" với ${scoringRule.points} điểm`,
       metadata: { ruleName: scoringRule.name, points: scoringRule.points, criteria }
     })
 
     return NextResponse.json({ scoringRule }, { status: 201 })
   } catch (error) {
-    console.error('Error creating scoring rule:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Lỗi tạo quy tắc chấm điểm:', error)
+    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }
