@@ -55,7 +55,7 @@ export function UserAccountMenu() {
       <DropdownMenuTrigger asChild>
         <button className="relative h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
           <Avatar className="h-10 w-10 cursor-pointer">
-            <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+            <AvatarImage src={user.image || undefined} alt={user.name || 'Người dùng'} />
             <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
               {initials}
             </AvatarFallback>
@@ -65,7 +65,7 @@ export function UserAccountMenu() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name || 'User'}</p>
+            <p className="text-sm font-medium leading-none">{user.name || 'Người dùng'}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
