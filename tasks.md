@@ -1,8 +1,10 @@
 # Group Scoring System - Development Task List
 
-## Status: 🔄 ACTIVE DEVELOPMENT - November 4, 2025
+## Status: 🔄 ACTIVE DEVELOPMENT - November 5, 2025
 
 Vietnamese localization is approaching full coverage (~98%) with a remaining audit to finish UI translations, while development continues to focus on core scoring system features. Several critical features remain incomplete and require immediate attention.
+
+**CRITICAL ISSUE RESOLVED ✅**: `GroupsApi.updateScoringRule()` method has been implemented and integrated with the existing backend PUT endpoint. Rule editing functionality is now working end-to-end.
 
 ### Current Development Priorities
 
@@ -23,9 +25,9 @@ Vietnamese localization is approaching full coverage (~98%) with a remaining aud
 - [ ] **Add real-time score updates** to group statistics
 
 ##### 1.2 Scoring Rules Management Enhancement
-- [ ] **Implement rule editing functionality** - Currently shows error message
-- [ ] **Add PUT endpoint** for updating existing scoring rules
-- [ ] **Create rule modification modal** with existing rule pre-population
+- [x] **Implement rule editing functionality** - Fixed missing GroupsApi.updateScoringRule() method
+- [x] **Add PUT endpoint** for updating existing scoring rules - Already existed in backend
+- [x] **Create rule modification modal** with existing rule pre-population - Already implemented
 - [ ] **Add rule deletion capability** with confirmation dialog
 - [ ] **Implement rule activation/deactivation** via API (currently only local)
 
@@ -122,10 +124,10 @@ Vietnamese localization is approaching full coverage (~98%) with a remaining aud
    - Create score recording dialog component
    - Implement backend API for score recording
 
-2. **src/components/ui/rule-creation-modal.tsx**: Rule editing (line ~140-172)
-   - Currently shows "Editing existing rules is not yet implemented" error
-   - Need to implement edit mode functionality
-   - Add PUT endpoint for rule updates
+2~~. **src/components/ui/rule-creation-modal.tsx**: Rule editing (line ~140-172)~~ ✅ **RESOLVED**
+   - ~~Currently shows "Editing existing rules is not yet implemented" error~~
+   - ~~Need to implement edit mode functionality~~
+   - ~~Add PUT endpoint for rule updates~~
 
 3. **src/app/api/auth/reset-password/route.ts**: Email sending (line ~45-47)
    - Currently only logs the request

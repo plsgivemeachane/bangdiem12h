@@ -8,15 +8,16 @@ import { Button } from '@/components/ui/button'
 import { LayoutDashboard, Users, TrendingUp, Menu, X, Shield } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { NAV, DESCRIPTIONS, APP_HEADER } from '@/lib/translations'
 
 const navigation = [
-  { name: 'Bảng điều khiển', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Nhóm', href: '/groups', icon: Users },
-  { name: 'Phân tích', href: '/analytics', icon: TrendingUp },
+  { name: NAV.DASHBOARD, href: '/dashboard', icon: LayoutDashboard },
+  { name: NAV.GROUPS, href: '/groups', icon: Users },
+  { name: NAV.ANALYTICS, href: '/analytics', icon: TrendingUp },
 ]
 
 const adminNavigation = [
-  { name: 'Quản trị', href: '/admin/users', icon: Shield },
+  { name: NAV.ADMIN, href: '/admin/users', icon: Shield },
 ]
 
 export function AppHeader() {
@@ -44,7 +45,7 @@ export function AppHeader() {
               GS
             </div>
             <span className="hidden font-semibold text-lg sm:inline-block">
-              Chấm Điểm Nhóm
+              {APP_HEADER.GROUP_SCORING_SYSTEM}
             </span>
           </Link>
 
@@ -108,7 +109,7 @@ export function AppHeader() {
                 className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <span className="sr-only">Mở menu chính</span>
+                <span className="sr-only">{APP_HEADER.OPEN_MAIN_MENU}</span>
                 {mobileMenuOpen ? (
                   <X className="h-6 w-6" aria-hidden="true" />
                 ) : (

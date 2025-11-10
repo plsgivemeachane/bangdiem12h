@@ -11,6 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ArrowLeft, Copy, Eye, EyeOff, KeyRound, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { 
+  USER_MANAGEMENT, 
+  ACTIONS, 
+  LABELS, 
+  USER_ROLES, 
+  VALIDATION, 
+  MESSAGES, 
+  DESCRIPTIONS,
+  PLACEHOLDERS 
+} from '@/lib/translations'
 
 // Simple password strength checker
 const checkPasswordStrength = (password: string) => {
@@ -83,7 +93,7 @@ export default function CreateUserPage() {
   useEffect(() => {
     if (!authLoading && !isAdmin) {
       router.push('/dashboard')
-      toast.error('Truy cập bị từ chối. Cần quyền quản trị viên.')
+      toast.error(USER_MANAGEMENT.CREATE_USER.ACCESS_DENIED_ADMIN)
     }
   }, [isAdmin, authLoading, router])
 
@@ -94,17 +104,17 @@ export default function CreateUserPage() {
       password,
       confirmPassword: password
     }))
-    toast.success('Đã tạo mật khẩu an toàn!')
+    toast.success(USER_MANAGEMENT.CREATE_USER.PASSWORD_COPIED_SUCCESS)
   }
 
   const handleCopyPassword = async () => {
     try {
       await navigator.clipboard.writeText(formData.password)
       setPasswordCopied(true)
-      toast.success('Đã sao chép mật khẩu vào clipboard!')
+      toast.success(USER_MANAGEMENT.CREATE_USER.PASSWORD_COPIED_CLIPBOARD)
       setTimeout(() => setPasswordCopied(false), 3000)
     } catch (error) {
-      toast.error('Không thể sao chép mật khẩu')
+      toast.error(USER_MANAGEMENT.CREATE_USER.CANNOT_COPY_PASSWORD)
     }
   }
 
@@ -113,18 +123,18 @@ export default function CreateUserPage() {
     
     // Validation
     if (!formData.email || !formData.password) {
-      toast.error('Email và mật khẩu là bắt buộc')
+      toast.error(VALIDATION.USER.EMAIL_PASSWORD_REQUIRED)
       return
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Mật khẩu không khớp')
+      toast.error(VALIDATION.USER.PASSWORD_MISMATCH)
       return
     }
 
     const { strength } = checkPasswordStrength(formData.password)
     if (strength < 5) {
-      toast.error('Mật khẩu không đáp ứng đủ yêu cầu')
+      toast.error(VALIDATION.USER.PASSWORD_INSUFFICIENT)
       return
     }
 
@@ -144,26 +154,32 @@ export default function CreateUserPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Không thể tạo người dùng')
+        throw new Error(data.error || MESSAGES.ERROR.FAILED_TO_CREATE)
       }
 
       const data = await response.json()
-      toast.success(`Người dùng ${data.user.email} đã được tạo thành công!`)
+      toast.success(USER_MANAGEMENT.CREATE_USER.SUCCESS_MESSAGE.replace('{email}', data.user.email))
       
       // Navigate back to users list after a brief delay
       setTimeout(() => {
         router.push('/admin/users')
       }, 1500)
     } catch (error) {
-      console.error('Không thể tạo người dùng:', error)
-      toast.error(error instanceof Error ? error.message : 'Không thể tạo người dùng')
+      console.error(USER_MANAGEMENT.CREATE_USER.ERROR_CREATE_USER, ':', error)
+      toast.error(error instanceof Error ? error.message : MESSAGES.ERROR.FAILED_TO_CREATE)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const passwordStrength = checkPasswordStrength(formData.password)
-  const strengthLabel = ['Rất yếu', 'Yếu', 'Trung bình', 'Tốt', 'Mạnh'][passwordStrength.strength - 1] || 'Rất yếu'
+  const strengthLabel = [
+    USER_MANAGEMENT.CREATE_USER.PASSWORD_STRENGTH_VERY_WEAK, 
+    USER_MANAGEMENT.CREATE_USER.PASSWORD_STRENGTH_WEAK, 
+    USER_MANAGEMENT.CREATE_USER.PASSWORD_STRENGTH_MEDIUM, 
+    USER_MANAGEMENT.CREATE_USER.PASSWORD_STRENGTH_GOOD, 
+    USER_MANAGEMENT.CREATE_USER.PASSWORD_STRENGTH_STRONG
+  ][passwordStrength.strength - 1] || USER_MANAGEMENT.CREATE_USER.PASSWORD_STRENGTH_VERY_WEAK
   const strengthColor = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'][passwordStrength.strength - 1] || 'bg-gray-300'
 
   if (authLoading) {
@@ -172,7 +188,7 @@ export default function CreateUserPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Đang tải...</p>
+            <p className="mt-4 text-gray-600">{ACTIONS.LOADING_DASHBOARD}</p>
           </div>
         </div>
       </div>
@@ -196,34 +212,34 @@ export default function CreateUserPage() {
               className="mb-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Quay lại danh sách người dùng
+              {USER_MANAGEMENT.CREATE_USER.BACK_TO_LIST}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Quay lại quản lý người dùng</p>
+            <p>{USER_MANAGEMENT.CREATE_USER.BACK_TO_MANAGEMENT}</p>
           </TooltipContent>
         </Tooltip>
-        <h1 className="text-3xl font-bold">Tạo người dùng mới</h1>
-        <p className="text-gray-600 mt-1">Thêm người dùng mới vào hệ thống</p>
+        <h1 className="text-3xl font-bold">{USER_MANAGEMENT.CREATE_USER.TITLE}</h1>
+        <p className="text-gray-600 mt-1">{USER_MANAGEMENT.CREATE_USER.DESCRIPTION}</p>
       </div>
 
       {/* Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Thông tin người dùng</CardTitle>
+          <CardTitle>{USER_MANAGEMENT.CREATE_USER.USER_INFO}</CardTitle>
           <CardDescription>
-            Điền thông tin chi tiết để tạo tài khoản người dùng mới
+            {USER_MANAGEMENT.CREATE_USER.USER_INFO_DESCRIPTION}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{LABELS.EMAIL} *</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="nguoi-dung@vi-du.com"
+                placeholder={PLACEHOLDERS.ENTER_EMAIL}
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 required
@@ -232,7 +248,7 @@ export default function CreateUserPage() {
 
             {/* Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Họ tên</Label>
+              <Label htmlFor="name">{LABELS.NAME}</Label>
               <Input
                 id="name"
                 type="text"
@@ -244,23 +260,23 @@ export default function CreateUserPage() {
 
             {/* Role */}
             <div className="space-y-2">
-              <Label htmlFor="role">Vai trò *</Label>
+              <Label htmlFor="role">{LABELS.ROLE} *</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Chọn vai trò" />
+                  <SelectValue placeholder={PLACEHOLDERS.SELECT} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USER">Người dùng</SelectItem>
-                  <SelectItem value="ADMIN">Quản trị viên</SelectItem>
+                  <SelectItem value="USER">{USER_ROLES.USER}</SelectItem>
+                  <SelectItem value="ADMIN">{USER_ROLES.ADMIN}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">
                 {formData.role === 'ADMIN' 
-                  ? 'Quản trị viên có thể quản lý người dùng, nhóm và cài đặt hệ thống'
-                  : 'Người dùng có thể tạo và quản lý nhóm cũng như hệ thống chấm điểm'
+                  ? USER_MANAGEMENT.CREATE_USER.ROLE_ADMIN_DESCRIPTION
+                  : USER_MANAGEMENT.CREATE_USER.ROLE_USER_DESCRIPTION
                 }
               </p>
             </div>
@@ -268,7 +284,7 @@ export default function CreateUserPage() {
             {/* Password Generation */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Password *</Label>
+                <Label>{LABELS.PASSWORD} *</Label>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -278,18 +294,18 @@ export default function CreateUserPage() {
                       onClick={handleGeneratePassword}
                     >
                       <KeyRound className="mr-2 h-3 w-3" />
-                      Tạo mật khẩu bảo mật
+                      {USER_MANAGEMENT.CREATE_USER.GENERATE_SECURE_PASSWORD}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Tạo mật khẩu ngẫu nhiên mạnh</p>
+                    <p>{USER_MANAGEMENT.CREATE_USER.GENERATE_STRONG_RANDOM}</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Nhập mật khẩu"
+                  placeholder={PLACEHOLDERS.ENTER_PASSWORD}
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   required
@@ -313,7 +329,7 @@ export default function CreateUserPage() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{passwordCopied ? 'Đã sao chép!' : 'Sao chép mật khẩu vào clipboard'}</p>
+                        <p>{passwordCopied ? USER_MANAGEMENT.CREATE_USER.COPIED : USER_MANAGEMENT.CREATE_USER.COPY_TO_CLIPBOARD}</p>
                       </TooltipContent>
                     </Tooltip>
                   )}
@@ -334,7 +350,7 @@ export default function CreateUserPage() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{showPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}</p>
+                      <p>{showPassword ? ACTIONS.TOGGLE_HIDE : ACTIONS.TOGGLE_SHOW}</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
@@ -344,7 +360,7 @@ export default function CreateUserPage() {
               {formData.password && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600">Độ mạnh mật khẩu:</span>
+                    <span className="text-gray-600">{USER_MANAGEMENT.CREATE_USER.PASSWORD_STRENGTH}:</span>
                     <span className={`font-medium ${passwordStrength.strength >= 4 ? 'text-green-600' : 'text-orange-600'}`}>
                       {strengthLabel}
                     </span>
@@ -361,19 +377,19 @@ export default function CreateUserPage() {
                   {/* Requirements Checklist */}
                   <div className="space-y-1 text-xs">
                     <div className={passwordStrength.checks.length ? 'text-green-600' : 'text-gray-500'}>
-                      {passwordStrength.checks.length ? '✓' : '○'} Ít nhất 8 ký tự
+                      {passwordStrength.checks.length ? '✓' : '○'} {USER_MANAGEMENT.CREATE_USER.MINIMUM_8_CHARS}
                     </div>
                     <div className={passwordStrength.checks.uppercase ? 'text-green-600' : 'text-gray-500'}>
-                      {passwordStrength.checks.uppercase ? '✓' : '○'} Một chữ cái viết hoa
+                      {passwordStrength.checks.uppercase ? '✓' : '○'} {USER_MANAGEMENT.CREATE_USER.ONE_UPPERCASE}
                     </div>
                     <div className={passwordStrength.checks.lowercase ? 'text-green-600' : 'text-gray-500'}>
-                      {passwordStrength.checks.lowercase ? '✓' : '○'} Một chữ cái viết thường
+                      {passwordStrength.checks.lowercase ? '✓' : '○'} {USER_MANAGEMENT.CREATE_USER.ONE_LOWERCASE}
                     </div>
                     <div className={passwordStrength.checks.number ? 'text-green-600' : 'text-gray-500'}>
-                      {passwordStrength.checks.number ? '✓' : '○'} Một chữ số
+                      {passwordStrength.checks.number ? '✓' : '○'} {USER_MANAGEMENT.CREATE_USER.ONE_DIGIT}
                     </div>
                     <div className={passwordStrength.checks.special ? 'text-green-600' : 'text-gray-500'}>
-                      {passwordStrength.checks.special ? '✓' : '○'} Một ký tự đặc biệt
+                      {passwordStrength.checks.special ? '✓' : '○'} {USER_MANAGEMENT.CREATE_USER.ONE_SPECIAL_CHAR}
                     </div>
                   </div>
                 </div>
@@ -382,12 +398,12 @@ export default function CreateUserPage() {
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
+              <Label htmlFor="confirmPassword">{USER_MANAGEMENT.CREATE_USER.CONFIRM_PASSWORD} *</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Xác nhận mật khẩu"
+                  placeholder={USER_MANAGEMENT.CREATE_USER.CONFIRM_PASSWORD_PLACEHOLDER}
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                   required
@@ -409,15 +425,15 @@ export default function CreateUserPage() {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}</p>
+                    <p>{showConfirmPassword ? ACTIONS.TOGGLE_HIDE : ACTIONS.TOGGLE_SHOW}</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
               {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                <p className="text-xs text-red-500">Mật khẩu không khớp</p>
+                <p className="text-xs text-red-500">{VALIDATION.USER.PASSWORD_MISMATCH}</p>
               )}
               {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                <p className="text-xs text-green-600">✓ Mật khẩu khớp</p>
+                <p className="text-xs text-green-600">{USER_MANAGEMENT.CREATE_USER.PASSWORD_MATCHES}</p>
               )}
             </div>
 
@@ -432,11 +448,11 @@ export default function CreateUserPage() {
                     disabled={isSubmitting}
                     className="flex-1"
                   >
-                    Hủy
+                    {ACTIONS.CANCEL}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Hủy và quay lại danh sách người dùng</p>
+                  <p>{USER_MANAGEMENT.CREATE_USER.CANCEL_AND_BACK}</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -446,18 +462,18 @@ export default function CreateUserPage() {
                     disabled={isSubmitting || passwordStrength.strength < 5 || formData.password !== formData.confirmPassword}
                     className="flex-1"
                   >
-                    {isSubmitting ? 'Đang tạo...' : 'Tạo người dùng'}
+                    {isSubmitting ? USER_MANAGEMENT.CREATE_USER.CREATING : USER_MANAGEMENT.CREATE_USER.CREATE_USER}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>
                     {isSubmitting
-                      ? 'Đang tạo tài khoản người dùng...'
+                      ? USER_MANAGEMENT.CREATE_USER.CREATING_ACCOUNT
                       : passwordStrength.strength < 5
-                        ? 'Mật khẩu không đáp ứng đủ yêu cầu'
+                        ? USER_MANAGEMENT.CREATE_USER.PASSWORD_MEETS_REQUIREMENTS
                         : formData.password !== formData.confirmPassword
-                          ? 'Mật khẩu phải khớp'
-                          : 'Tạo tài khoản người dùng'
+                          ? USER_MANAGEMENT.CREATE_USER.PASSWORD_MUST_MATCH
+                          : USER_MANAGEMENT.CREATE_USER.CREATE_USER_ACCOUNT
                     }
                   </p>
                 </TooltipContent>

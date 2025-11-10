@@ -59,15 +59,16 @@ import { GroupsApi } from '@/lib/api/groups'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { COMPONENTS, VALIDATION, MESSAGES, GROUP_ROLES } from '@/lib/translations'
 import toast from 'react-hot-toast'
 
 const memberFormSchema = z.object({
   email: z.string()
-    .min(1, 'Vui lòng nhập email')
-    .email('Vui lòng nhập địa chỉ email hợp lệ')
+    .min(1, VALIDATION.MEMBER.EMAIL_REQUIRED)
+    .email(VALIDATION.MEMBER.EMAIL_INVALID)
     .trim(),
   role: z.enum(['MEMBER', 'ADMIN'], {
-    required_error: 'Vui lòng chọn vai trò',
+    required_error: VALIDATION.MEMBER.ROLE_REQUIRED,
   }),
 })
 
@@ -107,7 +108,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
           const results = await GroupsApi.searchUsers('')
           setUsers(results)
         } catch (error) {
-          console.error('Không thể tải danh sách người dùng ban đầu:', error)
+          console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX, error)
           // Don't show error toast for initial load
         } finally {
           setIsSearching(false)
@@ -136,8 +137,8 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
         const results = await GroupsApi.searchUsers(debouncedSearchQuery)
         setUsers(results)
       } catch (error) {
-        console.error('Không thể tìm kiếm người dùng:', error)
-        toast.error('Không thể tìm kiếm người dùng')
+        console.error(COMPONENTS.MEMBER_INVITE.ERROR_SEARCH, error)
+        toast.error(COMPONENTS.MEMBER_INVITE.ERROR_SEARCH)
         setUsers([])
       } finally {
         setIsSearching(false)
@@ -151,13 +152,13 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
     setIsLoading(true)
     try {
       const newMember = await GroupsApi.addMember(groupId, data as AddMemberForm)
-      toast.success('Thêm thành viên thành công!')
+      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_ADDED)
       onSuccess(newMember)
       form.reset()
       onClose()
     } catch (error) {
-      console.error('Lỗi thêm thành viên:', error)
-      toast.error(error instanceof Error ? error.message : 'Không thể thêm thành viên')
+      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX, error)
+      toast.error(error instanceof Error ? error.message : COMPONENTS.MEMBER_INVITE.ERROR_ADD)
     } finally {
       setIsLoading(false)
     }
@@ -184,9 +185,9 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Thêm thành viên</DialogTitle>
+          <DialogTitle>{COMPONENTS.MEMBER_INVITE.TITLE}</DialogTitle>
           <DialogDescription>
-            Thêm thành viên mới vào nhóm. Người dùng có thể đăng nhập bằng tài khoản hiện có.
+            {COMPONENTS.MEMBER_INVITE.DESCRIPTION}
           </DialogDescription>
         </DialogHeader>
 
@@ -197,7 +198,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
               name="email"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Địa chỉ email *</FormLabel>
+                  <FormLabel>{COMPONENTS.MEMBER_INVITE.LABEL_EMAIL}</FormLabel>
                   <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -219,7 +220,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                               )}
                             </div>
                           ) : (
-                            "Tìm kiếm người dùng..."
+                            COMPONENTS.MEMBER_INVITE.PLACEHOLDER_SEARCH
                           )}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -228,7 +229,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                     <PopoverContent className="w-[400px] p-0" align="start">
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder="Tìm theo tên hoặc email..."
+                          placeholder={COMPONENTS.MEMBER_INVITE.PLACEHOLDER_SEARCH_INPUT}
                           value={searchQuery}
                           onValueChange={setSearchQuery}
                         />
@@ -238,17 +239,17 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                               <div className="flex items-center justify-center py-6">
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                 <span className="text-sm text-muted-foreground">
-                                  {searchQuery.length === 0 ? 'Đang tải danh sách người dùng...' : 'Đang tìm kiếm...'}
+                                  {searchQuery.length === 0 ? COMPONENTS.MEMBER_INVITE.LOADING_USERS : COMPONENTS.MEMBER_INVITE.LOADING_SEARCH}
                                 </span>
                               </div>
                             ) : (
                               <div className="py-6 text-center text-sm text-muted-foreground">
-                                    Không tìm thấy người dùng nào
+                                    {COMPONENTS.MEMBER_INVITE.NO_USERS_FOUND}
                               </div>
                             )}
                           </CommandEmpty>
                           {users.length > 0 && (
-                            <CommandGroup heading={searchQuery.trim().length > 0 ? "Kết quả tìm kiếm" : "Tất cả người dùng hiện có"}>
+                            <CommandGroup heading={searchQuery.trim().length > 0 ? COMPONENTS.MEMBER_INVITE.GROUP_HEADING_SEARCH : COMPONENTS.MEMBER_INVITE.GROUP_HEADING_ALL}>
                               {users.map((user) => (
                                 <CommandItem
                                   key={user.id}
@@ -275,7 +276,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                     </PopoverContent>
                   </Popover>
                   <FormDescription>
-                    Tìm và chọn người dùng trong hệ thống
+                    {COMPONENTS.MEMBER_INVITE.DESCRIPTION_EMAIL}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -287,24 +288,24 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Vai trò *</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <FormLabel>{COMPONENTS.MEMBER_INVITE.LABEL_ROLE}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                     disabled={isLoading}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn vai trò" />
+                        <SelectValue placeholder={COMPONENTS.MEMBER_INVITE.PLACEHOLDER_ROLE} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="MEMBER">Thành viên</SelectItem>
-                      <SelectItem value="ADMIN">Quản trị viên</SelectItem>
+                      <SelectItem value="MEMBER">{GROUP_ROLES.MEMBER}</SelectItem>
+                      <SelectItem value="ADMIN">{GROUP_ROLES.ADMIN}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Thành viên có thể ghi điểm. Quản trị viên còn có thể quản lý nhóm.
+                    {COMPONENTS.MEMBER_INVITE.DESCRIPTION_ROLE}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -312,17 +313,17 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
             />
 
             <DialogFooter className="gap-2">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleClose}
                 disabled={isLoading}
               >
-                Huỷ
+                {COMPONENTS.MEMBER_INVITE.BUTTON_CANCEL}
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <LoadingSpinner className="mr-2" />}
-                Thêm thành viên
+                {COMPONENTS.MEMBER_INVITE.BUTTON_ADD}
               </Button>
             </DialogFooter>
           </form>

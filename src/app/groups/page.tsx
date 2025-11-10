@@ -12,6 +12,16 @@ import { useAuth } from '@/hooks/use-auth'
 import { Group } from '@/types'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import {
+  GROUPS_PAGE,
+  ACTIONS,
+  LABELS,
+  MESSAGES,
+  DESCRIPTIONS,
+  PAGE_TITLES,
+  USER_ROLES,
+  NAV
+} from '@/lib/translations'
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<Group[]>([])
@@ -44,9 +54,9 @@ export default function GroupsPage() {
       const groupsData = await GroupsApi.getGroups()
       setGroups(groupsData)
     } catch (error) {
-      console.error('Không thể tải danh sách nhóm:', error)
-      setError(error instanceof Error ? error.message : 'Không thể tải danh sách nhóm')
-      toast.error('Không thể tải danh sách nhóm')
+      console.error(MESSAGES.ERROR.FAILED_TO_LOAD, ':', error)
+      setError(error instanceof Error ? error.message : MESSAGES.ERROR.FAILED_TO_LOAD)
+      toast.error(MESSAGES.ERROR.FAILED_TO_LOAD)
     } finally {
       setIsLoading(false)
     }
@@ -66,10 +76,10 @@ export default function GroupsPage() {
     try {
       await GroupsApi.deleteGroup(group.id)
       setGroups(prev => prev.filter(g => g.id !== group.id))
-      toast.success('Xóa nhóm thành công')
+      toast.success(MESSAGES.SUCCESS.DELETED)
     } catch (error) {
-      console.error('Không thể xóa nhóm:', error)
-      toast.error(error instanceof Error ? error.message : 'Không thể xóa nhóm')
+      console.error(MESSAGES.ERROR.FAILED_TO_DELETE, ':', error)
+      toast.error(error instanceof Error ? error.message : MESSAGES.ERROR.FAILED_TO_DELETE)
       throw error // Re-throw for GroupCard to handle loading state
     }
   }
@@ -104,7 +114,7 @@ export default function GroupsPage() {
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Loading text="Đang kiểm tra xác thực..." />
+        <Loading text={ACTIONS.CHECKING_AUTHENTICATION} />
       </div>
     )
   }
@@ -115,12 +125,12 @@ export default function GroupsPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Yêu cầu xác thực</h2>
+            <h2 className="text-2xl font-bold mb-4">{GROUPS_PAGE.AUTHENTICATION_REQUIRED}</h2>
             <p className="text-muted-foreground mb-6">
-              Vui lòng đăng nhập để truy cập nhóm của bạn.
+              {GROUPS_PAGE.PLEASE_SIGNIN_GROUPS}
             </p>
             <Button onClick={() => router.push('/auth/signin')}>
-              Đăng nhập
+              {NAV.SIGN_IN}
             </Button>
           </CardContent>
         </Card>
@@ -139,16 +149,16 @@ export default function GroupsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Nhóm</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{GROUPS_PAGE.TITLE}</h1>
           <p className="text-muted-foreground">
-            Quản lý nhóm và tổ chức các hoạt động chấm điểm
+            {GROUPS_PAGE.DESCRIPTION}
           </p>
         </div>
         {/* Only System ADMINs can create groups */}
         {user?.role === 'ADMIN' && (
           <Button onClick={handleCreateGroup}>
             <Plus className="mr-2 h-4 w-4" />
-            Tạo nhóm
+            {ACTIONS.CREATE}
           </Button>
         )}
       </div>
@@ -157,52 +167,54 @@ export default function GroupsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng số nhóm</CardTitle>
+            <CardTitle className="text-sm font-medium">{GROUPS_PAGE.TOTAL_GROUPS_STAT}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalGroups}</div>
             <p className="text-xs text-muted-foreground">
-              {activeGroups} hoạt động
+              {GROUPS_PAGE.TOTAL_GROUPS_ACTIVE.replace('{count}', activeGroups.toString())}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng thành viên</CardTitle>
+            <CardTitle className="text-sm font-medium">{GROUPS_PAGE.TOTAL_MEMBERS_STAT}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalMembers}</div>
             <p className="text-xs text-muted-foreground">
-              Trên tất cả nhóm
+              {GROUPS_PAGE.TOTAL_MEMBERS_DESC}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bản ghi điểm</CardTitle>
+            <CardTitle className="text-sm font-medium">{GROUPS_PAGE.SCORE_RECORDS_STAT}</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalScoreRecords}</div>
             <p className="text-xs text-muted-foreground">
-              Tổng số đã ghi
+              {GROUPS_PAGE.SCORE_RECORDS_DESC}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vai trò của bạn</CardTitle>
+            <CardTitle className="text-sm font-medium">{GROUPS_PAGE.YOUR_ROLE_STAT}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold capitalize">{user?.role === 'ADMIN' ? 'Quản trị viên' : 'Người dùng'}</div>
+            <div className="text-2xl font-bold capitalize">
+              {user?.role === 'ADMIN' ? GROUPS_PAGE.YOUR_ROLE_ADMIN : GROUPS_PAGE.YOUR_ROLE_USER}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Cấp quyền hiện tại
+              {GROUPS_PAGE.YOUR_ROLE_DESC}
             </p>
           </CardContent>
         </Card>
@@ -213,10 +225,10 @@ export default function GroupsPage() {
         <Card className="border-destructive">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-destructive mb-2">Lỗi tải danh sách nhóm</h3>
+              <h3 className="text-lg font-semibold text-destructive mb-2">{GROUPS_PAGE.LOADING_GROUPS_ERROR}</h3>
               <p className="text-muted-foreground mb-4">{error}</p>
               <Button onClick={loadGroups} variant="outline">
-                Thử lại
+                {ACTIONS.RELOAD}
               </Button>
             </div>
           </CardContent>

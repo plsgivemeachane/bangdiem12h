@@ -295,4 +295,23 @@ export class GroupsApi {
       throw new Error(error.error || 'Không thể xóa quy tắc khỏi nhóm')
     }
   }
+
+  // Update an existing scoring rule
+  static async updateScoringRule(id: string, formData: { name: string; description?: string; criteria: any; points: number }): Promise<any> {
+    const response = await fetch('/api/scoring-rules', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id, ...formData }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Không thể cập nhật quy tắc chấm điểm')
+    }
+
+    const data = await response.json()
+    return data.scoringRule
+  }
 }

@@ -28,15 +28,16 @@ import {
 import { CreateGroupForm, UpdateGroupForm } from '@/types'
 import { LoadingSpinner } from '@/components/ui/loading'
 import { GroupsApi } from '@/lib/api/groups'
+import { COMPONENTS, VALIDATION, MESSAGES } from '@/lib/translations'
 import toast from 'react-hot-toast'
 
 const groupFormSchema = z.object({
   name: z.string()
-    .min(1, 'Tên nhóm là bắt buộc')
-    .max(100, 'Tên nhóm phải ít hơn 100 ký tự')
+    .min(1, VALIDATION.GROUP.NAME_REQUIRED)
+    .max(100, VALIDATION.GROUP.NAME_TOO_LONG)
     .trim(),
   description: z.string()
-    .max(500, 'Mô tả phải ít hơn 500 ký tự')
+    .max(500, VALIDATION.GROUP.DESCRIPTION_TOO_LONG)
     .trim()
     .optional(),
 })
@@ -82,17 +83,17 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
     try {
       if (mode === 'create') {
         const newGroup = await GroupsApi.createGroup(data as CreateGroupForm)
-        toast.success('Tạo nhóm thành công!')
+        toast.success(MESSAGES.SUCCESS.CREATED)
         onSuccess(newGroup)
       } else {
-        if (!group?.id) throw new Error('ID nhóm là bắt buộc để chỉnh sửa')
+        if (!group?.id) throw new Error(COMPONENTS.GROUP_FORM.ERROR_ID_REQUIRED)
         const updatedGroup = await GroupsApi.updateGroup(group.id, data as UpdateGroupForm)
-        toast.success('Cập nhật nhóm thành công!')
+        toast.success(MESSAGES.SUCCESS.UPDATED)
         onSuccess(updatedGroup)
       }
     } catch (error) {
-      console.error('Lỗi biểu mẫu nhóm:', error)
-      toast.error(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
+      console.error(COMPONENTS.GROUP_FORM.LOG_PREFIX, error)
+      toast.error(error instanceof Error ? error.message : MESSAGES.ERROR.SOMETHING_WENT_WRONG)
     } finally {
       setIsLoading(false)
     }
@@ -110,12 +111,12 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create' ? 'Tạo nhóm mới' : 'Chỉnh sửa nhóm'}
+            {mode === 'create' ? COMPONENTS.GROUP_FORM.TITLE_CREATE : COMPONENTS.GROUP_FORM.TITLE_EDIT}
           </DialogTitle>
           <DialogDescription>
-            {mode === 'create' 
-              ? 'Tạo nhóm mới để bắt đầu tổ chức các hoạt động chấm điểm của bạn.'
-              : 'Thay đổi thông tin nhóm của bạn.'
+            {mode === 'create'
+              ? COMPONENTS.GROUP_FORM.DESCRIPTION_CREATE
+              : COMPONENTS.GROUP_FORM.DESCRIPTION_EDIT
             }
           </DialogDescription>
         </DialogHeader>
@@ -127,16 +128,16 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tên nhóm *</FormLabel>
+                  <FormLabel>{COMPONENTS.GROUP_FORM.LABEL_NAME}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Nhập tên nhóm"
+                      placeholder={COMPONENTS.GROUP_FORM.PLACEHOLDER_NAME}
                       {...field}
                       disabled={isLoading}
                     />
                   </FormControl>
                   <FormDescription>
-                    Tên duy nhất để xác định nhóm của bạn
+                    {COMPONENTS.GROUP_FORM.DESCRIPTION_NAME}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -148,10 +149,10 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mô tả</FormLabel>
+                  <FormLabel>{COMPONENTS.GROUP_FORM.LABEL_DESCRIPTION}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Nhập mô tả nhóm (tùy chọn)"
+                      placeholder={COMPONENTS.GROUP_FORM.PLACEHOLDER_DESCRIPTION}
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -159,7 +160,7 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
                     />
                   </FormControl>
                   <FormDescription>
-                    Mô tả tùy chọn để giúp thành viên hiểu mục đích của nhóm
+                    {COMPONENTS.GROUP_FORM.DESCRIPTION_DESCRIPTION}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -167,17 +168,17 @@ export function GroupForm({ isOpen, onClose, onSuccess, group, mode }: GroupForm
             />
 
             <DialogFooter className="gap-2">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleClose}
                 disabled={isLoading}
               >
-                Hủy
+                {COMPONENTS.GROUP_FORM.BUTTON_CANCEL}
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <LoadingSpinner className="mr-2" />}
-                {mode === 'create' ? 'Tạo nhóm' : 'Cập nhật nhóm'}
+                {mode === 'create' ? COMPONENTS.GROUP_FORM.BUTTON_CREATE : COMPONENTS.GROUP_FORM.BUTTON_UPDATE}
               </Button>
             </DialogFooter>
           </form>

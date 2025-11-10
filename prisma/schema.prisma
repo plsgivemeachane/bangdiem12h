@@ -1,27 +1,26 @@
-datasource db {
-  url      = env("DATABASE_URL")
-  provider = "postgresql"
-}
-
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl", "rhel-openssl-3.0.x"] // Adjust based on your deployment target
-  output   = "../node_modules/.prisma/client"
+  provider      = "prisma-client-js"
+  output        = "../node_modules/.prisma/client"
+  binaryTargets = ["native", "linux-musl", "rhel-openssl-3.0.x"]
 }
 
-// NextAuth.js required models
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -37,22 +36,21 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String?   // Hashed password, nullable for OAuth users
-  emailVerified DateTime?
-  image         String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts      Account[]
-  sessions      Session[]
-  groups        Group[]   @relation("GroupCreator")
+  id               String        @id @default(cuid())
+  name             String?
+  email            String        @unique
+  password         String?
+  emailVerified    DateTime?
+  image            String?
+  role             UserRole      @default(USER)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  accounts         Account[]
+  activityLogs     ActivityLog[]
+  groups           Group[]       @relation("GroupCreator")
   groupMemberships GroupMember[]
-  scoreRecords  ScoreRecord[]
-  activityLogs  ActivityLog[]
+  scoreRecords     ScoreRecord[]
+  sessions         Session[]
 }
 
 model VerificationToken {
@@ -63,68 +61,62 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Core domain models
 model Group {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdById String
-  
-  createdBy   User           @relation("GroupCreator", fields: [createdById], references: [id])
-  members     GroupMember[]
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  createdById  String
+  activityLogs ActivityLog[]
+  createdBy    User          @relation("GroupCreator", fields: [createdById], references: [id])
+  members      GroupMember[]
   groupRules   GroupRule[]
   scoreRecords ScoreRecord[]
-  activityLogs ActivityLog[]
 
   @@index([createdById])
   @@index([isActive])
 }
 
 model GroupMember {
-  id        String     @id @default(cuid())
-  userId    String
-  groupId   String
-  role      GroupRole  @default(MEMBER)
-  joinedAt  DateTime   @default(now())
-  
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group     Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  
+  id       String    @id @default(cuid())
+  userId   String
+  groupId  String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, groupId])
   @@index([groupId])
   @@index([userId])
 }
 
 model ScoringRule {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  criteria    Json     // Flexible criteria definition
-  points      Int      // Point value (can be negative for penalties)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  groupRules  GroupRule[]
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  criteria     Json
+  points       Int
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  groupRules   GroupRule[]
   scoreRecords ScoreRecord[]
-  
+
   @@index([isActive])
 }
 
-// Junction table for group-rule relationships
 model GroupRule {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   groupId   String
   ruleId    String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
   group     Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
   rule      ScoringRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  
+
   @@unique([groupId, ruleId])
   @@index([groupId])
   @@index([ruleId])
@@ -132,19 +124,18 @@ model GroupRule {
 }
 
 model ScoreRecord {
-  id           String   @id @default(cuid())
-  userId       String
-  groupId      String
-  ruleId       String
-  points       Int
-  criteria     Json     // Specific criteria that triggered this score
-  notes        String?
-  recordedAt   DateTime @default(now())
-  
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group        Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  rule         ScoringRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  
+  id         String      @id @default(cuid())
+  userId     String
+  groupId    String
+  ruleId     String
+  points     Int
+  criteria   Json
+  notes      String?
+  recordedAt DateTime    @default(now())
+  group      Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  rule       ScoringRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([groupId])
   @@index([ruleId])
@@ -157,19 +148,17 @@ model ActivityLog {
   groupId     String?
   action      ActivityType
   description String
-  metadata    Json?        // Additional context data
+  metadata    Json?
   timestamp   DateTime     @default(now())
-  
-  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   group       Group?       @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([groupId])
   @@index([timestamp])
   @@index([action])
 }
 
-// Enums
 enum UserRole {
   USER
   ADMIN
@@ -188,24 +177,20 @@ enum ActivityType {
   PASSWORD_RESET_REQUESTED
   PASSWORD_RESET_COMPLETED
   ADMIN_USER_CREATED
-  ADMIN_USER_ROLE_UPDATED
-  ADMIN_USER_DELETED
-  ADMIN_PASSWORD_RESET_BY_ADMIN
   GROUP_CREATED
   GROUP_UPDATED
   GROUP_DELETED
   MEMBER_INVITED
   MEMBER_JOINED
-  MEMBER_ADDED
   MEMBER_REMOVED
-  MEMBER_ROLE_UPDATED
-  OWNERSHIP_TRANSFERRED
   SCORING_RULE_CREATED
   SCORING_RULE_UPDATED
   SCORING_RULE_DELETED
-  RULE_ADDED_TO_GROUP
-  RULE_REMOVED_FROM_GROUP
   SCORE_RECORDED
   SCORE_UPDATED
   SCORE_DELETED
+  MEMBER_ADDED
+  MEMBER_ROLE_UPDATED
+  RULE_ADDED_TO_GROUP
+  RULE_REMOVED_FROM_GROUP
 }
