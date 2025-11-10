@@ -13,11 +13,12 @@ import { Label } from '@/components/ui/label'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { User, UserRole } from '@/types'
 import { UserPlus, Search, Trash2, Edit2, KeyRound, Shield, Users } from 'lucide-react'
+import { ADMIN_USERS, USER_ROLES } from '@/lib/translations'
 import toast from 'react-hot-toast'
 
 const ROLE_LABELS: Record<UserRole, string> = {
-  ADMIN: 'Quản trị viên',
-  USER: 'Người dùng'
+  ADMIN: USER_ROLES.ADMIN,
+  USER: USER_ROLES.USER
 }
 
 interface UserWithStats extends User {
@@ -102,6 +103,7 @@ export default function AdminUsersPage() {
     if (isAdmin) {
       fetchUsers()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.page, roleFilter, isAdmin])
 
   const handleSearch = () => {

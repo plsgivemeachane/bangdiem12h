@@ -19,7 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
-import { RuleCreationModal } from '@/components/ui/rule-creation-modal'
+
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { Group, ScoringRule } from '@/types'
@@ -36,14 +36,14 @@ export default function GroupRulesPage() {
   const [availableRules, setAvailableRules] = useState<ScoringRule[]>([]) // Global rules NOT in group
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isCreatingRule, setIsCreatingRule] = useState(false)
-  const [showRuleModal, setShowRuleModal] = useState(false)
+  
 
   // Load group and rules data on mount
   useEffect(() => {
     if (groupId && isAuthenticated) {
       loadGroupData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, isAuthenticated])
 
   // Redirect to login if not authenticated
@@ -98,19 +98,9 @@ export default function GroupRulesPage() {
     router.push(`/groups/${groupId}`)
   }
 
-  const handleCreateRule = () => {
-    setShowRuleModal(true)
-  }
+  
 
-  const handleRuleModalClose = () => {
-    setShowRuleModal(false)
-  }
-
-  const handleRuleCreated = (newRule: ScoringRule) => {
-    // Refresh both lists (new rule will appear in available rules)
-    loadGroupData()
-    toast.success(`Quy tắc "${newRule.name}" đã được tạo! Sử dụng nút "Thêm vào nhóm" để kích hoạt.`)
-  }
+  
 
   const handleAddRuleToGroup = async (rule: ScoringRule) => {
     try {
@@ -250,9 +240,9 @@ export default function GroupRulesPage() {
               Tải lại
             </Button>
             {user?.role === 'ADMIN' && (
-              <Button onClick={handleCreateRule}>
-                <Plus className="mr-2 h-4 w-4" />
-                Tạo quy tắc toàn cục
+              <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                <Settings className="mr-2 h-4 w-4" />
+                Manage Global Rules
               </Button>
             )}
           </div>
@@ -432,26 +422,13 @@ export default function GroupRulesPage() {
                   ? 'Tạo quy tắc toàn cục mới có thể được thêm vào các nhóm.'
                   : 'Liên hệ quản trị viên để tạo quy tắc toàn cục.'}
               </p>
-              {user?.role === 'ADMIN' && (
-                <Button onClick={handleCreateRule}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Tạo quy tắc toàn cục
-                </Button>
-              )}
+              
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Rule Creation Modal */}
-      {user?.role === 'ADMIN' && (
-        <RuleCreationModal
-          isOpen={showRuleModal}
-          onClose={handleRuleModalClose}
-          onRuleCreated={handleRuleCreated}
-          mode="create"
-        />
-      )}
+      
     </div>
   )
 }

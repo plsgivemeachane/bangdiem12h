@@ -1,18 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { ActivityFeed } from '@/components/activity/ActivityFeed'
+import { RuleCreationModal } from '@/components/ui/rule-creation-modal'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DashboardStats, Group } from '@/types'
-import { Users, Trophy, Target, Activity, Plus } from 'lucide-react'
+import { DashboardStats, Group, ScoringRule, GroupStats, UserPerformance } from '@/types'
+import { Users, Trophy, Target, Activity, Plus, Settings, Crown, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
 import {
   DASHBOARD,
   ACTIONS,
@@ -25,9 +28,10 @@ import {
   NAV,
   PLACEHOLDERS
 } from '@/lib/translations'
+import toast from 'react-hot-toast'
 
 export default function DashboardClient() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuth()
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
     totalGroups: 0,
@@ -36,15 +40,29 @@ export default function DashboardClient() {
     recentActivity: []
   })
   const [groups, setGroups] = useState<Group[]>([])
+  const [globalRules, setGlobalRules] = useState<ScoringRule[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showScoringRulesDialog, setShowScoringRulesDialog] = useState(false)
+  const [showRuleModal, setShowRuleModal] = useState(false)
+  const [totalActivityCount, setTotalActivityCount] = useState<number>(0)
   const [selectedGroupId, setSelectedGroupId] = useState<string>('')
+  const [userScoreRecords, setUserScoreRecords] = useState<any[]>([])
+  const [groupStats, setGroupStats] = useState<any>(null)
+  const [enhancedGroupStats, setEnhancedGroupStats] = useState<GroupStats | null>(null)
+
+  // Check if user is a regular user (not admin of any groups)
+  const isRegularUser = user && (!user.role || (user.role !== 'ADMIN' && !groups.some(group =>
+    group.members?.some((member: any) =>
+      member.userId === user.id && (member.role === 'ADMIN' || member.role === 'OWNER')
+    )
+  )))
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       fetchDashboardData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, isAuthenticated])
 
   const fetchDashboardData = async () => {
@@ -69,7 +87,52 @@ export default function DashboardClient() {
 
       // Fetch recent activity
       const activityResponse = await fetch('/api/activity-logs?limit=10&page=1')
-      const activityData = activityResponse.ok ? await activityResponse.json() : { activityLogs: [] }
+      const activityData = activityResponse.ok ? await activityResponse.json() : { activityLogs: [], pagination: { totalCount: 0 } }
+      const totalActivityCount = activityData.pagination?.totalCount || 0
+
+      // Fetch global scoring rules (for admin users)
+      let globalRulesData = []
+      if (user?.role === 'ADMIN') {
+        try {
+          const rulesResponse = await fetch('/api/scoring-rules')
+          if (rulesResponse.ok) {
+            const rulesData = await rulesResponse.json()
+            globalRulesData = rulesData.scoringRules || []
+          }
+        } catch (error) {
+          console.error('Failed to fetch global rules:', error)
+        }
+      }
+
+      // For regular users, fetch their score records and group stats
+      if (isRegularUser && user) {
+        try {
+          // Fetch user's score records
+          const recordsResponse = await fetch('/api/score-records?userId=' + user.id + '&limit=10')
+          if (recordsResponse.ok) {
+            const recordsData = await recordsResponse.json()
+            setUserScoreRecords(recordsData.records || [])
+          }
+
+          // Fetch group stats for user's first group (assuming one group per user)
+          if (groups.length > 0) {
+            const groupStatsResponse = await fetch(`/api/analytics?groupId=${groups[0].id}`)
+            if (groupStatsResponse.ok) {
+              const groupStatsData = await groupStatsResponse.json()
+              setGroupStats(groupStatsData.analytics || null)
+            }
+
+            // Fetch enhanced group statistics
+            const enhancedStatsResponse = await fetch(`/api/groups/${groups[0].id}/stats`)
+            if (enhancedStatsResponse.ok) {
+              const enhancedStatsData = await enhancedStatsResponse.json()
+              setEnhancedGroupStats(enhancedStatsData.stats || null)
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data:', error)
+        }
+      }
 
       // Calculate stats from real data
       setStats({
@@ -78,6 +141,12 @@ export default function DashboardClient() {
         totalPoints: analyticsData.analytics?.summary?.totalPoints || 0,
         recentActivity: activityData.activityLogs || []
       })
+
+      // Store total activity count in a separate state for display
+      setTotalActivityCount(totalActivityCount)
+
+      // Set global rules for admin users
+      setGlobalRules(globalRulesData)
 
     } catch (err) {
       console.error(MESSAGES.ERROR.FAILED_TO_LOAD + ':', err)
@@ -107,6 +176,35 @@ export default function DashboardClient() {
     } else {
       // Multiple groups - show dialog
       setShowScoringRulesDialog(true)
+    }
+  }
+
+  const handleCreateGlobalRule = () => {
+    setShowRuleModal(true)
+  }
+
+  const handleRuleModalClose = () => {
+    setShowRuleModal(false)
+  }
+
+  const handleRuleCreated = (newRule: ScoringRule) => {
+    setGlobalRules(prev => [...prev, newRule])
+    toast.success(`Rule "${newRule.name}" created successfully!`)
+  }
+
+  const formatDate = (date: Date | string | null | undefined) => {
+    try {
+      if (!date) return '--:-- --/--/----'
+      
+      const dateObj = date instanceof Date ? date : new Date(date)
+      
+      // Check if the date is valid
+      if (isNaN(dateObj.getTime())) return '--:-- --/--/----'
+      
+      return format(dateObj, 'HH:mm dd/MM/yyyy', { locale: vi })
+    } catch (error) {
+      console.error('Error formatting date:', error)
+      return '--:-- --/--/----'
     }
   }
 
@@ -210,9 +308,9 @@ export default function DashboardClient() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.recentActivity.length}</div>
+            <div className="text-2xl font-bold">{totalActivityCount}</div>
             <p className="text-xs text-muted-foreground">
-              {DASHBOARD.OVERVIEW.ACTIVITY_DESC}
+              {DASHBOARD.OVERVIEW.TOTAL_ACTIVITY_DESC}
             </p>
           </CardContent>
         </Card>
@@ -241,7 +339,7 @@ export default function DashboardClient() {
               <div className="space-y-3">
                 {groups.slice(0, 5).map((group) => (
                   <div key={group.id} className="flex items-center justify-between">
-                    <div 
+                    <div
                       className="flex-1 cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded transition-colors"
                       onClick={() => router.push(`/groups/${group.id}`)}
                     >
@@ -267,40 +365,233 @@ export default function DashboardClient() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{DASHBOARD.OVERVIEW.QUICK_ACTIONS}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button asChild className="w-full justify-start">
-              <Link href="/groups">
-                <Plus className="h-4 w-4 mr-2" />
-                {DASHBOARD.OVERVIEW.CREATE_NEW_GROUP}
-              </Link>
-            </Button>
-            <Button variant="outline" asChild className="w-full justify-start">
-              <Link href="/groups">
-                {DASHBOARD.OVERVIEW.MANAGE_GROUPS}
-              </Link>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={handleQuickRulesAccess}
-            >
-              {DASHBOARD.OVERVIEW.VIEW_SCORING_RULES}
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Regular User Sections */}
+        {isRegularUser ? (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>{DESCRIPTIONS.RECORDS_RELATED_TO_ME}</CardTitle>
+                <CardDescription>
+                  Bản ghi điểm liên quan đến bạn
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="max-h-[400px] overflow-y-auto">
+                {userScoreRecords.length === 0 ? (
+                  <div className="text-center py-6">
+                    <Trophy className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-muted-foreground">Chưa có bản ghi điểm nào</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {userScoreRecords.slice(0, 5).map((record) => (
+                      <div key={record.id} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <p className="font-medium">{record.rule?.name || 'Quy tắc không xác định'}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatDate(record.recordedAt)} - {record.notes || 'Không có ghi chú'}
+                          </p>
+                        </div>
+                        <Badge variant={record.points >= 0 ? 'default' : 'destructive'}>
+                          {record.points >= 0 ? `+${record.points}` : record.points} điểm
+                        </Badge>
+                      </div>
+                    ))}
+                    {userScoreRecords.length > 5 && (
+                      <Button variant="outline" size="sm" className="w-full">
+                        Xem tất cả ({userScoreRecords.length}) bản ghi
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-        <Card className="max-w-2xl">
-          <CardHeader>
-            <CardTitle>{DASHBOARD.OVERVIEW.RECENT_ACTIVITY}</CardTitle>
-          </CardHeader>
-          <CardContent className="max-h-[600px] overflow-y-auto">
-            <ActivityFeed limit={10} compact={true} showViewAll={true} />
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Tổ Stats</CardTitle>
+                <CardDescription>
+                  Thống kê nhóm của bạn
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {groups.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">Bạn chưa tham gia nhóm nào</p>
+                  </div>
+                ) : enhancedGroupStats ? (
+                  <div className="space-y-4">
+                    {/* Group Header */}
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-lg">{enhancedGroupStats.group.name}</h3>
+                      <Badge variant={enhancedGroupStats.group.isActive ? 'default' : 'secondary'}>
+                        {enhancedGroupStats.group.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                      </Badge>
+                    </div>
+
+                    {/* Enhanced Statistics Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Thành viên</span>
+                        </div>
+                        <p className="text-lg font-semibold">{enhancedGroupStats.totalMembers}</p>
+                      </div>
+
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Activity className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Bản ghi tuần này</span>
+                        </div>
+                        <p className="text-lg font-semibold">{enhancedGroupStats.weeklyRecords}</p>
+                      </div>
+
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Trophy className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Điểm tuần này</span>
+                        </div>
+                        <p className="text-lg font-semibold">{enhancedGroupStats.weeklyScore}</p>
+                      </div>
+
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Target className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Quy tắc</span>
+                        </div>
+                        <p className="text-lg font-semibold">{enhancedGroupStats.activeRules}</p>
+                      </div>
+
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Crown className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Top performer</span>
+                        </div>
+                        <p className="text-sm font-medium">
+                          {enhancedGroupStats.topPerformers && enhancedGroupStats.topPerformers.length > 0 ? 
+                            `${enhancedGroupStats.topPerformers[0].userName} (${enhancedGroupStats.topPerformers[0].totalRecords})` : 
+                            'N/A'
+                          }
+                        </p>
+                      </div>
+
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Ít hoạt động</span>
+                        </div>
+                        <p className="text-sm font-medium">
+                          {enhancedGroupStats.bottomPerformers && enhancedGroupStats.bottomPerformers.length > 0 ? 
+                            `${enhancedGroupStats.bottomPerformers[0].userName} (${enhancedGroupStats.bottomPerformers[0].totalPoints})` : 
+                            'N/A'
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Performance Rankings */}
+                    {(enhancedGroupStats.topPerformers?.length || 0) > 0 || (enhancedGroupStats.bottomPerformers?.length || 0) > 0 && (
+                      <div className="space-y-3 pt-2">
+                        <h4 className="font-medium text-sm">Hiệu suất thành viên</h4>
+                        
+                        {/* Top Performers */}
+                        {enhancedGroupStats.topPerformers && enhancedGroupStats.topPerformers.length > 0 && (
+                          <div>
+                            <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                              <Crown className="h-3 w-3" />
+                              Top performers
+                            </h5>
+                            <div className="space-y-1">
+                              {enhancedGroupStats.topPerformers.slice(0, 3).map((performer, index) => (
+                                <div key={performer.userId} className="flex items-center justify-between text-sm">
+                                  <span className="font-medium">{performer.userName}</span>
+                                  <div className="text-xs text-muted-foreground">
+                                    {performer.totalRecords} bản ghi • {performer.totalPoints} điểm
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Bottom Performers */}
+                        {enhancedGroupStats.bottomPerformers && enhancedGroupStats.bottomPerformers.length > 0 && (
+                          <div>
+                            <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                              <TrendingDown className="h-3 w-3" />
+                              Cần cải thiện
+                            </h5>
+                            <div className="space-y-1">
+                              {enhancedGroupStats.bottomPerformers.slice(0, 3).map((member: any, index: number) => (
+                                <div key={member.userId} className="flex items-center justify-between text-sm">
+                                  <span className="font-medium">{member.userName}</span>
+                                  <div className="text-xs text-muted-foreground">
+                                    {member.totalPoints} điểm
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">Đang tải thống kê...</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>{DASHBOARD.OVERVIEW.QUICK_ACTIONS}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button asChild className="w-full justify-start">
+                  <Link href="/groups">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {DASHBOARD.OVERVIEW.CREATE_NEW_GROUP}
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild className="w-full justify-start">
+                  <Link href="/groups">
+                    {DASHBOARD.OVERVIEW.MANAGE_GROUPS}
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={handleQuickRulesAccess}
+                >
+                  {DASHBOARD.OVERVIEW.VIEW_SCORING_RULES}
+                </Button>
+                {user?.role === 'ADMIN' && (
+                  <Button
+                    variant="default"
+                    className="w-full justify-start"
+                    onClick={handleCreateGlobalRule}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Create Global Rule
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="max-w-2xl">
+              <CardHeader>
+                <CardTitle>{DASHBOARD.OVERVIEW.RECENT_ACTIVITY}</CardTitle>
+              </CardHeader>
+              <CardContent className="max-h-[600px] overflow-y-auto">
+                <ActivityFeed limit={10} compact={true} showViewAll={true} />
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Group Selection Dialog for Scoring Rules */}
@@ -351,6 +642,65 @@ export default function DashboardClient() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Global Scoring Rules Section for Admins */}
+      {user?.role === 'ADMIN' && globalRules.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Global Scoring Rules
+            </CardTitle>
+            <CardDescription>
+              Manage global scoring rules available across all groups
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {globalRules.slice(0, 3).map((rule) => (
+                <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Target className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{rule.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {rule.description || 'No description'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={rule.points >= 0 ? 'default' : 'destructive'}>
+                      {rule.points >= 0 ? `+${rule.points}` : rule.points} points
+                    </Badge>
+                    <Badge variant={rule.isActive ? 'default' : 'secondary'}>
+                      {rule.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+              {globalRules.length > 3 && (
+                <div className="text-center pt-2">
+                  <Button variant="outline" size="sm">
+                    View All {globalRules.length} Rules
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Rule Creation Modal */}
+      {user?.role === 'ADMIN' && (
+        <RuleCreationModal
+          isOpen={showRuleModal}
+          onClose={handleRuleModalClose}
+          onRuleCreated={handleRuleCreated}
+          mode="create"
+        />
+      )}
     </div>
   )
 }

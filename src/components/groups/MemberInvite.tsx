@@ -343,13 +343,13 @@ interface MemberManagementProps {
   onMemberRemove?: (memberId: string) => void
 }
 
-export function MemberManagement({ 
-  isOpen, 
-  onClose, 
-  groupId, 
-  members, 
+export function MemberManagement({
+  isOpen,
+  onClose,
+  groupId,
+  members,
   onMemberUpdate,
-  onMemberRemove 
+  onMemberRemove
 }: MemberManagementProps) {
   const [isLoading, setIsLoading] = useState(false)
 
@@ -358,17 +358,18 @@ export function MemberManagement({
     try {
       const updatedMember = await GroupsApi.updateMemberRole(groupId, memberId, newRole)
       onMemberUpdate?.(updatedMember)
-      toast.success('Cập nhật vai trò thành viên thành công')
+      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_ROLE_UPDATE)
     } catch (error) {
-      console.error('Không thể cập nhật vai trò thành viên:', error)
-      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật vai trò thành viên')
+      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX_ROLE, error)
+      toast.error(error instanceof Error ? error.message : COMPONENTS.MEMBER_INVITE.ERROR_ROLE_UPDATE)
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleRemoveMember = async (memberId: string, memberEmail: string) => {
-    if (!window.confirm(`Bạn có chắc muốn xoá ${memberEmail} khỏi nhóm này không?`)) {
+    const confirmMessage = COMPONENTS.MEMBER_INVITE.CONFIRM_REMOVE.replace('{email}', memberEmail)
+    if (!window.confirm(confirmMessage)) {
       return
     }
 
@@ -376,79 +377,79 @@ export function MemberManagement({
     try {
       await GroupsApi.removeMember(groupId, memberId)
       onMemberRemove?.(memberId)
-      toast.success('Xoá thành viên thành công')
+      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_MEMBER_REMOVED)
     } catch (error) {
-      console.error('Không thể xoá thành viên:', error)
-      toast.error(error instanceof Error ? error.message : 'Không thể xoá thành viên')
+      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX_REMOVE, error)
+      toast.error(error instanceof Error ? error.message : COMPONENTS.MEMBER_INVITE.ERROR_MEMBER_REMOVED)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Quản lý thành viên</DialogTitle>
-          <DialogDescription>
-            Xem và quản lý thành viên trong nhóm. Bạn có thể cập nhật vai trò hoặc xoá thành viên.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          {members.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Không có thành viên nào trong nhóm này.
-            </div>
-          ) : (
-            members.map((member) => (
-              <div 
-                key={member.id} 
-                className="flex items-center justify-between p-3 border rounded-lg"
-              >
-                <div className="space-y-1">
-                  <div className="font-medium">{member.user?.name || member.user?.email}</div>
-                  <div className="text-sm text-muted-foreground">{member.user?.email}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Tham gia ngày {new Date(member.joinedAt).toLocaleDateString()}
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{COMPONENTS.MEMBER_INVITE.MANAGEMENT_TITLE}</DialogTitle>
+            <DialogDescription>
+              {COMPONENTS.MEMBER_INVITE.MANAGEMENT_DESCRIPTION}
+            </DialogDescription>
+          </DialogHeader>
+  
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {members.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {COMPONENTS.MEMBER_INVITE.NO_MEMBERS}
+              </div>
+            ) : (
+              members.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
+                  <div className="space-y-1">
+                    <div className="font-medium">{member.user?.name || member.user?.email}</div>
+                    <div className="text-sm text-muted-foreground">{member.user?.email}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {COMPONENTS.MEMBER_INVITE.JOINED_DATE.replace('{date}', new Date(member.joinedAt).toLocaleDateString())}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={member.role}
+                      onValueChange={(value: 'MEMBER' | 'ADMIN') => handleRoleChange(member.id, value)}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MEMBER">{GROUP_ROLES.MEMBER}</SelectItem>
+                        <SelectItem value="ADMIN">{GROUP_ROLES.ADMIN}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemoveMember(member.id, member.user?.email || 'unknown@example.com')}
+                      disabled={isLoading}
+                    >
+                      {COMPONENTS.MEMBER_INVITE.BUTTON_REMOVE}
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <Select
-                    value={member.role}
-                    onValueChange={(value: 'MEMBER' | 'ADMIN') => handleRoleChange(member.id, value)}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MEMBER">Thành viên</SelectItem>
-                      <SelectItem value="ADMIN">Quản trị viên</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleRemoveMember(member.id, member.user?.email || 'Không xác định')}
-                    disabled={isLoading}
-                  >
-                    Xoá
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button onClick={onClose} disabled={isLoading}>
-            Đóng
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
+              ))
+            )}
+          </div>
+  
+          <DialogFooter>
+            <Button onClick={onClose} disabled={isLoading}>
+              {COMPONENTS.MEMBER_INVITE.BUTTON_CLOSE}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
+  }

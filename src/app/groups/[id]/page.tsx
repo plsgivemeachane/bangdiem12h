@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { 
-  ArrowLeft, 
-  Users, 
-  Trophy, 
-  TrendingUp, 
-  Settings, 
+import {
+  ArrowLeft,
+  Users,
+  Trophy,
+  TrendingUp,
+  Settings,
   Plus,
   Edit,
   UserPlus,
-  Activity
+  Activity,
+  Crown,
+  TrendingDown
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,9 +21,10 @@ import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { ActivityFeed } from '@/components/activity/ActivityFeed'
 import { GroupForm } from '@/components/groups/GroupForm'
+import { ScoreRecordingModal } from '@/components/ui/score-recording-modal'
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
-import { Group, GroupMember } from '@/types'
+import { Group, GroupMember, GroupStats } from '@/types'
 import toast from 'react-hot-toast'
 
 const ROLE_LABELS: Record<string, string> = {
@@ -38,15 +41,18 @@ export default function GroupDetailPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   
   const [group, setGroup] = useState<Group | null>(null)
+  const [groupStats, setGroupStats] = useState<GroupStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditFormOpen, setIsEditFormOpen] = useState(false)
+  const [showScoreModal, setShowScoreModal] = useState(false)
 
-  // Load group data on mount
+  // Load group data and stats on mount
   useEffect(() => {
     if (groupId && isAuthenticated) {
-      loadGroup()
+      loadGroupData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, isAuthenticated])
 
   // Redirect to login if not authenticated
@@ -57,11 +63,22 @@ export default function GroupDetailPage() {
     }
   }, [isAuthenticated, authLoading, router])
 
-  const loadGroup = async () => {
+  const loadGroupData = async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const groupData = await GroupsApi.getGroup(groupId)
+      
+      // Load both group data and enhanced stats
+      const [groupData, statsResponse] = await Promise.all([
+        GroupsApi.getGroup(groupId),
+        fetch(`/api/groups/${groupId}/stats`)
+      ])
+
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json()
+        setGroupStats(statsData.data)
+      }
+
       setGroup(groupData)
     } catch (error) {
       console.error('Không thể tải thông tin nhóm:', error)
@@ -108,8 +125,26 @@ export default function GroupDetailPage() {
       setGroup(updatedGroup)
       toast.success('Cập nhật nhóm thành công')
     } else {
-      loadGroup()
+      loadGroupData()
     }
+  }
+
+  const handleRecordScore = () => {
+    if (group?.scoringRules && group.scoringRules.filter(rule => rule.isActive).length > 0) {
+      setShowScoreModal(true)
+    } else {
+      toast.error('Không có quy tắc chấm điểm đang hoạt động cho nhóm này')
+    }
+  }
+
+  const handleScoreModalClose = () => {
+    setShowScoreModal(false)
+  }
+
+  const handleScoreRecorded = (newScoreRecord: any) => {
+    toast.success(`Điểm ${newScoreRecord.points} đã được ghi!`)
+    // Reload group data to update the score count
+    loadGroupData()
   }
 
   // Check if user has permission to manage group
@@ -169,7 +204,7 @@ export default function GroupDetailPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Quay lại danh sách nhóm
               </Button>
-              <Button onClick={loadGroup}>
+              <Button onClick={loadGroupData}>
                 Thử lại
               </Button>
             </div>
@@ -216,8 +251,8 @@ export default function GroupDetailPage() {
         )}
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Enhanced Quick Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Thành viên</CardTitle>
@@ -226,50 +261,165 @@ export default function GroupDetailPage() {
           <CardContent>
             <div className="text-2xl font-bold">{group.members?.length || 0}</div>
             <p className="text-xs text-muted-foreground">
-              Thành viên đang hoạt động
+              Tổng số thành viên
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vai trò của bạn</CardTitle>
+            <CardTitle className="text-sm font-medium">Bản ghi tuần này</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{groupStats?.weeklyRecords || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Hoạt động 7 ngày qua
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Điểm tuần này</CardTitle>
+            <Trophy className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{groupStats?.weeklyScore || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Tổng điểm 7 ngày qua
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Top performer</CardTitle>
+            <Crown className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold">
+              {groupStats?.topPerformers?.[0]?.userName?.split(' ')[0] || 'N/A'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {groupStats?.topPerformers?.[0]?.totalRecords || 0} bản ghi
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ít hoạt động</CardTitle>
+            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold">
+              {groupStats?.bottomPerformers?.[0]?.userName?.split(' ')[0] || 'N/A'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {groupStats?.bottomPerformers?.[0]?.totalPoints || 0} điểm
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vai trò</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold capitalize">{ROLE_LABELS[userRole] || userRole}</div>
             <p className="text-xs text-muted-foreground">
-              Mức quyền hạn
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lượt ghi điểm</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{group._count?.scoreRecords || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Tổng số lượt ghi
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quy tắc chấm điểm</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{group.scoringRules?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Quy tắc đang hoạt động
+              Quyền hạn của bạn
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Performance Rankings */}
+      {groupStats && (groupStats.topPerformers.length > 0 || groupStats.bottomPerformers.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Top Performers */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-yellow-500" />
+                Top Performers (Nhiều bản ghi nhất)
+              </CardTitle>
+              <CardDescription>
+                Những thành viên có nhiều hoạt động nhất
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {groupStats.topPerformers.length > 0 ? (
+                <div className="space-y-3">
+                  {groupStats.topPerformers.map((performer, index) => (
+                    <div key={performer.userId} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-yellow-700">#{index + 1}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{performer.userName}</p>
+                          <p className="text-sm text-muted-foreground">{performer.userEmail}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold">{performer.totalRecords} bản ghi</p>
+                        <p className="text-sm text-muted-foreground">{performer.totalPoints} điểm</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  Chưa có dữ liệu hoạt động
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Bottom Performers */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingDown className="h-5 w-5 text-red-500" />
+                Cần cải thiện (Ít điểm nhất)
+              </CardTitle>
+              <CardDescription>
+                Những thành viên có thể cần hỗ trợ thêm
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {groupStats.bottomPerformers.length > 0 ? (
+                <div className="space-y-3">
+                  {groupStats.bottomPerformers.map((performer, index) => (
+                    <div key={performer.userId} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-red-700">#{index + 1}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{performer.userName}</p>
+                          <p className="text-sm text-muted-foreground">{performer.userEmail}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold">{performer.totalPoints} điểm</p>
+                        <p className="text-sm text-muted-foreground">{performer.totalRecords} bản ghi</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  Chưa có dữ liệu hoạt động
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -351,14 +501,27 @@ export default function GroupDetailPage() {
               <div className="text-sm text-muted-foreground">
                 {group._count?.scoreRecords || 0} lượt ghi điểm
               </div>
-              <Button 
-                onClick={handleViewScoring}
-                className="w-full"
-                variant="outline"
-              >
-                <Activity className="mr-2 h-4 w-4" />
-                Xem điểm
-              </Button>
+              <div className="space-y-2">
+                {canManageGroup && (
+                  <Button
+                    onClick={handleRecordScore}
+                    className="w-full"
+                    variant="default"
+                    disabled={!group.scoringRules?.some(rule => rule.isActive)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ghi điểm
+                  </Button>
+                )}
+                <Button
+                  onClick={handleViewScoring}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <Activity className="mr-2 h-4 w-4" />
+                  Xem điểm
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -423,6 +586,19 @@ export default function GroupDetailPage() {
         group={group}
         mode="edit"
       />
+
+      {/* Score Recording Modal - Only for Group ADMINs */}
+      {canManageGroup && (
+        <ScoreRecordingModal
+          isOpen={showScoreModal}
+          onClose={handleScoreModalClose}
+          onScoreRecorded={handleScoreRecorded}
+          groupId={groupId}
+          groupName={group.name}
+          availableRules={group?.scoringRules || []}
+          groupMembers={group?.members || []}
+        />
+      )}
     </div>
   )
 }

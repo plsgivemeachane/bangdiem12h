@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/middleware/auth.middleware'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, validatePasswordStrength, isCommonPassword } from '@/lib/utils/password'
-import { ActivityType } from '../../../../../../../node_modules/.prisma/client'
+import { ActivityType } from '@/types'
 
 // PUT /api/admin/users/[id]/password - Reset user password
 export async function PUT(

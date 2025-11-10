@@ -130,3 +130,5 @@ logs/
 # Temporary folders
 tmp/
 temp/
+
+.bmad

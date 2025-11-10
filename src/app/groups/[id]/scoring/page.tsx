@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { 
-  ArrowLeft, 
-  Trophy, 
+import {
+  ArrowLeft,
+  Trophy,
   Plus,
   Calendar,
   TrendingUp,
@@ -12,7 +12,8 @@ import {
   Target,
   Award,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -47,6 +48,7 @@ export default function GroupScoringPage() {
     if (groupId && isAuthenticated) {
       loadGroupData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, isAuthenticated])
 
   // Redirect to login if not authenticated
@@ -121,6 +123,32 @@ export default function GroupScoringPage() {
     // Add the new score record to the list
     setScoreRecords(prev => [newScoreRecord, ...prev])
     toast.success(`Điểm ${newScoreRecord.points} đã được ghi!`)
+  }
+
+  const handleDeleteScore = async (record: any) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa bản ghi điểm này không?')) {
+      try {
+        const response = await fetch('/api/score-records', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: record.id })
+        })
+        
+        if (response.ok) {
+          // Remove from local state
+          setScoreRecords(prev => prev.filter(r => r.id !== record.id))
+          toast.success('Đã xóa bản ghi điểm')
+        } else {
+          const error = await response.json()
+          toast.error(error.error || 'Không thể xóa bản ghi điểm')
+        }
+      } catch (error) {
+        console.error('Không thể xóa bản ghi điểm:', error)
+        toast.error('Không thể xóa bản ghi điểm')
+      }
+    }
   }
 
   // Get user's role in the group
@@ -386,6 +414,16 @@ export default function GroupScoringPage() {
                     <p className="text-xs text-muted-foreground">
                       điểm
                     </p>
+                    {canRecordScores && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive mt-2 p-1"
+                        onClick={() => handleDeleteScore(record)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

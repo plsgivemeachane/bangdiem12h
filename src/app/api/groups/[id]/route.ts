@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
 import { ActivityType } from '@/types'
+import { API } from '@/lib/translations'
 
 export async function GET(
   request: NextRequest,
@@ -12,7 +13,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
     const group = await prisma.group.findUnique({
@@ -53,7 +54,7 @@ export async function GET(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
+      return NextResponse.json({ error: API.ERROR.GROUP_NOT_FOUND }, { status: 404 })
     }
 
     // No access check - all users can view all groups (read-only permission)
@@ -66,8 +67,8 @@ export async function GET(
 
     return NextResponse.json({ group: groupWithScoringRules })
   } catch (error) {
-    console.error('Lỗi tải thông tin nhóm:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error('API Error - Load group info:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
   }
 }
 
@@ -78,7 +79,7 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
     const { name, description, isActive } = await request.json()
@@ -94,12 +95,12 @@ export async function PATCH(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
+      return NextResponse.json({ error: API.ERROR.GROUP_NOT_FOUND }, { status: 404 })
     }
 
     const userMember = group.members[0]
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
-      return NextResponse.json({ error: 'Không đủ quyền' }, { status: 403 })
+      return NextResponse.json({ error: API.ERROR.INSUFFICIENT_PERMISSIONS }, { status: 403 })
     }
 
     const updatedGroup = await prisma.group.update({
@@ -136,14 +137,14 @@ export async function PATCH(
       userId: session.user.id,
       groupId: updatedGroup.id,
       action: ActivityType.GROUP_UPDATED,
-      description: `Đã cập nhật nhóm "${updatedGroup.name}"`,
+      description: API.SUCCESS.GROUP_UPDATED.replace('{name}', updatedGroup.name),
       metadata: { changes: { name, description, isActive } }
     })
 
     return NextResponse.json({ group: updatedGroup })
   } catch (error) {
-    console.error('Lỗi cập nhật nhóm:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error('API Error - Update group:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
   }
 }
 
@@ -154,7 +155,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
     // Check if user is OWNER/ADMIN of the group
@@ -177,20 +178,30 @@ export async function DELETE(
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
+      return NextResponse.json({ error: API.ERROR.GROUP_NOT_FOUND }, { status: 404 })
     }
 
     const userMember = group.members[0]
     if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
-      return NextResponse.json({ error: 'Chỉ quản trị viên nhóm mới có thể xóa nhóm' }, { status: 403 })
+      return NextResponse.json({ error: API.ERROR.ONLY_ADMIN_OWNER_DELETE_GROUP }, { status: 403 })
     }
 
-    // Warn if group has data
-    if (group._count.scoreRecords > 0 || group._count.groupRules > 0) {
-      return NextResponse.json({ 
-        error: 'Không thể xóa nhóm khi còn bản ghi điểm hoặc quy tắc chấm điểm' 
-      }, { status: 400 })
-    }
+    // Delete all related data in proper order to avoid foreign key constraint issues
+    
+    // 1. Delete all score records
+    await prisma.scoreRecord.deleteMany({
+      where: { groupId: params.id }
+    })
+    
+    // 2. Delete all group rules associations
+    await prisma.groupRule.deleteMany({
+      where: { groupId: params.id }
+    })
+    
+    // 3. Delete all group members
+    await prisma.groupMember.deleteMany({
+      where: { groupId: params.id }
+    })
 
     const deletedGroup = await prisma.group.delete({
       where: { id: params.id }
@@ -200,13 +211,15 @@ export async function DELETE(
     await logActivity({
       userId: session.user.id,
       action: ActivityType.GROUP_DELETED,
-      description: `Đã xóa nhóm "${group.name}"`,
+      description: API.SUCCESS.GROUP_DELETED.replace('{name}', group.name),
       metadata: { groupId: params.id, groupName: group.name }
     })
 
-    return NextResponse.json({ message: 'Đã xóa nhóm thành công' })
+    return NextResponse.json({
+      message: `Đã xóa nhóm "${group.name}" cùng với tất cả dữ liệu liên quan thành công`
+    })
   } catch (error) {
-    console.error('Lỗi xóa nhóm:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error('API Error - Delete group:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
   }
 }

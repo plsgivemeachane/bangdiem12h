@@ -123,6 +123,7 @@ export default function AnalyticsPage() {
     if (isAuthenticated && !isLoadingGroups) {
       loadAnalyticsData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, timeRange, selectedGroup, isLoadingGroups])
 
   const loadGroups = async () => {
@@ -371,64 +372,76 @@ export default function AnalyticsPage() {
 
         {/* Trends Tab */}
         <TabsContent value="trends" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Điểm theo thời gian
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={analyticsData.trendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area 
-                      type="monotone" 
-                      dataKey="points" 
-                      stroke="#8884d8" 
-                      fill="#8884d8" 
-                      fillOpacity={0.3}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+          {analyticsData.trendData.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Điểm theo thời gian
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={analyticsData.trendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area
+                        type="monotone"
+                        dataKey="points"
+                        stroke="#8884d8"
+                        fill="#8884d8"
+                        fillOpacity={0.3}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Biểu đồ xu hướng điểm
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={analyticsData.trendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="points"
+                        stroke="#82ca9d"
+                        strokeWidth={3}
+                        dot={{ fill: '#82ca9d' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Biểu đồ xu hướng điểm
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={analyticsData.trendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="points" 
-                      stroke="#82ca9d" 
-                      strokeWidth={3}
-                      dot={{ fill: '#82ca9d' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+              <CardContent className="text-center py-12">
+                <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Không có dữ liệu xu hướng</h3>
+                <p className="text-muted-foreground">
+                  Không có dữ liệu xu hướng điểm nào trong khoảng thời gian đã chọn.
+                </p>
               </CardContent>
             </Card>
-          </div>
+          )}
         </TabsContent>
 
         {/* Group Breakdown Tab */}
         <TabsContent value="breakdown" className="space-y-6">
-          {selectedGroup === 'all' && analyticsData.groupBreakdown.length > 0 ? (
+          {analyticsData.groupBreakdown.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -519,11 +532,9 @@ export default function AnalyticsPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Không có dữ liệu phân tích nhóm</h3>
-                <p className="text-muted-foreground mb-4">
-                  {selectedGroup === 'all' 
-                    ? 'Không có dữ liệu để so sánh giữa các nhóm.' 
-                    : 'Chọn "Tất cả các nhóm" để xem phân tích và so sánh.'}
+                <h3 className="text-lg font-semibold mb-2">Không có dữ liệu nhóm</h3>
+                <p className="text-muted-foreground">
+                  Không có dữ liệu so sánh nhóm nào trong khoảng thời gian đã chọn.
                 </p>
               </CardContent>
             </Card>

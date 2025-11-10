@@ -4,12 +4,13 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
 import { ActivityType } from '@/types'
+import { API } from '@/lib/translations'
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
     // Fetch ALL groups - users can view all groups (read-only permission)
@@ -37,8 +38,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ groups })
   } catch (error) {
-    console.error('Lỗi tải danh sách nhóm:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error('API Error - Load groups list:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
   }
 }
 
@@ -46,20 +47,20 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
     // Only System ADMINs can create groups
     if (session.user.role !== 'ADMIN') {
-      return NextResponse.json({ 
-        error: 'Chỉ quản trị viên hệ thống mới có thể tạo nhóm' 
+      return NextResponse.json({
+        error: API.ERROR.ONLY_ADMIN_CREATE_GROUP
       }, { status: 403 })
     }
 
     const { name, description } = await request.json()
 
     if (!name || name.trim().length === 0) {
-      return NextResponse.json({ error: 'Tên nhóm là bắt buộc' }, { status: 400 })
+      return NextResponse.json({ error: API.INFO.NAME_REQUIRED }, { status: 400 })
     }
 
     // Check if user already has a group with the same name
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingGroup) {
-      return NextResponse.json({ error: 'Bạn đã có một nhóm với tên này' }, { status: 400 })
+      return NextResponse.json({ error: API.ERROR.DUPLICATE_NAME }, { status: 400 })
     }
 
     // Verify user exists in database before creating group
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'Không tìm thấy người dùng' }, { status: 404 })
+      return NextResponse.json({ error: API.ERROR.USER_NOT_FOUND }, { status: 404 })
     }
 
     const group = await prisma.group.create({
@@ -132,13 +133,13 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       groupId: group.id,
       action: ActivityType.GROUP_CREATED,
-      description: `Đã tạo nhóm "${group.name}"`,
+      description: API.SUCCESS.GROUP_CREATED.replace('{name}', group.name),
       metadata: { groupName: group.name }
     })
 
     return NextResponse.json({ group: groupWithScoringRules, success: true })
   } catch (error) {
-    console.error('Lỗi tạo nhóm:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error('API Error - Create group:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
   }
 }

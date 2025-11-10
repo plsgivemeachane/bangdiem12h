@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { hashPassword, verifyPassword } from '@/lib/utils/password'
 import { logUserRegistration, logUserLogin, logLoginFailed } from '@/lib/activity-logger'
-import { UserRole } from '../../../node_modules/.prisma/client'
+import { UserRole } from '@/types'
 
 class DatabaseError extends Error {
   constructor(message: string, originalError?: any) {

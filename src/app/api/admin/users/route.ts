@@ -3,13 +3,14 @@ import { requireAdmin } from '@/lib/middleware/auth.middleware'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, validatePasswordStrength, isCommonPassword } from '@/lib/utils/password'
 import { logAdminUserCreated } from '@/lib/activity-logger'
-import { UserRole } from '../../../../../node_modules/.prisma/client'
+import { UserRole } from '@/types'
+import { API, VALIDATION } from '@/lib/translations'
 
 // GET /api/admin/users - List all users with pagination and filtering
 export async function GET(request: NextRequest) {
   const authReq = await requireAdmin()
   if (!authReq) {
-    return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
+    return NextResponse.json({ error: API.ERROR.ACCESS_DENIED }, { status: 403 })
   }
 
   try {
@@ -89,9 +90,9 @@ export async function GET(request: NextRequest) {
       stats
     })
   } catch (error) {
-    console.error('Lỗi tải danh sách người dùng:', error)
+    console.error('API Error - Load users list:', error)
     return NextResponse.json(
-      { error: 'Không thể tải danh sách người dùng' },
+      { error: API.ERROR.CANNOT_LOAD_USERS },
       { status: 500 }
     )
   }
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const authReq = await requireAdmin()
   if (!authReq) {
-    return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
+    return NextResponse.json({ error: API.ERROR.ACCESS_DENIED }, { status: 403 })
   }
 
   try {
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email và mật khẩu là bắt buộc' },
+        { error: VALIDATION.USER.EMAIL_PASSWORD_REQUIRED },
         { status: 400 }
       )
     }
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Định dạng email không hợp lệ' },
+        { error: API.ERROR.INVALID_EMAIL },
         { status: 400 }
       )
     }
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Email đã được đăng ký' },
+        { error: API.ERROR.EMAIL_EXISTS },
         { status: 400 }
       )
     }
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
     const validation = validatePasswordStrength(password)
     if (!validation.isValid) {
       return NextResponse.json(
-        { error: 'Mật khẩu không đáp ứng yêu cầu', details: validation.errors },
+        { error: API.ERROR.PASSWORD_TOO_WEAK, details: validation.errors },
         { status: 400 }
       )
     }
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
     // Check if password is common
     if (isCommonPassword(password)) {
       return NextResponse.json(
-        { error: 'Mật khẩu này quá phổ biến. Vui lòng chọn mật khẩu an toàn hơn.' },
+        { error: API.ERROR.PASSWORD_COMMON },
         { status: 400 }
       )
     }
@@ -192,9 +193,9 @@ export async function POST(request: NextRequest) {
       user
     }, { status: 201 })
   } catch (error) {
-    console.error('Lỗi tạo người dùng:', error)
+    console.error('API Error - Create user:', error)
     return NextResponse.json(
-      { error: 'Không thể tạo người dùng' },
+      { error: API.ERROR.CANNOT_CREATE_USER },
       { status: 500 }
     )
   }

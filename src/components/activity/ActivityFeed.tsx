@@ -46,6 +46,7 @@ export function ActivityFeed({
 
   useEffect(() => {
     loadActivities()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, userId, limit])
 
   const loadActivities = async () => {
@@ -119,6 +120,7 @@ export function ActivityFeed({
       [ActivityType.RULE_ADDED_TO_GROUP]: 'bg-purple-100 text-purple-800',
       [ActivityType.RULE_REMOVED_FROM_GROUP]: 'bg-orange-100 text-orange-800',
       [ActivityType.SCORING_RULE_UPDATED]: 'bg-orange-100 text-orange-800',
+      [ActivityType.SCORING_RULE_TOGGLED]: 'bg-yellow-100 text-yellow-800',
       [ActivityType.SCORING_RULE_DELETED]: 'bg-red-100 text-red-800',
       [ActivityType.SCORE_RECORDED]: 'bg-green-100 text-green-800',
       [ActivityType.SCORE_UPDATED]: 'bg-blue-100 text-blue-800',
@@ -150,6 +152,7 @@ export function ActivityFeed({
       [ActivityType.OWNERSHIP_TRANSFERRED]: 'Chuyển quyền sở hữu',
       [ActivityType.SCORING_RULE_CREATED]: 'Tạo quy tắc chấm điểm',
       [ActivityType.SCORING_RULE_UPDATED]: 'Cập nhật quy tắc chấm điểm',
+      [ActivityType.SCORING_RULE_TOGGLED]: 'Bật/tắt quy tắc chấm điểm',
       [ActivityType.SCORING_RULE_DELETED]: 'Xóa quy tắc chấm điểm',
       [ActivityType.RULE_ADDED_TO_GROUP]: 'Thêm quy tắc vào nhóm',
       [ActivityType.RULE_REMOVED_FROM_GROUP]: 'Xóa quy tắc khỏi nhóm',

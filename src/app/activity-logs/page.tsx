@@ -32,7 +32,7 @@ interface ActivityLog {
   action: ActivityType
   description: string
   metadata?: Record<string, any>
-  createdAt: Date
+  timestamp: Date
   user: {
     id: string
     name: string | null
@@ -95,6 +95,7 @@ export default function ActivityLogsPage() {
     if (isAuthenticated) {
       loadActivityLogs()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, filters, pagination.page])
 
   const loadActivityLogs = async () => {
@@ -162,8 +163,20 @@ export default function ActivityLogsPage() {
     setPagination(prev => ({ ...prev, page: newPage }))
   }
 
-  const formatDate = (date: Date) => {
-    return format(new Date(date), 'HH:mm dd/MM/yyyy', { locale: vi })
+  const formatDate = (date: Date | string | null | undefined) => {
+    try {
+      if (!date) return '--:-- --/--/----'
+      
+      const dateObj = date instanceof Date ? date : new Date(date)
+      
+      // Check if the date is valid
+      if (isNaN(dateObj.getTime())) return '--:-- --/--/----'
+      
+      return format(dateObj, 'HH:mm dd/MM/yyyy', { locale: vi })
+    } catch (error) {
+      console.error('Error formatting date:', error)
+      return '--:-- --/--/----'
+    }
   }
 
   const getActionBadgeVariant = (action: ActivityType) => {
@@ -191,6 +204,7 @@ export default function ActivityLogsPage() {
       [ActivityType.RULE_ADDED_TO_GROUP]: 'bg-purple-100 text-purple-800',
       [ActivityType.RULE_REMOVED_FROM_GROUP]: 'bg-orange-100 text-orange-800',
       [ActivityType.SCORING_RULE_UPDATED]: 'bg-orange-100 text-orange-800',
+      [ActivityType.SCORING_RULE_TOGGLED]: 'bg-yellow-100 text-yellow-800',
       [ActivityType.SCORING_RULE_DELETED]: 'bg-red-100 text-red-800',
       [ActivityType.SCORE_RECORDED]: 'bg-green-100 text-green-800',
       [ActivityType.SCORE_UPDATED]: 'bg-blue-100 text-blue-800',
@@ -411,7 +425,7 @@ export default function ActivityLogsPage() {
                         {ACTIVITY_TYPES[log.action] || log.action.replace(/_/g, ' ').toLowerCase()}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {formatDate(log.createdAt)}
+                        {formatDate(log.timestamp)}
                       </span>
                     </div>
                     

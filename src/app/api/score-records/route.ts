@@ -4,20 +4,21 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
 import { ActivityType } from '@/types'
+import { API } from '@/lib/translations'
 
 // PUT endpoint for updating individual score records
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
     const { id, points, notes, recordedAt } = await request.json()
 
     if (!id) {
       return NextResponse.json({
-        error: 'Cần cung cấp mã bản ghi điểm'
+        error: API.ERROR.NEED_SCORE_ID
       }, { status: 400 })
     }
 
@@ -37,7 +38,7 @@ export async function PUT(request: NextRequest) {
 
     if (!existingRecord) {
       return NextResponse.json({
-        error: 'Không tìm thấy bản ghi điểm'
+        error: API.ERROR.SCORE_NOT_FOUND
       }, { status: 404 })
     }
 
@@ -45,13 +46,13 @@ export async function PUT(request: NextRequest) {
     const currentUserMember = existingRecord.group.members[0]
     if (!currentUserMember) {
       return NextResponse.json({
-        error: 'Bạn không phải thành viên của nhóm này'
+        error: API.ERROR.NOT_GROUP_MEMBER
       }, { status: 403 })
     }
 
     if (!['OWNER', 'ADMIN'].includes(currentUserMember.role)) {
       return NextResponse.json({
-        error: 'Chỉ quản trị viên hoặc chủ nhóm mới có thể chỉnh sửa bản ghi điểm'
+        error: API.ERROR.ONLY_ADMIN_OWNER_EDIT_SCORES
       }, { status: 403 })
     }
 
@@ -60,7 +61,7 @@ export async function PUT(request: NextRequest) {
     if (points !== undefined) {
       if (isNaN(parseFloat(points.toString()))) {
         return NextResponse.json({
-          error: 'Điểm phải là một số hợp lệ'
+          error: API.ERROR.INVALID_POINTS
         }, { status: 400 })
       }
       updateData.points = parseFloat(points)
@@ -73,7 +74,7 @@ export async function PUT(request: NextRequest) {
         updateData.recordedAt = new Date(recordedAt)
       } catch (error) {
         return NextResponse.json({
-          error: 'Định dạng ngày không hợp lệ'
+          error: API.ERROR.INVALID_DATE_FORMAT
         }, { status: 400 })
       }
     }
@@ -100,7 +101,7 @@ export async function PUT(request: NextRequest) {
       userId: session.user.id,
       groupId: existingRecord.groupId,
       action: ActivityType.SCORE_UPDATED,
-      description: `Đã cập nhật bản ghi điểm cho ${updatedRecord.user.name || updatedRecord.user.email}: ${updateData.points || existingRecord.points} điểm`,
+      description: API.SUCCESS.SCORE_UPDATED.replace('{userName}', updatedRecord.user.name || updatedRecord.user.email).replace('{points}', String(updateData.points || existingRecord.points)),
       metadata: {
         scoreRecordId: id,
         changes: updateData
@@ -109,8 +110,8 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ scoreRecord: updatedRecord })
   } catch (error) {
-    console.error('Lỗi cập nhật bản ghi điểm:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error('API Error - Update score record:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
   }
 }
 
@@ -118,14 +119,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
     const { groupId, ruleId, criteria, notes, targetUserId, points: customPoints, recordedAt } = await request.json()
 
     if (!groupId || !ruleId || !targetUserId) {
       return NextResponse.json({
-        error: 'Cần cung cấp mã nhóm, mã quy tắc và mã người nhận điểm'
+        error: API.ERROR.NEED_GROUP_ID_RULE_ID_TARGET
       }, { status: 400 })
     }
 
@@ -140,20 +141,20 @@ export async function POST(request: NextRequest) {
     })
 
     if (!group) {
-      return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
+      return NextResponse.json({ error: API.ERROR.GROUP_NOT_FOUND }, { status: 404 })
     }
 
     const currentUserMember = group.members[0]
     if (!currentUserMember) {
       return NextResponse.json({
-        error: 'Bạn không phải thành viên của nhóm này'
+        error: API.ERROR.NOT_GROUP_MEMBER
       }, { status: 403 })
     }
 
     // Only Group ADMINs can record scores
     if (!['OWNER', 'ADMIN'].includes(currentUserMember.role)) {
       return NextResponse.json({
-        error: 'Chỉ quản trị viên hoặc chủ nhóm mới có thể ghi điểm'
+        error: API.ERROR.ONLY_ADMIN_OWNER_MANAGE_SCORES
       }, { status: 403 })
     }
 
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
 
     if (!targetMember) {
       return NextResponse.json({
-        error: 'Người dùng mục tiêu không thuộc nhóm này'
+        error: API.ERROR.TARGET_NOT_GROUP_MEMBER
       }, { status: 404 })
     }
 
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
 
     if (!rule || !rule.isActive) {
       return NextResponse.json({
-        error: 'Không tìm thấy quy tắc chấm điểm hoặc quy tắc đang bị vô hiệu'
+        error: API.ERROR.RULE_INACTIVE
       }, { status: 404 })
     }
 
@@ -191,7 +192,7 @@ export async function POST(request: NextRequest) {
 
     if (!groupRule) {
       return NextResponse.json({
-        error: 'Quy tắc chấm điểm này không thuộc về nhóm'
+        error: API.ERROR.RULE_NOT_BELONG_TO_GROUP
       }, { status: 400 })
     }
 
@@ -227,7 +228,7 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       groupId,
       action: ActivityType.SCORE_RECORDED,
-      description: `Đã ghi ${finalPoints} điểm cho ${scoreRecord.user.name || scoreRecord.user.email} bằng quy tắc "${rule.name}"`,
+      description: API.SUCCESS.SCORE_RECORDED.replace('{points}', String(finalPoints)).replace('{userName}', scoreRecord.user.name || scoreRecord.user.email).replace('{ruleName}', rule.name),
       metadata: {
         ruleName: rule.name,
         points: finalPoints,
@@ -239,8 +240,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ scoreRecord }, { status: 201 })
   } catch (error) {
-    console.error('Lỗi ghi điểm:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error('API Error - Record score:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
   }
 }
 
@@ -248,7 +249,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -299,7 +300,7 @@ export async function GET(request: NextRequest) {
       prisma.scoreRecord.count({ where: whereClause })
     ])
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       scoreRecords,
       pagination: {
         total,
@@ -309,7 +310,94 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Lỗi tải bản ghi điểm:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error('API Error - Load score records:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
+  }
+}
+
+// DELETE endpoint for deleting individual score records
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
+    }
+
+    const { id } = await request.json()
+
+    if (!id) {
+      return NextResponse.json({
+        error: API.ERROR.NEED_SCORE_ID
+      }, { status: 400 })
+    }
+
+    // Get the existing score record to verify permissions
+    const existingRecord = await prisma.scoreRecord.findUnique({
+      where: { id },
+      include: {
+        group: {
+          include: {
+            members: {
+              where: { userId: session.user.id }
+            }
+          }
+        }
+      }
+    })
+
+    if (!existingRecord) {
+      return NextResponse.json({
+        error: API.ERROR.SCORE_NOT_FOUND
+      }, { status: 404 })
+    }
+
+    // Verify current user is ADMIN/OWNER of the group
+    const currentUserMember = existingRecord.group.members[0]
+    if (!currentUserMember) {
+      return NextResponse.json({
+        error: API.ERROR.NOT_GROUP_MEMBER
+      }, { status: 403 })
+    }
+
+    if (!['OWNER', 'ADMIN'].includes(currentUserMember.role)) {
+      return NextResponse.json({
+        error: API.ERROR.ONLY_ADMIN_OWNER_DELETE_SCORES
+      }, { status: 403 })
+    }
+
+    // Delete the score record
+    const deletedRecord = await prisma.scoreRecord.delete({
+      where: { id },
+      include: {
+        rule: {
+          select: { id: true, name: true, points: true }
+        },
+        group: {
+          select: { id: true, name: true }
+        },
+        user: {
+          select: { id: true, name: true, email: true }
+        }
+      }
+    })
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      groupId: existingRecord.groupId,
+      action: ActivityType.SCORE_DELETED,
+      description: API.SUCCESS.SCORE_DELETED.replace('{userName}', deletedRecord.user.name || deletedRecord.user.email).replace('{points}', String(deletedRecord.points)).replace('{ruleName}', deletedRecord.rule.name),
+      metadata: {
+        scoreRecordId: id,
+        deletedPoints: deletedRecord.points,
+        userId: deletedRecord.userId,
+        ruleId: deletedRecord.ruleId
+      }
+    })
+
+    return NextResponse.json({ message: 'Đã xóa bản ghi điểm thành công' })
+  } catch (error) {
+    console.error('API Error - Delete score record:', error)
+    return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
   }
 }

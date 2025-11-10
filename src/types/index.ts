@@ -123,6 +123,7 @@ export enum ActivityType {
   OWNERSHIP_TRANSFERRED = 'OWNERSHIP_TRANSFERRED',
   SCORING_RULE_CREATED = 'SCORING_RULE_CREATED',
   SCORING_RULE_UPDATED = 'SCORING_RULE_UPDATED',
+  SCORING_RULE_TOGGLED = 'SCORING_RULE_TOGGLED',
   SCORING_RULE_DELETED = 'SCORING_RULE_DELETED',
   RULE_ADDED_TO_GROUP = 'RULE_ADDED_TO_GROUP',
   RULE_REMOVED_FROM_GROUP = 'RULE_REMOVED_FROM_GROUP',
@@ -330,10 +331,25 @@ export interface DashboardStats {
   recentActivity: ActivityLog[]
 }
 
+export interface UserPerformance {
+  userId: string
+  userName: string
+  userEmail: string
+  totalRecords: number
+  totalPoints: number
+  averagePoints: number
+}
+
 export interface GroupStats {
   group: Group
   totalMembers: number
   activeRules: number
   totalScoreRecords: number
   totalPoints: number
+  // New weekly metrics
+  weeklyRecords: number
+  weeklyScore: number
+  // Performance rankings
+  topPerformers: UserPerformance[]
+  bottomPerformers: UserPerformance[]
 }

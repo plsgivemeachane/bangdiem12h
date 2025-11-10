@@ -42,6 +42,7 @@ export default function GroupMembersPage() {
     if (groupId && isAuthenticated) {
       loadGroupData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, isAuthenticated])
 
   // Redirect to login if not authenticated
