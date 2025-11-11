@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { UserAccountMenu } from './UserAccountMenu'
@@ -41,9 +42,13 @@ export function AppHeader() {
         {/* Logo and Brand */}
         <div className="flex items-center gap-8">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-lg">
-              GS
-            </div>
+            <Image
+              src="/logo.jpg"
+              alt="Bảng điểm 12H Logo"
+              width={32}
+              height={32}
+              className="rounded-md object-cover"
+            />
             <span className="hidden font-semibold text-lg sm:inline-block">
               {APP_HEADER.GROUP_SCORING_SYSTEM}
             </span>

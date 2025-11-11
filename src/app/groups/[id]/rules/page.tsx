@@ -198,8 +198,8 @@ export default function GroupRulesPage() {
             </p>
             <div className="flex gap-4 justify-center">
               <Button onClick={handleBackToGroup} variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Quay lại nhóm
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Quay lại nhóm</span>
               </Button>
               <Button onClick={loadGroupData}>
                 Thử lại
@@ -217,8 +217,8 @@ export default function GroupRulesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button onClick={handleBackToGroup} variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Quay lại nhóm
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline ml-2">Quay lại nhóm</span>
           </Button>
           <div>
             <div className="flex items-center gap-2">

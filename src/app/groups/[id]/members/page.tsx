@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { MemberInvite } from '@/components/groups/MemberInvite'
 import { OwnerTransferDialog } from '@/components/groups/OwnerTransferDialog'
+import { UserTag } from '@/components/ui/user-tag'
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { Group, GroupMember } from '@/types'
@@ -226,8 +227,8 @@ export default function GroupMembersPage() {
             </p>
             <div className="flex gap-4 justify-center">
               <Button onClick={handleBackToGroup} variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Quay lại danh sách nhóm
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Quay lại danh sách nhóm</span>
               </Button>
               <Button onClick={loadGroupData}>
                 Thử lại
@@ -245,8 +246,8 @@ export default function GroupMembersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button onClick={handleBackToGroup} variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Quay lại nhóm
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline ml-2">Quay lại nhóm</span>
           </Button>
           <div>
             <div className="flex items-center gap-2">
@@ -341,22 +342,20 @@ export default function GroupMembersPage() {
               {members.map((member) => (
                 <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium">
-                        {member.user?.name?.charAt(0).toUpperCase() || 'U'}
-                      </span>
-                    </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-medium">{member.user?.name}</p>
+                        <UserTag
+                          name={member.user?.name}
+                          email={member.user?.email}
+                          size="sm"
+                        />
                         {member.userId === user?.id && (
                           <Badge variant="outline" className="text-xs">
                             Bạn
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">{member.user?.email}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Tham gia {formatJoinDate(member.joinedAt)}
                       </p>
                     </div>

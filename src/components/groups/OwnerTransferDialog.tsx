@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { 
+import {
   AlertTriangle,
   Crown,
   Loader2
@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { UserTag } from '@/components/ui/user-tag'
 import { GroupMember } from '@/types'
 import { MESSAGES, LABELS, ACTIONS, DESCRIPTIONS, PLACEHOLDERS, GROUP_ROLES } from '@/lib/translations'
 import toast from 'react-hot-toast'
@@ -144,12 +145,12 @@ export function OwnerTransferDialog({
                 <SelectContent>
                   {eligibleMembers.map((member) => (
                     <SelectItem key={member.id} value={member.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{member.user?.name || DESCRIPTIONS.UNKNOWN_USER}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({member.user?.email})
-                        </span>
-                      </div>
+                      <UserTag
+                        name={member.user?.name}
+                        email={member.user?.email}
+                        size="sm"
+                        showEmail={true}
+                      />
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -165,14 +166,15 @@ export function OwnerTransferDialog({
           {selectedMember && (
             <div className="rounded-lg border p-4 space-y-2">
               <h4 className="font-medium text-sm">{MESSAGES.OWNER_TRANSFER.TRANSFER_SUMMARY}</h4>
-              <div className="text-sm space-y-1">
-                <div className="flex justify-between">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">{MESSAGES.OWNER_TRANSFER.NEW_OWNER}:</span>
-                  <span className="font-medium">{selectedMember.user?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{LABELS.EMAIL}:</span>
-                  <span className="font-medium">{selectedMember.user?.email}</span>
+                  <UserTag
+                    name={selectedMember.user?.name}
+                    email={selectedMember.user?.email}
+                    size="sm"
+                    showEmail={true}
+                  />
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{MESSAGES.OWNER_TRANSFER.YOUR_NEW_ROLE}:</span>

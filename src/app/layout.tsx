@@ -7,7 +7,7 @@ import { AppHeader } from '@/components/layout/AppHeader'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Group Scoring System',
+  title: 'Bảng điểm 12H',
   description: 'A comprehensive group scoring and tracking system',
 }
 

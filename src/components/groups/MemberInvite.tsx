@@ -55,6 +55,7 @@ interface SearchUserResult {
   createdAt?: Date
 }
 import { LoadingSpinner } from '@/components/ui/loading'
+import { UserTag } from '@/components/ui/user-tag'
 import { GroupsApi } from '@/lib/api/groups'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
@@ -213,14 +214,16 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                           disabled={isLoading}
                         >
                           {selectedUser ? (
-                            <div className="flex flex-col items-start text-left">
-                              <span className="font-medium">{selectedUser.name || selectedUser.email}</span>
-                              {selectedUser.name && (
-                                <span className="text-xs text-muted-foreground">{selectedUser.email}</span>
-                              )}
-                            </div>
+                            <UserTag
+                              name={selectedUser.name}
+                              email={selectedUser.email}
+                              size="sm"
+                              className="w-full justify-start"
+                            />
                           ) : (
-                            COMPONENTS.MEMBER_INVITE.PLACEHOLDER_SEARCH
+                            <span className="text-muted-foreground">
+                              {COMPONENTS.MEMBER_INVITE.PLACEHOLDER_SEARCH}
+                            </span>
                           )}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -263,10 +266,12 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                                       selectedUser?.id === user.id ? "opacity-100" : "opacity-0"
                                     )}
                                   />
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{user.name || user.email}</span>
-                                    <span className="text-xs text-muted-foreground">{user.email}</span>
-                                  </div>
+                                  <UserTag
+                                    name={user.name}
+                                    email={user.email}
+                                    size="sm"
+                                    className="w-full justify-start"
+                                  />
                                 </CommandItem>
                               ))}
                             </CommandGroup>
@@ -408,8 +413,12 @@ export function MemberManagement({
                   className="flex items-center justify-between p-3 border rounded-lg"
                 >
                   <div className="space-y-1">
-                    <div className="font-medium">{member.user?.name || member.user?.email}</div>
-                    <div className="text-sm text-muted-foreground">{member.user?.email}</div>
+                    <UserTag
+                      name={member.user?.name}
+                      email={member.user?.email}
+                      size="sm"
+                      showEmail={true}
+                    />
                     <div className="text-xs text-muted-foreground">
                       {COMPONENTS.MEMBER_INVITE.JOINED_DATE.replace('{date}', new Date(member.joinedAt).toLocaleDateString())}
                     </div>

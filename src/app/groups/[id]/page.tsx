@@ -225,16 +225,11 @@ export default function GroupDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button onClick={handleBackToGroups} variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại danh sách nhóm
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline ml-2">Quay lại danh sách nhóm</span>
           </Button>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight">{group.name}</h1>
-              <Badge variant={group.isActive ? "default" : "secondary"}>
-              {group.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
-              </Badge>
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight">{group.name}</h1>
             {group.description && (
               <p className="text-muted-foreground mt-1">{group.description}</p>
             )}
