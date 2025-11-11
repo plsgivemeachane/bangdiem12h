@@ -42,6 +42,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { UserTag } from '@/components/ui/user-tag'
 import { useAuth } from '@/hooks/use-auth'
 import toast from 'react-hot-toast'
 
@@ -594,7 +595,7 @@ export default function AnalyticsPage() {
                     {analyticsData.ruleBreakdown.map((rule, index) => (
                       <div key={rule.ruleId} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10">
                             <span className="font-bold text-primary">{index + 1}</span>
                           </div>
                           <div>

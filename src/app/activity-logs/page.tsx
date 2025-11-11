@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { UserTag } from '@/components/ui/user-tag'
 import { useAuth } from '@/hooks/use-auth'
 import { ActivityType } from '@/types'
 import { format } from 'date-fns'
@@ -433,10 +434,13 @@ export default function ActivityLogsPage() {
                     
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       {log.user && (
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <span>{log.user.name || log.user.email}</span>
-                        </div>
+                        <UserTag
+                          name={log.user.name}
+                          email={log.user.email}
+                          showEmail={false}
+                          size="sm"
+                          className="text-xs"
+                        />
                       )}
                       
                       {log.group && (

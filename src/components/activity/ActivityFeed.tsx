@@ -5,6 +5,7 @@ import { Activity, User, Group as GroupIcon, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/loading'
+import { UserTag } from '@/components/ui/user-tag'
 import { ActivityType } from '@/types'
 import Link from 'next/link'
 
@@ -225,10 +226,13 @@ export function ActivityFeed({
             
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               {activity.user && (
-                <div className="flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  <span>{activity.user.name || activity.user.email}</span>
-                </div>
+                <UserTag
+                  name={activity.user.name}
+                  email={activity.user.email}
+                  showEmail={false}
+                  size="sm"
+                  className="text-xs"
+                />
               )}
               
               {activity.group && !groupId && (

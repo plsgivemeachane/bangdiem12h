@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loading } from '@/components/ui/loading'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { UserTag } from '@/components/ui/user-tag'
 import { Badge } from '@/components/ui/badge'
 import { User, Mail, Calendar, Shield, Users, Trophy, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -107,19 +107,7 @@ export default function AccountPage() {
     }
   }
 
-  const getInitials = (name: string | null, email: string | null): string => {
-    if (name) {
-      const parts = name.trim().split(' ')
-      if (parts.length >= 2) {
-        return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-      }
-      return name.substring(0, 2).toUpperCase()
-    }
-    if (email) {
-      return email.substring(0, 2).toUpperCase()
-    }
-    return 'U'
-  }
+  // getInitials function removed - now handled by UserTag component
 
   if (authLoading || !user) {
     return (
@@ -129,7 +117,7 @@ export default function AccountPage() {
     )
   }
 
-  const initials = getInitials(user.name, user.email)
+  // UserTag component handles initials and avatar generation automatically
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -147,18 +135,12 @@ export default function AccountPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Avatar Section */}
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={user.image || undefined} alt={user.name || 'Người dùng'} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="font-semibold">{user.name || ACTIONS.UNKNOWN}</h3>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-              </div>
-            </div>
+            <UserTag
+              name={user.name}
+              email={user.email}
+              size="lg"
+              showEmail={true}
+            />
 
             {/* Form Fields */}
             <div className="space-y-4">

@@ -22,6 +22,7 @@ import { Loading } from '@/components/ui/loading'
 import { ActivityFeed } from '@/components/activity/ActivityFeed'
 import { GroupForm } from '@/components/groups/GroupForm'
 import { ScoreRecordingModal } from '@/components/ui/score-recording-modal'
+import { UserTag } from '@/components/ui/user-tag'
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { Group, GroupMember, GroupStats } from '@/types'
@@ -535,17 +536,12 @@ export default function GroupDetailPage() {
             <div className="space-y-3">
               {group.members.map((member: GroupMember) => (
                 <div key={member.userId} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium">
-                        {member.user?.name?.charAt(0).toUpperCase() || 'U'}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">{member.user?.name || 'Người dùng chưa xác định'}</p>
-                      <p className="text-sm text-muted-foreground">{member.user?.email || 'Không có email'}</p>
-                    </div>
-                  </div>
+                  <UserTag
+                    name={member.user?.name}
+                    email={member.user?.email}
+                    showEmail={true}
+                    size="sm"
+                  />
                   <Badge variant="outline" className="capitalize">
                     {ROLE_LABELS[member.role] || member.role}
                   </Badge>
