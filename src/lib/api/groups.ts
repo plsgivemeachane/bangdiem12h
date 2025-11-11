@@ -1,4 +1,5 @@
 import { Group, CreateGroupForm, UpdateGroupForm, GroupMember, AddMemberForm } from '@/types'
+import toast from 'react-hot-toast'
 
 export class GroupsApi {
   private static baseUrl = '/api/groups'
@@ -247,7 +248,7 @@ export class GroupsApi {
   }
 
   // Create a new global scoring rule (admin only)
-  static async createScoringRule(formData: { name: string; description?: string; criteria: any; points: number }): Promise<any> {
+  static async createScoringRule(formData: { name: string; description?: string; criteria: any; points: number; autoAddToGroups?: boolean }): Promise<any> {
     const response = await fetch('/api/scoring-rules', {
       method: 'POST',
       headers: {
@@ -262,7 +263,46 @@ export class GroupsApi {
     }
 
     const data = await response.json()
-    return data.scoringRule
+    
+    // Show additional success message if rule was auto-added to groups
+    if (data.autoAddToGroups && data.groupsAdded > 0) {
+      toast.success(`Quy tắc "${data.scoringRule.name}" đã được tạo và tự động thêm vào ${data.groupsAdded} nhóm!`)
+    }
+    
+    // Return the full response object to preserve autoAddToGroups and groupsAdded properties
+    return data
+  }
+
+  // Get all groups for automatic assignment
+  static async getAllGroups(): Promise<Group[]> {
+    const response = await fetch('/api/groups')
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Không thể tải danh sách nhóm')
+    }
+
+    const data = await response.json()
+    return data.groups || []
+  }
+
+  // Add rule to multiple groups
+  static async addRuleToGroups(groupId: string, ruleId: string): Promise<any> {
+    const response = await fetch(`/api/groups/${groupId}/rules`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ groupId, ruleId }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Không thể thêm quy tắc vào nhóm')
+    }
+
+    const data = await response.json()
+    return data.groupRule
   }
 
   // Add rule to group

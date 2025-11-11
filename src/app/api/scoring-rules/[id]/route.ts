@@ -55,12 +55,30 @@ export async function DELETE(
       }, { status: 400 })
     }
 
-    // Check if rule is in use by any groups
+    // Auto-delete group rules before deleting the global rule
     if (existingRule.groupRules.length > 0) {
-      const groupNames = existingRule.groupRules.map(gr => gr.group.name).join(', ')
-      return NextResponse.json({
-        error: API.ERROR.CANNOT_DELETE_RULE_IN_USE_BY_GROUPS.replace('{groupNames}', groupNames)
-      }, { status: 400 })
+      // Delete all group rule associations
+      await prisma.groupRule.deleteMany({
+        where: {
+          ruleId: ruleId
+        }
+      })
+
+      // Log the removal of group rule associations
+      for (const groupRule of existingRule.groupRules) {
+        await logActivity({
+          userId: session.user.id,
+          action: ActivityType.RULE_REMOVED_FROM_GROUP,
+          description: `Quy tắc "${existingRule.name}" đã tự động bị xóa khỏi nhóm "${groupRule.group.name}" khi quy tắc toàn cục bị xóa`,
+          metadata: {
+            groupId: groupRule.groupId,
+            ruleId,
+            groupName: groupRule.group.name,
+            ruleName: existingRule.name,
+            deletionType: 'auto_removed_when_global_rule_deleted'
+          }
+        })
+      }
     }
 
     // Delete the rule (cascade will handle related records)
@@ -76,7 +94,8 @@ export async function DELETE(
       metadata: {
         ruleId,
         ruleName: existingRule.name,
-        points: existingRule.points
+        points: existingRule.points,
+        groupsAffected: existingRule.groupRules.length
       }
     })
 

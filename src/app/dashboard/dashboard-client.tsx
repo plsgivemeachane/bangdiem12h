@@ -571,14 +571,22 @@ export default function DashboardClient() {
                   {DASHBOARD.OVERVIEW.VIEW_SCORING_RULES}
                 </Button>
                 {user?.role === 'ADMIN' && (
-                  <Button
-                    variant="default"
-                    className="w-full justify-start"
-                    onClick={handleCreateGlobalRule}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    {GLOBAL_RULES.CREATE_GLOBAL_RULE}
-                  </Button>
+                  <>
+                    <Button asChild className="w-full justify-start">
+                      <Link href="/admin/scoring-rules">
+                        <Settings className="h-4 w-4 mr-2" />
+                        {NAV.ADMIN_SCORING_RULES}
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="default"
+                      className="w-full justify-start"
+                      onClick={handleCreateGlobalRule}
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      {GLOBAL_RULES.CREATE_GLOBAL_RULE}
+                    </Button>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -700,6 +708,7 @@ export default function DashboardClient() {
           onClose={handleRuleModalClose}
           onRuleCreated={handleRuleCreated}
           mode="create"
+          isAdmin={user?.role === 'ADMIN'}
         />
       )}
     </div>

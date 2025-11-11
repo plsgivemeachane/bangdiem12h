@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { UserAccountMenu } from './UserAccountMenu'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, Users, TrendingUp, Menu, X, Shield } from 'lucide-react'
+import { LayoutDashboard, Users, TrendingUp, Menu, X, Shield, Settings } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { NAV, DESCRIPTIONS, APP_HEADER } from '@/lib/translations'
@@ -19,6 +19,7 @@ const navigation = [
 
 const adminNavigation = [
   { name: NAV.ADMIN, href: '/admin/users', icon: Shield },
+  { name: NAV.ADMIN_SCORING_RULES, href: '/admin/scoring-rules', icon: Settings },
 ]
 
 export function AppHeader() {

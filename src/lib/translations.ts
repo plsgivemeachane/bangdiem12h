@@ -78,6 +78,7 @@ export const NAV = {
   GROUPS: 'Nhóm',
   ANALYTICS: 'Phân tích',
   ADMIN: 'Quản trị',
+  ADMIN_SCORING_RULES: 'Quản lý quy tắc toàn cục',
   ACCOUNT: 'Tài khoản',
   SETTINGS: 'Cài đặt',
   ACTIVITY_LOGS: 'Nhật ký hoạt động',
@@ -364,6 +365,8 @@ export const COMPONENTS = {
     SUCCESS_UPDATED: 'Quy tắc "{name}" đã được cập nhật thành công!',
     ERROR_CREATE: 'Không thể tạo quy tắc',
     ERROR_UPDATE: 'Không thể tạo quy tắc',
+    AUTO_ADD_TO_GROUPS_CHECKBOX: 'Tự động thêm vào tất cả các nhóm',
+    AUTO_ADD_TO_GROUPS_DESCRIPTION: 'Quy tắc sẽ được tự động thêm vào tất cả các nhóm mà bạn có quyền truy cập',
   },
   MEMBER_INVITE: {
     TITLE: 'Thêm thành viên',

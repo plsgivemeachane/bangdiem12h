@@ -428,6 +428,7 @@ export default function AdminScoringRulesPage() {
         onRuleCreated={handleRuleCreated}
         existingRule={createEditModal.rule}
         mode={createEditModal.mode}
+        isAdmin={isAdmin}
       />
     </div>
   )

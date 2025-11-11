@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { GroupsApi } from '@/lib/api/groups'
 import { ScoringRule } from '@/types'
 import { COMPONENTS, MESSAGES } from '@/lib/translations'
@@ -18,6 +19,7 @@ interface RuleCreationModalProps {
   onRuleCreated?: (rule: ScoringRule) => void
   existingRule?: ScoringRule | null
   mode?: 'create' | 'edit'
+  isAdmin?: boolean // To determine if user can create global rules
 }
 
 interface RuleCriteria {
@@ -29,7 +31,8 @@ export function RuleCreationModal({
   onClose,
   onRuleCreated,
   existingRule,
-  mode = 'create'
+  mode = 'create',
+  isAdmin = false
 }: RuleCreationModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -38,6 +41,7 @@ export function RuleCreationModal({
     points: existingRule?.points?.toString() || '',
     criteria: existingRule?.criteria || { type: 'manual', conditions: [] }
   })
+  const [autoAddToGroups, setAutoAddToGroups] = useState(false)
 
   // Update form data when existing rule changes
   React.useEffect(() => {
@@ -48,6 +52,9 @@ export function RuleCreationModal({
         points: existingRule.points?.toString() || '',
         criteria: existingRule.criteria || { type: 'manual', conditions: [] }
       })
+    } else {
+      // Reset checkbox when creating new rule
+      setAutoAddToGroups(false)
     }
   }, [existingRule])
 
@@ -146,11 +153,14 @@ export function RuleCreationModal({
           points
         })
 
+        if (!updatedRule) {
+          throw new Error('Failed to update rule - invalid response from server')
+        }
+
         toast.success(COMPONENTS.RULE_CREATION.SUCCESS_UPDATED.replace('{name}', updatedRule.name))
         onRuleCreated?.(updatedRule)
-        onClose()
         
-        // Reset form
+        // Reset form first
         setFormData({
           name: '',
           description: '',
@@ -158,20 +168,43 @@ export function RuleCreationModal({
           criteria: { type: 'manual', conditions: [] }
         })
         setCriteriaConditions([])
+        setCriteriaType('manual')
+        setAutoAddToGroups(false)
+        
+        // Close modal after form reset
+        onClose()
       } else {
         // Create new rule
-        const newRule = await GroupsApi.createScoringRule({
+        const requestBody: any = {
           name: formData.name.trim(),
           description: formData.description.trim() || undefined,
           criteria,
           points
-        })
+        }
+        
+        // Only include autoAddToGroups if it's true to avoid sending unnecessary data
+        if (autoAddToGroups) {
+          requestBody.autoAddToGroups = true
+        }
+        
+        const response = await GroupsApi.createScoringRule(requestBody)
+        
+        // Ensure response contains the expected data
+        if (!response || !response.scoringRule) {
+          throw new Error('Invalid response from server - missing scoring rule data')
+        }
+        
+        const newRule = response.scoringRule
+        
+        // Show additional success message if rule was auto-added to groups
+        if (response.autoAddToGroups && response.groupsAdded > 0) {
+          toast.success(`Quy tắc "${newRule.name}" đã được tạo và tự động thêm vào ${response.groupsAdded} nhóm!`)
+        }
 
         toast.success(COMPONENTS.RULE_CREATION.SUCCESS_CREATED.replace('{name}', newRule.name))
         onRuleCreated?.(newRule)
-        onClose()
         
-        // Reset form
+        // Reset form first
         setFormData({
           name: '',
           description: '',
@@ -179,6 +212,11 @@ export function RuleCreationModal({
           criteria: { type: 'manual', conditions: [] }
         })
         setCriteriaConditions([])
+        setCriteriaType('manual')
+        setAutoAddToGroups(false)
+        
+        // Close modal after form reset
+        onClose()
       }
 
     } catch (error) {
@@ -195,8 +233,7 @@ export function RuleCreationModal({
 
   const handleClose = () => {
     if (!isLoading) {
-      onClose()
-      // Reset form
+      // Reset form state
       setFormData({
         name: existingRule?.name || '',
         description: existingRule?.description || '',
@@ -204,6 +241,11 @@ export function RuleCreationModal({
         criteria: existingRule?.criteria || { type: 'manual', conditions: [] }
       })
       setCriteriaConditions([])
+      setCriteriaType('manual')
+      setAutoAddToGroups(false)
+      
+      // Close modal
+      onClose()
     }
   }
 
@@ -389,6 +431,28 @@ export function RuleCreationModal({
                 )}
               </div>
             </div>
+
+            {/* Auto-add to groups checkbox (only for admin users creating new rules) */}
+            {mode === 'create' && isAdmin && (
+              <div className="space-y-2 pt-4 border-t">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="auto-add-to-groups"
+                    checked={autoAddToGroups}
+                    onCheckedChange={(checked) => setAutoAddToGroups(!!checked)}
+                    disabled={isLoading}
+                  />
+                  <div className="grid gap-2">
+                    <Label htmlFor="auto-add-to-groups" className="text-sm font-medium">
+                      {COMPONENTS.RULE_CREATION.AUTO_ADD_TO_GROUPS_CHECKBOX}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {COMPONENTS.RULE_CREATION.AUTO_ADD_TO_GROUPS_DESCRIPTION}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t">

@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: API.ERROR.UNAUTHORIZED }, { status: 401 })
     }
 
-    const { name, description, criteria, points, groupId } = await request.json()
+    const { name, description, criteria, points, groupId, autoAddToGroups } = await request.json()
 
     if (!name || criteria === undefined || points === undefined) {
       return NextResponse.json({
@@ -254,15 +254,64 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Handle automatic group assignment if requested
+    let groupsAdded = 0
+    if (autoAddToGroups) {
+      try {
+        // Get all groups for the user (including virtual admin memberships)
+        const groups = await prisma.group.findMany({
+          include: {
+            members: {
+              where: { userId: session.user.id }
+            }
+          }
+        })
+
+        // Filter groups where user has admin/owner permissions
+        const eligibleGroups = groups.filter(group =>
+          group.members.length > 0 && ['OWNER', 'ADMIN'].includes(group.members[0].role)
+        )
+
+        // Create group-rule associations for eligible groups
+        if (eligibleGroups.length > 0) {
+          const groupRulePromises = eligibleGroups.map(group =>
+            prisma.groupRule.create({
+              data: {
+                groupId: group.id,
+                ruleId: scoringRule.id,
+                isActive: true
+              }
+            })
+          )
+
+          await Promise.all(groupRulePromises)
+          groupsAdded = eligibleGroups.length
+        }
+      } catch (error) {
+        console.error('Failed to auto-assign rule to groups:', error)
+        // Continue with rule creation even if group assignment fails
+      }
+    }
+
     // Log activity
     await logActivity({
       userId: session.user.id,
       action: ActivityType.SCORING_RULE_CREATED,
       description: API.SUCCESS.RULE_CREATED_GLOBAL.replace('{ruleName}', scoringRule.name).replace('{points}', String(scoringRule.points)),
-      metadata: { ruleName: scoringRule.name, points: scoringRule.points, criteria }
+      metadata: {
+        ruleName: scoringRule.name,
+        points: scoringRule.points,
+        criteria,
+        autoAddToGroups: autoAddToGroups || false,
+        groupsAdded: groupsAdded
+      }
     })
 
-    return NextResponse.json({ scoringRule }, { status: 201 })
+    return NextResponse.json({
+      scoringRule,
+      autoAddToGroups: autoAddToGroups || false,
+      groupsAdded
+    }, { status: 201 })
   } catch (error) {
     console.error('API Error - Create scoring rule:', error)
     return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })

@@ -251,6 +251,8 @@ export interface ComponentKeys {
     SUCCESS_UPDATED: string
     ERROR_CREATE: string
     ERROR_UPDATE: string
+    AUTO_ADD_TO_GROUPS_CHECKBOX: string
+    AUTO_ADD_TO_GROUPS_DESCRIPTION: string
   }
   MEMBER_INVITE: {
     TITLE: string
