@@ -7,22 +7,25 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2, Lock, Mail } from 'lucide-react'
+import { Loader2, Lock, Mail, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/hooks/use-auth'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   SIGNIN,
   PLACEHOLDERS,
   LABELS,
   MESSAGES,
-  DESCRIPTIONS
+  DESCRIPTIONS,
+  ACTIONS
 } from '@/lib/translations'
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
@@ -111,14 +114,34 @@ export default function SignIn() {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder={SIGNIN.ENTER_PASSWORD}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 pr-10"
                   required
                   disabled={isLoading}
                 />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-0 top-0 h-full px-3"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{showPassword ? ACTIONS.TOGGLE_HIDE : ACTIONS.TOGGLE_SHOW}</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
             

@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { LABELS, ACTIONS, MESSAGES, GROUP_ROLES } from '@/lib/translations'
 import { LoadingSpinner } from '@/components/ui/loading'
+import { canManageGroup } from '@/lib/utils/global-admin-permissions'
 import { vi } from 'date-fns/locale'
 
 export function GroupCard({ 
@@ -44,9 +45,8 @@ export function GroupCard({
   const activeRulesCount = group._count?.groupRules || 0
   const scoreRecordsCount = group._count?.scoreRecords || 0
 
-  // Check if current user is a group admin
-  const currentUserMember = group.members?.find(m => m.userId === user?.id)
-  const isGroupAdmin = currentUserMember && ['OWNER', 'ADMIN'].includes(currentUserMember.role)
+  // Check if current user is a group admin (includes global admin check)
+  const isGroupAdmin = canManageGroup(user as any, group.members || [])
 
   const handleEdit = () => {
     if (onEdit) {

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
 import { ActivityType } from '@/types'
 import { API } from '@/lib/translations'
+import { injectVirtualAdminMembership, canManageGroup } from '@/lib/utils/global-admin-permissions'
 
 export async function GET(
   request: NextRequest,
@@ -32,7 +33,9 @@ export async function GET(
               select: {
                 id: true,
                 name: true,
-                email: true
+                email: true,
+                role: true,
+                createdAt: true
               }
             }
           }
@@ -59,10 +62,13 @@ export async function GET(
 
     // No access check - all users can view all groups (read-only permission)
 
+    // Inject virtual admin membership for global administrators
+    const groupWithVirtualMember = injectVirtualAdminMembership(group, session.user as any)
+
     // Transform groupRules to scoringRules for backward compatibility
     const groupWithScoringRules = {
-      ...group,
-      scoringRules: group.groupRules?.map(gr => gr.rule) || []
+      ...groupWithVirtualMember,
+      scoringRules: groupWithVirtualMember.groupRules?.map((gr: any) => gr.rule) || []
     }
 
     return NextResponse.json({ group: groupWithScoringRules })
@@ -124,13 +130,18 @@ export async function PATCH(
               select: {
                 id: true,
                 name: true,
-                email: true
+                email: true,
+                role: true,
+                createdAt: true
               }
             }
           }
         }
       }
     })
+
+    // Inject virtual admin membership for response
+    const updatedGroupWithVirtualMember = injectVirtualAdminMembership(updatedGroup, session.user as any)
 
     // Log activity
     await logActivity({
@@ -141,7 +152,7 @@ export async function PATCH(
       metadata: { changes: { name, description, isActive } }
     })
 
-    return NextResponse.json({ group: updatedGroup })
+    return NextResponse.json({ group: updatedGroupWithVirtualMember })
   } catch (error) {
     console.error('API Error - Update group:', error)
     return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })
@@ -166,7 +177,21 @@ export async function DELETE(
         name: true,
         createdById: true,
         members: {
-          where: { userId: session.user.id }
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+            joinedAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true
+              }
+            }
+          }
         },
         _count: {
           select: {
@@ -181,8 +206,11 @@ export async function DELETE(
       return NextResponse.json({ error: API.ERROR.GROUP_NOT_FOUND }, { status: 404 })
     }
 
-    const userMember = group.members[0]
-    if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
+    // Inject virtual admin membership for global administrators
+    const groupWithVirtualMember = injectVirtualAdminMembership(group, session.user as any)
+
+    // Check if user can manage group (includes global admin check)
+    if (!canManageGroup(session.user as any, groupWithVirtualMember.members)) {
       return NextResponse.json({ error: API.ERROR.ONLY_ADMIN_OWNER_DELETE_GROUP }, { status: 403 })
     }
 

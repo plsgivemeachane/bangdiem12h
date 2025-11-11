@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
 import { ActivityType } from '@/types'
 import { API } from '@/lib/translations'
+import { injectVirtualAdminMembership } from '@/lib/utils/global-admin-permissions'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
         members: {
           include: {
             user: {
-              select: { id: true, name: true, email: true }
+              select: { id: true, name: true, email: true, role: true, createdAt: true }
             }
           }
         },
@@ -36,7 +37,12 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json({ groups })
+    // Inject virtual admin memberships for global administrators
+    const groupsWithVirtualMembers = groups.map(group =>
+      injectVirtualAdminMembership(group, session.user as any)
+    )
+
+    return NextResponse.json({ groups: groupsWithVirtualMembers })
   } catch (error) {
     console.error('API Error - Load groups list:', error)
     return NextResponse.json({ error: API.ERROR.INTERNAL_SERVER_ERROR }, { status: 500 })

@@ -314,4 +314,15 @@ export class GroupsApi {
     const data = await response.json()
     return data.scoringRule
   }
+  // Delete an existing scoring rule
+  static async deleteScoringRule(id: string): Promise<void> {
+    const response = await fetch(`/api/scoring-rules/${id}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Không thể xóa quy tắc chấm điểm')
+    }
+  }
 }

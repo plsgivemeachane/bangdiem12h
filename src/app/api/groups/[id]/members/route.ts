@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activity-logger'
 import { GroupRole, ActivityType } from '@/types'
+import { injectVirtualAdminMembership, canManageGroup } from '@/lib/utils/global-admin-permissions'
 
 export async function GET(
   request: NextRequest,
@@ -22,10 +23,11 @@ export async function GET(
         members: {
           include: {
             user: {
-              select: { 
-                id: true, 
-                name: true, 
+              select: {
+                id: true,
+                name: true,
                 email: true,
+                role: true,
                 createdAt: true
               }
             }
@@ -38,8 +40,11 @@ export async function GET(
       return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
-    return NextResponse.json({ 
-      members: group.members.map(member => ({
+    // Inject virtual admin membership for global administrators
+    const groupWithVirtualMember = injectVirtualAdminMembership(group, session.user as any)
+
+    return NextResponse.json({
+      members: groupWithVirtualMember.members.map((member: any) => ({
         ...member,
         user: {
           ...member.user,
@@ -75,7 +80,21 @@ export async function POST(
       where: { id: params.id },
       include: {
         members: {
-          where: { userId: session.user.id }
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+            joinedAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true
+              }
+            }
+          }
         }
       }
     })
@@ -84,8 +103,11 @@ export async function POST(
       return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
-    const userMember = group.members[0]
-    if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
+    // Inject virtual admin membership for global administrators
+    const groupWithVirtualMember = injectVirtualAdminMembership(group, session.user as any)
+
+    // Check if user can manage group (includes global admin check)
+    if (!canManageGroup(session.user as any, groupWithVirtualMember.members)) {
       return NextResponse.json({ error: 'Không đủ quyền' }, { status: 403 })
     }
 
@@ -187,7 +209,23 @@ export async function PATCH(
     const group = await prisma.group.findUnique({
       where: { id: params.id },
       include: {
-        members: true
+        members: {
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+            joinedAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true
+              }
+            }
+          }
+        }
       }
     })
 
@@ -195,8 +233,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
-    const userMember = group.members.find(m => m.userId === session.user.id)
-    if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
+    // Inject virtual admin membership for global administrators
+    const groupWithVirtualMember = injectVirtualAdminMembership(group, session.user as any)
+
+    // Check if user can manage group (includes global admin check)
+    if (!canManageGroup(session.user as any, groupWithVirtualMember.members)) {
       return NextResponse.json({ error: 'Không đủ quyền' }, { status: 403 })
     }
 
@@ -223,7 +264,7 @@ export async function PATCH(
     // Check if this is an ownership transfer
     if (role === GroupRole.OWNER) {
       // Only current owner can transfer ownership
-      if (userMember.role !== GroupRole.OWNER) {
+      if (targetMember.role !== GroupRole.OWNER) {
         return NextResponse.json({ error: 'Chỉ chủ sở hữu hiện tại mới có thể chuyển quyền' }, { status: 403 })
       }
 
@@ -252,7 +293,7 @@ export async function PATCH(
         }),
         // Downgrade current owner to ADMIN
         prisma.groupMember.update({
-          where: { id: userMember.id },
+          where: { id: targetMember.id },
           data: { role: GroupRole.ADMIN },
           include: {
             user: {
@@ -360,7 +401,21 @@ export async function DELETE(
       where: { id: params.id },
       include: {
         members: {
-          where: { userId: session.user.id }
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+            joinedAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true
+              }
+            }
+          }
         }
       }
     })
@@ -369,8 +424,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
     }
 
-    const userMember = group.members[0]
-    if (!userMember || !['OWNER', 'ADMIN'].includes(userMember.role)) {
+    // Inject virtual admin membership for global administrators
+    const groupWithVirtualMember = injectVirtualAdminMembership(group, session.user as any)
+
+    // Check if user can manage group (includes global admin check)
+    if (!canManageGroup(session.user as any, groupWithVirtualMember.members)) {
       return NextResponse.json({ error: 'Không đủ quyền' }, { status: 403 })
     }
 

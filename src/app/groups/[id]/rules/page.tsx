@@ -240,9 +240,9 @@ export default function GroupRulesPage() {
               Tải lại
             </Button>
             {user?.role === 'ADMIN' && (
-              <Button variant="outline" onClick={() => router.push('/dashboard')}>
+              <Button variant="outline" onClick={() => router.push('/admin/scoring-rules')}>
                 <Settings className="mr-2 h-4 w-4" />
-                Manage Global Rules
+                Quản lý quy tắc toàn cục
               </Button>
             )}
           </div>

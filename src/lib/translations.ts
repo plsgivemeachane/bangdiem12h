@@ -500,6 +500,18 @@ export const DASHBOARD = {
   },
 }
 
+// Global Rules translations
+export const GLOBAL_RULES = {
+  CREATE_GLOBAL_RULE: 'Tạo quy tắc toàn cục',
+  GLOBAL_SCORING_RULES: 'Quy tắc chấm điểm toàn cục',
+  MANAGE_GLOBAL_RULES: 'Quản lý quy tắc chấm điểm toàn cục có sẵn trong tất cả các nhóm',
+  VIEW_ALL_RULES: 'Xem tất cả {count} quy tắc',
+  NO_DESCRIPTION: 'Không có mô tả',
+  POINTS: 'điểm',
+  ACTIVE: 'Hoạt động',
+  INACTIVE: 'Không hoạt động',
+}
+
 // Groups page
 export const GROUPS_PAGE = {
   TITLE: 'Nhóm',

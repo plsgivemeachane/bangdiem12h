@@ -26,7 +26,8 @@ import {
   USER_ROLES,
   GROUP_ROLES,
   NAV,
-  PLACEHOLDERS
+  PLACEHOLDERS,
+  GLOBAL_RULES
 } from '@/lib/translations'
 import toast from 'react-hot-toast'
 
@@ -576,7 +577,7 @@ export default function DashboardClient() {
                     onClick={handleCreateGlobalRule}
                   >
                     <Settings className="h-4 w-4 mr-2" />
-                    Create Global Rule
+                    {GLOBAL_RULES.CREATE_GLOBAL_RULE}
                   </Button>
                 )}
               </CardContent>
@@ -649,10 +650,10 @@ export default function DashboardClient() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              Global Scoring Rules
+              {GLOBAL_RULES.GLOBAL_SCORING_RULES}
             </CardTitle>
             <CardDescription>
-              Manage global scoring rules available across all groups
+              {GLOBAL_RULES.MANAGE_GLOBAL_RULES}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -666,16 +667,16 @@ export default function DashboardClient() {
                     <div>
                       <p className="font-medium">{rule.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {rule.description || 'No description'}
+                        {rule.description || GLOBAL_RULES.NO_DESCRIPTION}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant={rule.points >= 0 ? 'default' : 'destructive'}>
-                      {rule.points >= 0 ? `+${rule.points}` : rule.points} points
+                      {rule.points >= 0 ? `+${rule.points}` : rule.points} {GLOBAL_RULES.POINTS}
                     </Badge>
                     <Badge variant={rule.isActive ? 'default' : 'secondary'}>
-                      {rule.isActive ? 'Active' : 'Inactive'}
+                      {rule.isActive ? GLOBAL_RULES.ACTIVE : GLOBAL_RULES.INACTIVE}
                     </Badge>
                   </div>
                 </div>
@@ -683,7 +684,7 @@ export default function DashboardClient() {
               {globalRules.length > 3 && (
                 <div className="text-center pt-2">
                   <Button variant="outline" size="sm">
-                    View All {globalRules.length} Rules
+                    {GLOBAL_RULES.VIEW_ALL_RULES.replace('{count}', globalRules.length.toString())}
                   </Button>
                 </div>
               )}

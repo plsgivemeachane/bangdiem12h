@@ -26,6 +26,7 @@ import { UserTag } from '@/components/ui/user-tag'
 import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { Group, GroupMember, GroupStats } from '@/types'
+import { canManageGroup, getUserGroupRole } from '@/lib/utils/global-admin-permissions'
 import toast from 'react-hot-toast'
 
 const ROLE_LABELS: Record<string, string> = {
@@ -148,10 +149,8 @@ export default function GroupDetailPage() {
     loadGroupData()
   }
 
-  // Check if user has permission to manage group
-  const canManageGroup = group?.members?.some(
-    member => member.userId === user?.id && ['OWNER', 'ADMIN'].includes(member.role)
-  ) || false
+  // Check if user has permission to manage group (includes global admin check)
+  const canManageGroupPermission = canManageGroup(user as any, group?.members || [])
 
   // Show loading spinner during authentication check
   if (authLoading) {
@@ -215,8 +214,8 @@ export default function GroupDetailPage() {
     )
   }
 
-  // Get user's role in the group
-  const userRole = group.members?.find(member => member.userId === user?.id)?.role || 'VIEWER'
+  // Get user's role in the group (includes virtual admin role for global admins)
+  const userRole = getUserGroupRole(user as any, group?.members || [])
   const isOwner = userRole === 'OWNER'
   const isAdmin = userRole === 'ADMIN'
 
@@ -237,7 +236,7 @@ export default function GroupDetailPage() {
           </div>
         </div>
         
-        {canManageGroup && (
+        {canManageGroupPermission && (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleEditGroup}>
               <Edit className="mr-2 h-4 w-4" />
@@ -438,13 +437,13 @@ export default function GroupDetailPage() {
               <Button 
                 onClick={handleManageMembers}
                 className="w-full"
-                variant={canManageGroup ? "default" : "outline"}
-                disabled={!canManageGroup}
+                variant={canManageGroupPermission ? "default" : "outline"}
+                disabled={!canManageGroupPermission}
               >
                 <UserPlus className="mr-2 h-4 w-4" />
                 Quản lý thành viên
               </Button>
-              {userRole === 'VIEWER' && (
+              {userRole === 'MEMBER' && (
                 <p className="text-xs text-muted-foreground">
                   Liên hệ quản trị viên để quản lý thành viên
                 </p>
@@ -498,7 +497,7 @@ export default function GroupDetailPage() {
                 {group._count?.scoreRecords || 0} lượt ghi điểm
               </div>
               <div className="space-y-2">
-                {canManageGroup && (
+                {canManageGroupPermission && (
                   <Button
                     onClick={handleRecordScore}
                     className="w-full"
@@ -579,7 +578,7 @@ export default function GroupDetailPage() {
       />
 
       {/* Score Recording Modal - Only for Group ADMINs */}
-      {canManageGroup && (
+      {canManageGroupPermission && (
         <ScoreRecordingModal
           isOpen={showScoreModal}
           onClose={handleScoreModalClose}
