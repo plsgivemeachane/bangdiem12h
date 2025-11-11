@@ -121,7 +121,7 @@ export default function CreateUserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validation
+    // Basic validation - removed password strength check for admin user creation
     if (!formData.email || !formData.password) {
       toast.error(VALIDATION.USER.EMAIL_PASSWORD_REQUIRED)
       return
@@ -129,12 +129,6 @@ export default function CreateUserPage() {
 
     if (formData.password !== formData.confirmPassword) {
       toast.error(VALIDATION.USER.PASSWORD_MISMATCH)
-      return
-    }
-
-    const { strength } = checkPasswordStrength(formData.password)
-    if (strength < 5) {
-      toast.error(VALIDATION.USER.PASSWORD_INSUFFICIENT)
       return
     }
 
@@ -459,7 +453,7 @@ export default function CreateUserPage() {
                 <TooltipTrigger asChild>
                   <Button
                     type="submit"
-                    disabled={isSubmitting || passwordStrength.strength < 5 || formData.password !== formData.confirmPassword}
+                    disabled={isSubmitting || formData.password !== formData.confirmPassword}
                     className="flex-1"
                   >
                     {isSubmitting ? USER_MANAGEMENT.CREATE_USER.CREATING : USER_MANAGEMENT.CREATE_USER.CREATE_USER}
@@ -469,11 +463,9 @@ export default function CreateUserPage() {
                   <p>
                     {isSubmitting
                       ? USER_MANAGEMENT.CREATE_USER.CREATING_ACCOUNT
-                      : passwordStrength.strength < 5
-                        ? USER_MANAGEMENT.CREATE_USER.PASSWORD_MEETS_REQUIREMENTS
-                        : formData.password !== formData.confirmPassword
-                          ? USER_MANAGEMENT.CREATE_USER.PASSWORD_MUST_MATCH
-                          : USER_MANAGEMENT.CREATE_USER.CREATE_USER_ACCOUNT
+                      : formData.password !== formData.confirmPassword
+                        ? USER_MANAGEMENT.CREATE_USER.PASSWORD_MUST_MATCH
+                        : USER_MANAGEMENT.CREATE_USER.CREATE_USER_ACCOUNT
                     }
                   </p>
                 </TooltipContent>

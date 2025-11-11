@@ -138,11 +138,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate password strength
-    const validation = validatePasswordStrength(password)
-    if (!validation.isValid) {
+    // Skip strong password validation for admin user creation
+    // Only perform basic security checks
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: API.ERROR.PASSWORD_TOO_WEAK, details: validation.errors },
+        { error: 'Mật khẩu phải có ít nhất 8 ký tự' },
         { status: 400 }
       )
     }
