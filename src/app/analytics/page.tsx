@@ -33,7 +33,8 @@ import {
   RefreshCw,
   Download,
   ChevronDown,
-  FilterIcon
+  FilterIcon,
+  Clock
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -105,6 +106,23 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
   const [selectedGroup, setSelectedGroup] = useState<string>('all')
   const [showFilters, setShowFilters] = useState(false)
+  const [scoreRecords, setScoreRecords] = useState<any[]>([])
+  const [scoreRecordsPagination, setScoreRecordsPagination] = useState({
+    total: 0,
+    limit: 20,
+    offset: 0,
+    hasMore: false
+  })
+  const [isLoadingRecords, setIsLoadingRecords] = useState(false)
+  const [selectedTab, setSelectedTab] = useState('trends')
+
+  // Tab options for mobile Select component
+  const tabOptions = [
+    { value: 'trends', label: 'Xu hướng' },
+    { value: 'breakdown', label: 'Phân tích theo nhóm' },
+    { value: 'rules', label: 'Sử dụng quy tắc' },
+    { value: 'below-trending', label: 'Bản ghi điểm gần đây' }
+  ]
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -126,6 +144,14 @@ export default function AnalyticsPage() {
     if (isAuthenticated && !isLoadingGroups) {
       loadAnalyticsData()
       loadDailyAnalyticsData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, timeRange, selectedGroup, isLoadingGroups])
+
+  // Load score records when filters change
+  useEffect(() => {
+    if (isAuthenticated && !isLoadingGroups) {
+      loadScoreRecords(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, timeRange, selectedGroup, isLoadingGroups])
@@ -204,6 +230,71 @@ export default function AnalyticsPage() {
     }
   }
 
+  const loadScoreRecords = async (offset = 0) => {
+    try {
+      setIsLoadingRecords(true)
+
+      // Calculate date range based on timeRange
+      const endDate = new Date()
+      const startDate = new Date()
+      
+      switch (timeRange) {
+        case '7d':
+          startDate.setDate(endDate.getDate() - 7)
+          break
+        case '30d':
+          startDate.setDate(endDate.getDate() - 30)
+          break
+        case '90d':
+          startDate.setDate(endDate.getDate() - 90)
+          break
+        case '1y':
+          startDate.setFullYear(endDate.getFullYear() - 1)
+          break
+      }
+
+      const params = new URLSearchParams({
+        limit: scoreRecordsPagination.limit.toString(),
+        offset: offset.toString(),
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      })
+
+      if (selectedGroup !== 'all') {
+        params.set('groupId', selectedGroup)
+      }
+
+      const response = await fetch(`/api/score-records?${params.toString()}`)
+
+      if (!response.ok) {
+        throw new Error('Không thể tải danh sách bản ghi điểm')
+      }
+
+      const result = await response.json()
+      
+      if (offset === 0) {
+        setScoreRecords(result.scoreRecords)
+      } else {
+        setScoreRecords(prev => [...prev, ...result.scoreRecords])
+      }
+      
+      setScoreRecordsPagination(result.pagination)
+
+    } catch (error) {
+      console.error('Không thể tải danh sách bản ghi điểm:', error)
+      toast.error('Không thể tải danh sách bản ghi điểm')
+    } finally {
+      setIsLoadingRecords(false)
+    }
+  }
+
+  const loadMoreRecords = () => {
+    if (!isLoadingRecords && scoreRecordsPagination.hasMore) {
+      const newOffset = scoreRecordsPagination.offset + scoreRecordsPagination.limit
+      loadScoreRecords(newOffset)
+    }
+  }
+
 
 
   const formatNumber = (num: number) => {
@@ -216,6 +307,17 @@ export default function AnalyticsPage() {
   const calculateTrend = (current: number, previous: number) => {
     if (previous === 0) return current > 0 ? 100 : 0
     return ((current - previous) / previous) * 100
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   }
 
   // Transform group breakdown data for Pie Chart - convert negative values to 0 for display only
@@ -284,53 +386,56 @@ export default function AnalyticsPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-              <BarChart3 className="h-8 w-8" />
-              Bảng điều khiển phân tích
-            </h1>
+      <div className="flex flex-col space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8" />
+                Bảng điều khiển phân tích
+              </h1>
+            </div>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Cung cấp cái nhìn toàn diện về hiệu suất và xu hướng ghi điểm của các nhóm
+            </p>
           </div>
-          <p className="text-muted-foreground mt-1">
-            Cung cấp cái nhìn toàn diện về hiệu suất và xu hướng ghi điểm của các nhóm
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Chọn nhóm" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả các nhóm</SelectItem>
-              {groups.map(group => (
-                <SelectItem key={group.id} value={group.id}>
-                  {group.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">7 ngày gần đây</SelectItem>
-              <SelectItem value="30d">30 ngày gần đây</SelectItem>
-              <SelectItem value="90d">90 ngày gần đây</SelectItem>
-              <SelectItem value="1y">Năm qua</SelectItem>
-            </SelectContent>
-          </Select>
           
-          <Button variant="outline" onClick={() => {
-            loadAnalyticsData()
-            loadDailyAnalyticsData()
-          }}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Làm mới
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+              <SelectTrigger className="w-full sm:w-40 min-w-[140px]">
+                <SelectValue placeholder="Chọn nhóm" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả các nhóm</SelectItem>
+                {groups.map(group => (
+                  <SelectItem key={group.id} value={group.id}>
+                    {group.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
+              <SelectTrigger className="w-full sm:w-32 min-w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">7 ngày gần đây</SelectItem>
+                <SelectItem value="30d">30 ngày gần đây</SelectItem>
+                <SelectItem value="90d">90 ngày gần đây</SelectItem>
+                <SelectItem value="1y">Năm qua</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button variant="outline" onClick={() => {
+              loadAnalyticsData()
+              loadDailyAnalyticsData()
+              loadScoreRecords(0)
+            }} className="whitespace-nowrap">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Làm mới</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -406,11 +511,38 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Main Analytics Tabs */}
-      <Tabs defaultValue="trends" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="trends">Xu hướng</TabsTrigger>
-          <TabsTrigger value="breakdown">Phân tích theo nhóm</TabsTrigger>
-          <TabsTrigger value="rules">Sử dụng quy tắc</TabsTrigger>
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+        {/* Mobile: Select dropdown, Desktop: Grid layout */}
+        {/* Mobile Select - hidden on desktop */}
+        <div className="md:hidden">
+          <Select value={selectedTab} onValueChange={setSelectedTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Chọn chế độ xem" />
+            </SelectTrigger>
+            <SelectContent>
+              {tabOptions.map((tab) => (
+                <SelectItem key={tab.value} value={tab.value}>
+                  {tab.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Desktop TabsList - hidden on mobile */}
+        <TabsList className="hidden md:grid md:grid-cols-4 gap-2 md:gap-1 w-full">
+          <TabsTrigger value="trends" className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Xu hướng
+          </TabsTrigger>
+          <TabsTrigger value="breakdown" className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Phân tích theo nhóm
+          </TabsTrigger>
+          <TabsTrigger value="rules" className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Sử dụng quy tắc
+          </TabsTrigger>
+          <TabsTrigger value="below-trending" className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Bản ghi điểm gần đây
+          </TabsTrigger>
         </TabsList>
 
         {/* Trends Tab */}
@@ -677,6 +809,97 @@ export default function AnalyticsPage() {
                 <h3 className="text-lg font-semibold mb-2">Không có dữ liệu quy tắc</h3>
                 <p className="text-muted-foreground">
                   Không có quy tắc chấm điểm nào được sử dụng trong khoảng thời gian đã chọn.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Recent Score Records Tab - Mobile Optimized */}
+        <TabsContent value="below-trending" className="space-y-4">
+          {isLoadingRecords ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Loading text="Đang tải danh sách bản ghi điểm..." />
+              </CardContent>
+            </Card>
+          ) : scoreRecords.length > 0 ? (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Clock className="h-5 w-5" />
+                    Bản ghi điểm gần đây
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    Danh sách tất cả bản ghi điểm được sắp xếp theo thời gian gần nhất
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-3">
+                    {scoreRecords.map((record, index) => (
+                      <div key={record.id} className="p-3 sm:p-4 border rounded-lg hover:bg-accent/50 transition-colors touch-manipulation">
+                        {/* Mobile-first layout */}
+                        <div className="flex items-start justify-between gap-3">
+                          {/* Left side - User and Group info */}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-primary/10 flex-shrink-0">
+                              <span className="font-bold text-primary text-xs sm:text-sm">{index + 1}</span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                <UserTag
+                                  name={record.user.name || record.user.email}
+                                  email={record.user.email}
+                                  size="sm"
+                                  className="truncate"
+                                />
+                                <span className="text-muted-foreground text-xs hidden sm:inline">•</span>
+                                <span className="text-sm text-muted-foreground truncate">{record.group.name}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1 truncate">{record.rule.name}</p>
+                            </div>
+                          </div>
+                          
+                          {/* Right side - Points and Date */}
+                          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                            <Badge
+                              variant={record.points >= 0 ? "default" : "destructive"}
+                              className="min-w-[50px] sm:min-w-[60px] text-center"
+                            >
+                              {record.points > 0 ? '+' : ''}{record.points}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground whitespace-nowrap">
+                              {formatDate(record.recordedAt)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {scoreRecordsPagination.hasMore && (
+                    <div className="mt-6 text-center">
+                      <Button
+                        variant="outline"
+                        onClick={loadMoreRecords}
+                        disabled={isLoadingRecords}
+                        className="w-full sm:w-auto"
+                      >
+                        {isLoadingRecords ? 'Đang tải...' : 'Tải thêm'}
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Không có bản ghi điểm</h3>
+                <p className="text-muted-foreground">
+                  Chưa có bản ghi điểm nào trong khoảng thời gian đã chọn.
                 </p>
               </CardContent>
             </Card>

@@ -25,20 +25,8 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100)
     const skip = (page - 1) * limit
 
-    // Build filters
+    // Build filters - all authenticated users can view all activity logs
     const filters: any = {}
-
-    // If user is not ADMIN, only show their own activities or activities from groups they belong to
-    if (session.user.role !== 'ADMIN') {
-      filters.OR = [
-        { userId: session.user.id },
-        {
-          groupId: {
-            in: await getUserGroupIds(session.user.id)
-          }
-        }
-      ]
-    }
 
     // Apply group filter
     if (groupId) {
