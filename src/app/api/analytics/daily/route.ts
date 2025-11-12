@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
     const totalPoints = scoreRecords.reduce((sum, record) => sum + record.points, 0)
     const averagePoints = scoreRecords.length > 0 ? totalPoints / scoreRecords.length : 0
 
-    // Group by date for trend analysis
+    // Group by date for daily trend analysis (NO ACCUMULATION)
     const dailyPoints: { [key: string]: number } = {}
     const ruleBreakdown: { [key: string]: { name: string; points: number; count: number } } = {}
 
@@ -161,20 +161,10 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Convert to arrays for charts and calculate accumulated scores
+    // Convert to arrays for charts - return RAW DAILY POINTS (no accumulation)
     const trendData = Object.entries(dailyPoints)
-      .map(([date, points]) => ({ date, dailyPoints: points }))
+      .map(([date, points]) => ({ date, points }))
       .sort((a, b) => a.date.localeCompare(b.date))
-      .reduce((acc, item, index) => {
-        const accumulatedPoints = index === 0
-          ? item.dailyPoints
-          : acc[index - 1].points + item.dailyPoints
-        acc.push({
-          date: item.date,
-          points: accumulatedPoints
-        })
-        return acc
-      }, [] as Array<{ date: string; points: number }>)
 
     const ruleData = Object.entries(ruleBreakdown).map(([ruleId, data]) => ({
       ruleId,
@@ -266,7 +256,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Lỗi tải dữ liệu phân tích:', error)
+    console.error('Lỗi tải dữ liệu phân tích hàng ngày:', error)
     return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
   }
 }

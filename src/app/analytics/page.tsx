@@ -96,9 +96,11 @@ export default function AnalyticsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
+  const [dailyAnalyticsData, setDailyAnalyticsData] = useState<AnalyticsData | null>(null)
   const [groups, setGroups] = useState<Group[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingGroups, setIsLoadingGroups] = useState(true)
+  const [isLoadingDaily, setIsLoadingDaily] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
   const [selectedGroup, setSelectedGroup] = useState<string>('all')
@@ -123,6 +125,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     if (isAuthenticated && !isLoadingGroups) {
       loadAnalyticsData()
+      loadDailyAnalyticsData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, timeRange, selectedGroup, isLoadingGroups])
@@ -171,6 +174,33 @@ export default function AnalyticsPage() {
       toast.error('Không thể tải dữ liệu phân tích')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const loadDailyAnalyticsData = async () => {
+    try {
+      setIsLoadingDaily(true)
+
+      const params = new URLSearchParams({
+        period: timeRange === '7d' ? 'week' : timeRange === '1y' ? 'year' : 'month',
+        groupId: selectedGroup === 'all' ? '' : selectedGroup
+      })
+
+      const response = await fetch(`/api/analytics/daily?${params.toString()}`)
+
+      if (!response.ok) {
+        throw new Error('Không thể tải dữ liệu phân tích hàng ngày')
+      }
+
+      const result = await response.json()
+      setDailyAnalyticsData(result.analytics)
+
+    } catch (error) {
+      console.error('Không thể tải dữ liệu phân tích hàng ngày:', error)
+      // Don't show error toast for daily data since it's secondary
+      setDailyAnalyticsData(null)
+    } finally {
+      setIsLoadingDaily(false)
     }
   }
 
@@ -294,7 +324,10 @@ export default function AnalyticsPage() {
             </SelectContent>
           </Select>
           
-          <Button variant="outline" onClick={loadAnalyticsData}>
+          <Button variant="outline" onClick={() => {
+            loadAnalyticsData()
+            loadDailyAnalyticsData()
+          }}>
             <RefreshCw className="mr-2 h-4 w-4" />
             Làm mới
           </Button>
@@ -418,21 +451,32 @@ export default function AnalyticsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analyticsData.trendData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="points"
-                        stroke="#82ca9d"
-                        strokeWidth={3}
-                        dot={{ fill: '#82ca9d' }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {isLoadingDaily ? (
+                    <div className="flex justify-center items-center h-[300px]">
+                      <Loading text="Đang tải dữ liệu hàng ngày..." />
+                    </div>
+                  ) : dailyAnalyticsData && dailyAnalyticsData.trendData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={dailyAnalyticsData.trendData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar
+                          dataKey="points"
+                          fill="#82ca9d"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex justify-center items-center h-[300px] text-muted-foreground">
+                      <div className="text-center">
+                        <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Không có dữ liệu hàng ngày</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
