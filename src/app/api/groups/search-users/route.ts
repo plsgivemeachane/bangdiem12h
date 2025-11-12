@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q')
+    const groupId = searchParams.get('groupId')
     const searchTerm = query?.trim().toLowerCase() || ''
 
     // Build search conditions - if no query, return all users (for initial load)
@@ -19,6 +20,23 @@ export async function GET(request: NextRequest) {
       // Always exclude current user from search results
       id: {
         not: session.user.id
+      }
+    }
+
+    // If groupId is provided, exclude existing members of that group
+    if (groupId) {
+      // First, get existing member IDs for this group
+      const existingMemberIds = await prisma.groupMember.findMany({
+        where: { groupId },
+        select: { userId: true }
+      });
+      
+      const existingIds = existingMemberIds.map(member => member.userId);
+      
+      // Add condition to exclude existing members
+      whereConditions.id = {
+        not: session.user.id,
+        notIn: existingIds
       }
     }
 

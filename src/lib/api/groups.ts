@@ -144,8 +144,13 @@ export class GroupsApi {
   }
 
   // Search users to add as members (for admin-managed approach)
-  static async searchUsers(query: string): Promise<{ id: string; email: string; name: string | null }[]> {
-    const response = await fetch(`${this.baseUrl}/search-users?q=${encodeURIComponent(query)}`)
+  static async searchUsers(query: string, groupId?: string): Promise<{ id: string; email: string; name: string | null }[]> {
+    const searchParams = new URLSearchParams({ q: query })
+    if (groupId) {
+      searchParams.append('groupId', groupId)
+    }
+    
+    const response = await fetch(`${this.baseUrl}/search-users?${searchParams}`)
     
     if (!response.ok) {
       const error = await response.json()

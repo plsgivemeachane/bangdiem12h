@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-  Dialog,
+  Dialog,   
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -105,8 +105,8 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
       if (open && users.length === 0 && searchQuery.length === 0) {
         setIsSearching(true)
         try {
-          // Fetch all users (no query) to get initial list
-          const results = await GroupsApi.searchUsers('')
+          // Fetch all users (no query) to get initial list, excluding existing group members
+          const results = await GroupsApi.searchUsers('', groupId)
           setUsers(results)
         } catch (error) {
           console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX, error)
@@ -118,7 +118,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
     }
 
     loadInitialUsers()
-  }, [open, users.length, searchQuery.length])
+  }, [open, users.length, searchQuery.length, groupId])
 
   // Perform search when debounced query changes
   useEffect(() => {
@@ -135,7 +135,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
 
       setIsSearching(true)
       try {
-        const results = await GroupsApi.searchUsers(debouncedSearchQuery)
+        const results = await GroupsApi.searchUsers(debouncedSearchQuery, groupId)
         setUsers(results)
       } catch (error) {
         console.error(COMPONENTS.MEMBER_INVITE.ERROR_SEARCH, error)
@@ -147,7 +147,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
     }
 
     performSearch()
-  }, [debouncedSearchQuery])
+  }, [debouncedSearchQuery, groupId])
 
   const handleSubmit = async (data: FormData) => {
     setIsLoading(true)
@@ -229,7 +229,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0" align="start">
+                    <PopoverContent className="w-[400px] p-0 overflow-hidden" align="start">
                       <Command shouldFilter={false}>
                         <CommandInput
                           placeholder={COMPONENTS.MEMBER_INVITE.PLACEHOLDER_SEARCH_INPUT}
