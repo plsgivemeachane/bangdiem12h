@@ -188,6 +188,15 @@ export default function AnalyticsPage() {
     return ((current - previous) / previous) * 100
   }
 
+  // Transform group breakdown data for Pie Chart - convert negative values to 0 for display only
+  const getPieChartData = () => {
+    if (!analyticsData?.groupBreakdown) return []
+    return analyticsData.groupBreakdown.map(group => ({
+      ...group,
+      totalPoints: Math.max(0, group.totalPoints) // Display negative values as 0 in pie chart
+    }))
+  }
+
   // Show loading spinner during authentication check
   if (authLoading) {
     return (
@@ -458,7 +467,7 @@ export default function AnalyticsPage() {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={analyticsData.groupBreakdown}
+                        data={getPieChartData()}
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
@@ -466,7 +475,7 @@ export default function AnalyticsPage() {
                         dataKey="totalPoints"
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       >
-                        {analyticsData.groupBreakdown.map((entry, index) => (
+                        {getPieChartData().map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
