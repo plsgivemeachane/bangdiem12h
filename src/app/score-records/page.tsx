@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPoints } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -481,11 +482,11 @@ export default function AllScoreRecordsPage() {
                   </div>
                   <div className="text-right ml-4">
                     <div className="text-2xl font-bold text-primary">
-                      +{record.points}
+                      {formatPoints(record.points)}
                     </div>
                     <p className="text-xs text-muted-foreground">điểm</p>
                     <p className="text-xs text-muted-foreground">
-                      Điểm quy tắc: +{record.rule.points}
+                      Điểm quy tắc: {formatPoints(record.rule.points)}
                     </p>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPoints } from "@/lib/utils";
 import React, { useState } from "react";
 import { X, Save, Award, Calendar, FileText, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -291,7 +292,7 @@ export function ScoreRecordingModal({
                           <div className="flex items-center justify-between w-full">
                             <span>{rule.name}</span>
                             <Badge variant="outline" className="ml-2">
-                              +{rule.points} {SCORE_RECORDING.UNIT_POINTS}
+                              {formatPoints(rule.points)} {SCORE_RECORDING.UNIT_POINTS}
                             </Badge>
                           </div>
                         </SelectItem>

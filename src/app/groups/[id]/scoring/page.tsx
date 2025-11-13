@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPoints } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -436,7 +437,7 @@ export default function GroupScoringPage() {
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-primary">
-                      +{record.points}
+                      {formatPoints(record.points)}
                     </div>
                     <p className="text-xs text-muted-foreground">điểm</p>
                     {canRecordScores && (
@@ -493,7 +494,7 @@ export default function GroupScoringPage() {
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium">{rule.name}</h3>
                       <Badge variant="outline" className="text-primary">
-                        +{rule.points} điểm
+                        {formatPoints(rule.points)} điểm
                       </Badge>
                     </div>
                     {rule.description && (
