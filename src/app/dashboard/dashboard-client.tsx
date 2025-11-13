@@ -245,6 +245,10 @@ export default function DashboardClient() {
     toast.success(`Rule "${newRule.name}" created successfully!`);
   };
 
+  const handleViewAllGlobalRules = () => {
+    router.push("/admin/scoring-rules");
+  };
+
   const formatDate = (date: Date | string | null | undefined) => {
     try {
       if (!date) return "--:-- --/--/----";
@@ -851,7 +855,7 @@ export default function DashboardClient() {
               ))}
               {globalRules.length > 3 && (
                 <div className="text-center pt-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleViewAllGlobalRules}>
                     {GLOBAL_RULES.VIEW_ALL_RULES.replace(
                       "{count}",
                       globalRules.length.toString(),

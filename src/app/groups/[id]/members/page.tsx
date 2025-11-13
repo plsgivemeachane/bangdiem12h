@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
-import { MemberInvite } from "@/components/groups/MemberInvite";
+import { MemberInvite, MemberManagement } from "@/components/groups/MemberInvite";
 import { OwnerTransferDialog } from "@/components/groups/OwnerTransferDialog";
 import { UserTag } from "@/components/ui/user-tag";
 import { GroupsApi } from "@/lib/api/groups";
@@ -43,6 +43,7 @@ export default function GroupMembersPage() {
   const [error, setError] = useState<string | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isTransferOwnershipOpen, setIsTransferOwnershipOpen] = useState(false);
+  const [isManagementModalOpen, setIsManagementModalOpen] = useState(false);
 
   // Load group and members data on mount
   useEffect(() => {
@@ -399,7 +400,11 @@ export default function GroupMembersPage() {
                     {canManageGroup &&
                       member.userId !== user?.id &&
                       !isOwner && (
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsManagementModalOpen(true)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                       )}
@@ -408,6 +413,7 @@ export default function GroupMembersPage() {
                         variant="ghost"
                         size="sm"
                         className="text-destructive hover:text-destructive"
+                        onClick={() => handleMemberRemove(member.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -458,6 +464,16 @@ export default function GroupMembersPage() {
           currentUserId={user?.id || ""}
         />
       )}
+
+      {/* Member Management Modal */}
+      <MemberManagement
+        isOpen={isManagementModalOpen}
+        onClose={() => setIsManagementModalOpen(false)}
+        groupId={groupId}
+        members={members}
+        onMemberUpdate={handleMemberUpdate}
+        onMemberRemove={handleMemberRemove}
+      />
     </div>
   );
 }
