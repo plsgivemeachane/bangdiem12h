@@ -1,12 +1,12 @@
-import { prisma } from '@/lib/prisma'
-import { ActivityType } from '@/types'
+import { prisma } from "@/lib/prisma";
+import { ActivityType } from "@/types";
 
 interface LogActivityParams {
-  userId?: string | null
-  groupId?: string
-  action: ActivityType
-  description: string
-  metadata?: Record<string, any>
+  userId?: string | null;
+  groupId?: string;
+  action: ActivityType;
+  description: string;
+  metadata?: Record<string, any>;
 }
 
 export async function logActivity({
@@ -25,9 +25,9 @@ export async function logActivity({
         description,
         ...(metadata && { metadata }),
       },
-    })
+    });
   } catch (error) {
-    console.error('Ghi nhật ký hoạt động thất bại:', error)
+    console.error("Ghi nhật ký hoạt động thất bại:", error);
     // Don't throw error to avoid breaking the main flow
   }
 }
@@ -37,11 +37,14 @@ export async function logActivity({
 /**
  * Log user registration event
  */
-export async function logUserRegistration(userId: string, userData: {
-  email: string
-  name?: string
-  role: string
-}) {
+export async function logUserRegistration(
+  userId: string,
+  userData: {
+    email: string;
+    name?: string;
+    role: string;
+  },
+) {
   return logActivity({
     userId,
     action: ActivityType.USER_REGISTERED,
@@ -51,18 +54,21 @@ export async function logUserRegistration(userId: string, userData: {
       name: userData.name,
       role: userData.role,
     },
-  })
+  });
 }
 
 /**
  * Log successful user login
  */
-export async function logUserLogin(userId: string, loginData: {
-  email: string
-  method: 'password' | 'oauth'
-  provider?: string
-}) {
-  const methodLabel = loginData.method === 'password' ? 'mật khẩu' : 'OAuth'
+export async function logUserLogin(
+  userId: string,
+  loginData: {
+    email: string;
+    method: "password" | "oauth";
+    provider?: string;
+  },
+) {
+  const methodLabel = loginData.method === "password" ? "mật khẩu" : "OAuth";
   return logActivity({
     userId,
     action: ActivityType.USER_LOGIN,
@@ -72,13 +78,17 @@ export async function logUserLogin(userId: string, loginData: {
       loginMethod: loginData.method,
       provider: loginData.provider,
     },
-  })
+  });
 }
 
 /**
  * Log failed login attempt
  */
-export async function logLoginFailed(email: string, reason: string, ipAddress?: string) {
+export async function logLoginFailed(
+  email: string,
+  reason: string,
+  ipAddress?: string,
+) {
   return logActivity({
     userId: null, // No valid user for failed login attempts
     action: ActivityType.LOGIN_FAILED,
@@ -89,13 +99,17 @@ export async function logLoginFailed(email: string, reason: string, ipAddress?: 
       ipAddress,
       timestamp: new Date().toISOString(),
     },
-  })
+  });
 }
 
 /**
  * Log password reset request
  */
-export async function logPasswordResetRequested(userId: string, email: string, ipAddress?: string) {
+export async function logPasswordResetRequested(
+  userId: string,
+  email: string,
+  ipAddress?: string,
+) {
   return logActivity({
     userId,
     action: ActivityType.PASSWORD_RESET_REQUESTED,
@@ -104,13 +118,17 @@ export async function logPasswordResetRequested(userId: string, email: string, i
       email,
       ipAddress,
     },
-  })
+  });
 }
 
 /**
  * Log password reset completion
  */
-export async function logPasswordResetCompleted(userId: string, email: string, ipAddress?: string) {
+export async function logPasswordResetCompleted(
+  userId: string,
+  email: string,
+  ipAddress?: string,
+) {
   return logActivity({
     userId,
     action: ActivityType.PASSWORD_RESET_COMPLETED,
@@ -119,17 +137,20 @@ export async function logPasswordResetCompleted(userId: string, email: string, i
       email,
       ipAddress,
     },
-  })
+  });
 }
 
 /**
  * Log admin user creation
  */
-export async function logAdminUserCreated(userId: string, adminData: {
-  email: string
-  name?: string
-  createdBy: string
-}) {
+export async function logAdminUserCreated(
+  userId: string,
+  adminData: {
+    email: string;
+    name?: string;
+    createdBy: string;
+  },
+) {
   return logActivity({
     userId,
     action: ActivityType.ADMIN_USER_CREATED,
@@ -139,5 +160,5 @@ export async function logAdminUserCreated(userId: string, adminData: {
       name: adminData.name,
       createdBy: adminData.createdBy,
     },
-  })
+  });
 }

@@ -1,53 +1,53 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export interface AuthenticatedRequest {
   user: {
-    id: string
-    email: string
-    name: string | null
-    role: string
-  }
+    id: string;
+    email: string;
+    name: string | null;
+    role: string;
+  };
 }
 
 /**
  * Middleware to check if user is authenticated
  */
 export async function requireAuth(): Promise<AuthenticatedRequest | null> {
-  const session = await getServerSession(authOptions)
-  
+  const session = await getServerSession(authOptions);
+
   if (!session?.user) {
-    return null
+    return null;
   }
-  
+
   return {
     user: {
       id: session.user.id,
       email: session.user.email,
       name: session.user.name,
-      role: session.user.role
-    }
-  }
+      role: session.user.role,
+    },
+  };
 }
 
 /**
  * Middleware to check if user is admin
  */
 export async function requireAdmin(): Promise<AuthenticatedRequest | null> {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    return null
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return null;
   }
-  
+
   return {
     user: {
       id: session.user.id,
       email: session.user.email,
       name: session.user.name,
-      role: session.user.role
-    }
-  }
+      role: session.user.role,
+    },
+  };
 }
 
 /**
@@ -55,8 +55,8 @@ export async function requireAdmin(): Promise<AuthenticatedRequest | null> {
  */
 export async function getOptionalAuth(): Promise<AuthenticatedRequest | null> {
   try {
-    return await requireAuth()
+    return await requireAuth();
   } catch {
-    return null
+    return null;
   }
 }

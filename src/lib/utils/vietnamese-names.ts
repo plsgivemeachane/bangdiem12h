@@ -1,6 +1,6 @@
 /**
  * Vietnamese Name Formatting Utilities
- * 
+ *
  * Provides functions to properly format Vietnamese names according to Vietnamese naming conventions
  * where the surname (family name) comes last in the full name but should be displayed first for identification.
  */
@@ -9,15 +9,88 @@
  * Common Vietnamese surnames for better surname detection
  */
 const VIETNAMESE_SURNAMES = [
-  'nguyễn', 'trần', 'lê', 'phạm', 'hoàng', 'huỳnh', 'vũ', 'võ', 'đặng', 'bùi',
-  'đỗ', 'hồ', 'ngô', 'dương', 'lý', 'trường', 'tạ', 'trịnh', 'đinh', 'phan',
-  'tống', 'phùng', 'mai', 'tô', 'la', 'trương', 'bạch', 'bảo', 'cao', 'châu',
-  'chế', 'chử', 'cổ', 'công', 'cụ', 'diêu', 'đan', 'đàm', 'điền', 'đồng',
-  'giang', 'hà', 'hanh', 'hiếu', 'hình', 'hộ', 'kha', 'khánh', 'khổng', 'kim',
-  'lạc', 'lam', 'lê', 'liên', 'long', 'luân', 'ma', 'mạc', 'mẫn', 'mộc',
-  'nghiêm', 'ngu', 'ngưu', 'nhữ', 'phi', 'quách', 'quang', 'quyền', 'sác',
-  'sơn', 'thạch', 'thái', 'thanh', 'thien', 'thủy', 'thương', 'từ', 'ưng',
-  'vi', 'vương', 'xung', 'ý'
+  "nguyễn",
+  "trần",
+  "lê",
+  "phạm",
+  "hoàng",
+  "huỳnh",
+  "vũ",
+  "võ",
+  "đặng",
+  "bùi",
+  "đỗ",
+  "hồ",
+  "ngô",
+  "dương",
+  "lý",
+  "trường",
+  "tạ",
+  "trịnh",
+  "đinh",
+  "phan",
+  "tống",
+  "phùng",
+  "mai",
+  "tô",
+  "la",
+  "trương",
+  "bạch",
+  "bảo",
+  "cao",
+  "châu",
+  "chế",
+  "chử",
+  "cổ",
+  "công",
+  "cụ",
+  "diêu",
+  "đan",
+  "đàm",
+  "điền",
+  "đồng",
+  "giang",
+  "hà",
+  "hanh",
+  "hiếu",
+  "hình",
+  "hộ",
+  "kha",
+  "khánh",
+  "khổng",
+  "kim",
+  "lạc",
+  "lam",
+  "lê",
+  "liên",
+  "long",
+  "luân",
+  "ma",
+  "mạc",
+  "mẫn",
+  "mộc",
+  "nghiêm",
+  "ngu",
+  "ngưu",
+  "nhữ",
+  "phi",
+  "quách",
+  "quang",
+  "quyền",
+  "sác",
+  "sơn",
+  "thạch",
+  "thái",
+  "thanh",
+  "thien",
+  "thủy",
+  "thương",
+  "từ",
+  "ưng",
+  "vi",
+  "vương",
+  "xung",
+  "ý",
 ];
 
 /**
@@ -27,21 +100,21 @@ const VIETNAMESE_SURNAMES = [
  * @returns string - The surname (last part of the name)
  */
 export function getVietnameseSurname(fullName: string): string {
-  if (!fullName || typeof fullName !== 'string') {
-    return 'Không xác định';
+  if (!fullName || typeof fullName !== "string") {
+    return "Không xác định";
   }
 
   // Clean up the name by trimming and removing extra whitespace
-  const cleanName = fullName.trim().replace(/\s+/g, ' ');
-  
+  const cleanName = fullName.trim().replace(/\s+/g, " ");
+
   // Handle empty or single character names
   if (!cleanName || cleanName.length === 0) {
-    return 'Không xác định';
+    return "Không xác định";
   }
 
   // Split the name into parts
-  const nameParts = cleanName.split(' ');
-  
+  const nameParts = cleanName.split(" ");
+
   // If it's a single part name, return it
   if (nameParts.length === 1) {
     return cleanName;
@@ -52,14 +125,14 @@ export function getVietnameseSurname(fullName: string): string {
 
   // Check if it's a known Vietnamese surname or if it looks like a common surname pattern
   const normalizedSurname = surname.toLowerCase().trim();
-  
+
   if (VIETNAMESE_SURNAMES.includes(normalizedSurname)) {
     return surname; // Return original capitalization
   }
 
   // If the last part doesn't match known surnames, it might still be the surname
   // Vietnamese surnames are typically one word
-  if (surname.length > 0 && !surname.includes(' ')) {
+  if (surname.length > 0 && !surname.includes(" ")) {
     return surname;
   }
 
@@ -73,25 +146,25 @@ export function getVietnameseSurname(fullName: string): string {
  * @returns string - Properly formatted name
  */
 export function formatVietnameseName(fullName: string): string {
-  if (!fullName || typeof fullName !== 'string') {
-    return 'Không xác định';
+  if (!fullName || typeof fullName !== "string") {
+    return "Không xác định";
   }
 
   // Clean up extra whitespace
-  const cleanName = fullName.trim().replace(/\s+/g, ' ');
-  
+  const cleanName = fullName.trim().replace(/\s+/g, " ");
+
   if (!cleanName) {
-    return 'Không xác định';
+    return "Không xác định";
   }
 
   // Capitalize each part of the name properly
   return cleanName
-    .split(' ')
-    .map(part => {
+    .split(" ")
+    .map((part) => {
       // Handle Vietnamese diacritics and capitalization
       return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
     })
-    .join(' ');
+    .join(" ");
 }
 
 /**
@@ -102,9 +175,12 @@ export function formatVietnameseName(fullName: string): string {
  * @param isMobile - Whether to show mobile format (surname only)
  * @returns string - The formatted display name
  */
-export function getResponsiveDisplayName(fullName: string, isMobile: boolean = false): string {
-  if (!fullName || typeof fullName !== 'string') {
-    return 'Không xác định';
+export function getResponsiveDisplayName(
+  fullName: string,
+  isMobile: boolean = false,
+): string {
+  if (!fullName || typeof fullName !== "string") {
+    return "Không xác định";
   }
 
   if (isMobile) {
@@ -125,7 +201,7 @@ export function getResponsiveDisplayName(fullName: string, isMobile: boolean = f
 export function getResponsiveDisplayNameHTML(fullName: string): string {
   const surname = getVietnameseSurname(fullName);
   const fullNameFormatted = formatVietnameseName(fullName);
-  
+
   return `
     <span class="hidden sm:block">
       ${fullNameFormatted}
@@ -142,27 +218,28 @@ export function getResponsiveDisplayNameHTML(fullName: string): string {
  * @returns boolean - True if it appears to be a Vietnamese name format
  */
 export function isVietnameseNameFormat(name: string): boolean {
-  if (!name || typeof name !== 'string') {
+  if (!name || typeof name !== "string") {
     return false;
   }
 
   const cleanName = name.trim();
-  
+
   // Basic validation: should have at least one word and reasonable length
   if (cleanName.length < 2 || cleanName.length > 100) {
     return false;
   }
 
   // Check if it contains Vietnamese characters or follows Vietnamese name patterns
-  const vietnamesePattern = /[àáạảãăắằặẳẵâấầậẩẫèéẹẻẽêếềệểễìíịỉĩòóọỏõôốồộổỗơớờợởỡùúụủũưứừựửữỳýỵỷỹđ]/i;
+  const vietnamesePattern =
+    /[àáạảãăắằặẳẵâấầậẩẫèéẹẻẽêếềệểễìíịỉĩòóọỏõôốồộổỗơớờợởỡùúụủũưứừựửữỳýỵỷỹđ]/i;
   const hasVietnameseChars = vietnamesePattern.test(cleanName);
-  
+
   if (hasVietnameseChars) {
     return true;
   }
 
   // Check if it's a multi-word name (common for Vietnamese names)
-  const nameParts = cleanName.split(' ');
+  const nameParts = cleanName.split(" ");
   if (nameParts.length >= 2) {
     return true;
   }
@@ -185,7 +262,7 @@ export const vietnameseNameUtils = {
   getResponsiveDisplayName,
   getResponsiveDisplayNameHTML,
   isVietnameseNameFormat,
-  commonSurnames: VIETNAMESE_SURNAMES
+  commonSurnames: VIETNAMESE_SURNAMES,
 };
 
 export default vietnameseNameUtils;

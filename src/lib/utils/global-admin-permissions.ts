@@ -1,10 +1,10 @@
-import { GroupMember, GroupRole, User } from '@/types'
+import { GroupMember, GroupRole, User } from "@/types";
 
 /**
  * Check if a user is a global administrator
  */
 export function isGlobalAdmin(user: User | null | undefined): boolean {
-  return user?.role === 'ADMIN'
+  return user?.role === "ADMIN";
 }
 
 /**
@@ -13,42 +13,42 @@ export function isGlobalAdmin(user: User | null | undefined): boolean {
  */
 export function injectVirtualAdminMembership(
   group: any,
-  currentUser: User | null | undefined
+  currentUser: User | null | undefined,
 ): any {
   if (!isGlobalAdmin(currentUser)) {
-    return group
+    return group;
   }
 
   // Check if user is already a member of the group
   const existingMember = group.members?.find(
-    (member: GroupMember) => member.userId === currentUser?.id
-  )
+    (member: GroupMember) => member.userId === currentUser?.id,
+  );
 
   // If user is already a member, don't inject virtual membership
   if (existingMember) {
-    return group
+    return group;
   }
 
   // Inject virtual admin membership
   const virtualMember: GroupMember = {
     id: `virtual-${currentUser?.id}-${group.id}`,
-    userId: currentUser?.id || '',
+    userId: currentUser?.id || "",
     groupId: group.id,
     role: GroupRole.ADMIN,
     joinedAt: new Date(),
     user: {
-      id: currentUser?.id || '',
-      name: currentUser?.name || '',
-      email: currentUser?.email || '',
-      role: currentUser?.role || 'USER' as any,
-      createdAt: currentUser?.createdAt || new Date()
-    }
-  }
+      id: currentUser?.id || "",
+      name: currentUser?.name || "",
+      email: currentUser?.email || "",
+      role: currentUser?.role || ("USER" as any),
+      createdAt: currentUser?.createdAt || new Date(),
+    },
+  };
 
   return {
     ...group,
-    members: [...(group.members || []), virtualMember]
-  }
+    members: [...(group.members || []), virtualMember],
+  };
 }
 
 /**
@@ -57,18 +57,18 @@ export function injectVirtualAdminMembership(
 export function hasGroupPermission(
   user: User | null | undefined,
   groupMembers: GroupMember[],
-  requiredRoles: GroupRole[]
+  requiredRoles: GroupRole[],
 ): boolean {
   if (isGlobalAdmin(user)) {
-    return true
+    return true;
   }
 
-  const userMember = groupMembers.find(member => member.userId === user?.id)
+  const userMember = groupMembers.find((member) => member.userId === user?.id);
   if (!userMember) {
-    return false
+    return false;
   }
 
-  return requiredRoles.includes(userMember.role)
+  return requiredRoles.includes(userMember.role);
 }
 
 /**
@@ -76,9 +76,12 @@ export function hasGroupPermission(
  */
 export function canManageGroup(
   user: User | null | undefined,
-  groupMembers: GroupMember[]
+  groupMembers: GroupMember[],
 ): boolean {
-  return hasGroupPermission(user, groupMembers, [GroupRole.OWNER, GroupRole.ADMIN])
+  return hasGroupPermission(user, groupMembers, [
+    GroupRole.OWNER,
+    GroupRole.ADMIN,
+  ]);
 }
 
 /**
@@ -86,15 +89,15 @@ export function canManageGroup(
  */
 export function isGroupOwner(
   user: User | null | undefined,
-  groupMembers: GroupMember[]
+  groupMembers: GroupMember[],
 ): boolean {
   if (isGlobalAdmin(user)) {
     // Global admins are not owners, they are admins
-    return false
+    return false;
   }
 
-  const userMember = groupMembers.find(member => member.userId === user?.id)
-  return userMember?.role === GroupRole.OWNER || false
+  const userMember = groupMembers.find((member) => member.userId === user?.id);
+  return userMember?.role === GroupRole.OWNER || false;
 }
 
 /**
@@ -102,16 +105,18 @@ export function isGroupOwner(
  */
 export function getUserGroupRole(
   user: User | null | undefined,
-  groupMembers: GroupMember[]
+  groupMembers: GroupMember[],
 ): GroupRole {
   if (isGlobalAdmin(user)) {
-    const existingMember = groupMembers.find(member => member.userId === user?.id)
+    const existingMember = groupMembers.find(
+      (member) => member.userId === user?.id,
+    );
     if (existingMember) {
-      return existingMember.role
+      return existingMember.role;
     }
-    return GroupRole.ADMIN
+    return GroupRole.ADMIN;
   }
 
-  const userMember = groupMembers.find(member => member.userId === user?.id)
-  return userMember?.role || GroupRole.MEMBER
+  const userMember = groupMembers.find((member) => member.userId === user?.id);
+  return userMember?.role || GroupRole.MEMBER;
 }

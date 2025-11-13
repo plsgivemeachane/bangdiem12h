@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer'
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_SERVER_HOST,
@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_SERVER_USER,
     pass: process.env.EMAIL_SERVER_PASSWORD,
   },
-})
+});
 
 export async function sendEmail({
   to,
@@ -16,10 +16,10 @@ export async function sendEmail({
   text,
   html,
 }: {
-  to: string
-  subject: string
-  text?: string
-  html?: string
+  to: string;
+  subject: string;
+  text?: string;
+  html?: string;
 }) {
   try {
     await transporter.sendMail({
@@ -28,11 +28,11 @@ export async function sendEmail({
       subject,
       text,
       html,
-    })
-    console.log(`Email sent to ${to}`)
+    });
+    console.log(`Email sent to ${to}`);
   } catch (error) {
-    console.error('Gửi email thất bại:', error)
-    throw error
+    console.error("Gửi email thất bại:", error);
+    throw error;
   }
 }
 
@@ -42,12 +42,12 @@ export async function sendInvitationEmail({
   invitedBy,
   invitationLink,
 }: {
-  to: string
-  groupName: string
-  invitedBy: string
-  invitationLink: string
+  to: string;
+  groupName: string;
+  invitedBy: string;
+  invitationLink: string;
 }) {
-  const subject = `Invitation to join ${groupName}`
+  const subject = `Invitation to join ${groupName}`;
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>Group Invitation</h2>
@@ -62,24 +62,24 @@ export async function sendInvitationEmail({
       <hr>
       <p><small>This invitation will expire in 7 days.</small></p>
     </div>
-  `
-  
+  `;
+
   await sendEmail({
     to,
     subject,
     html,
-  })
+  });
 }
 
 export async function sendPasswordResetEmail({
   to,
   resetToken,
 }: {
-  to: string
-  resetToken: string
+  to: string;
+  resetToken: string;
 }) {
-  const subject = 'Password Reset Request'
-  const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`
+  const subject = "Password Reset Request";
+  const resetUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/auth/reset-password?token=${resetToken}`;
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>Password Reset Request</h2>
@@ -93,11 +93,11 @@ export async function sendPasswordResetEmail({
       <hr>
       <p><small>This password reset link will expire in 1 hour. If you didn't request this, please ignore this email.</small></p>
     </div>
-  `
-  
+  `;
+
   await sendEmail({
     to,
     subject,
     html,
-  })
+  });
 }

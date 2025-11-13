@@ -1,188 +1,217 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { startOfWeek, startOfMonth, startOfYear, endOfWeek, endOfMonth, endOfYear, format } from 'date-fns'
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import {
+  startOfWeek,
+  startOfMonth,
+  startOfYear,
+  endOfWeek,
+  endOfMonth,
+  endOfYear,
+  format,
+} from "date-fns";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa được xác thực' }, { status: 401 })
+      return NextResponse.json(
+        { error: "Chưa được xác thực" },
+        { status: 401 },
+      );
     }
 
-    const { searchParams } = new URL(request.url)
-    const groupId = searchParams.get('groupId')
-    const period = searchParams.get('period') || 'month' // week, month, year
-    const userId = searchParams.get('userId') // optional, for admin views
+    const { searchParams } = new URL(request.url);
+    const groupId = searchParams.get("groupId");
+    const period = searchParams.get("period") || "month"; // week, month, year
+    const userId = searchParams.get("userId"); // optional, for admin views
 
-    const targetUserId = userId || session.user.id
-    const now = new Date()
-    let startDate: Date
-    let endDate: Date
+    const targetUserId = userId || session.user.id;
+    const now = new Date();
+    let startDate: Date;
+    let endDate: Date;
 
     // Set date range based on period
     switch (period) {
-      case 'week':
-        startDate = startOfWeek(now, { weekStartsOn: 1 })
-        endDate = endOfWeek(now, { weekStartsOn: 1 })
-        break
-      case 'year':
-        startDate = startOfYear(now)
-        endDate = endOfYear(now)
-        break
-      case 'month':
+      case "week":
+        startDate = startOfWeek(now, { weekStartsOn: 1 });
+        endDate = endOfWeek(now, { weekStartsOn: 1 });
+        break;
+      case "year":
+        startDate = startOfYear(now);
+        endDate = endOfYear(now);
+        break;
+      case "month":
       default:
-        startDate = startOfMonth(now)
-        endDate = endOfMonth(now)
-        break
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
+        break;
     }
 
     // Build where clause for score records
     const whereClause: any = {
       recordedAt: {
         gte: startDate,
-        lte: endDate
-      }
-    }
+        lte: endDate,
+      },
+    };
 
     // Add userId filter if specified
     if (userId) {
-      whereClause.userId = targetUserId
+      whereClause.userId = targetUserId;
     }
 
     // Add groupId filter if specified
     if (groupId) {
-      whereClause.groupId = groupId
+      whereClause.groupId = groupId;
     }
-    
+
     const scoreRecords = await prisma.scoreRecord.findMany({
       where: whereClause,
       include: {
         rule: {
-          select: { id: true, name: true, points: true }
+          select: { id: true, name: true, points: true },
         },
         group: {
-          select: { id: true, name: true }
-        }
+          select: { id: true, name: true },
+        },
       },
-      orderBy: { recordedAt: 'desc' }
-    })
+      orderBy: { recordedAt: "desc" },
+    });
 
     // Calculate analytics
-    const totalPoints = scoreRecords.reduce((sum, record) => sum + record.points, 0)
-    const averagePoints = scoreRecords.length > 0 ? totalPoints / scoreRecords.length : 0
+    const totalPoints = scoreRecords.reduce(
+      (sum, record) => sum + record.points,
+      0,
+    );
+    const averagePoints =
+      scoreRecords.length > 0 ? totalPoints / scoreRecords.length : 0;
 
     // Group by date for trend analysis
-    const dailyPoints: { [key: string]: number } = {}
-    const ruleBreakdown: { [key: string]: { name: string; points: number; count: number } } = {}
+    const dailyPoints: { [key: string]: number } = {};
+    const ruleBreakdown: {
+      [key: string]: { name: string; points: number; count: number };
+    } = {};
 
-    scoreRecords.forEach(record => {
-      const dateKey = format(record.recordedAt, 'yyyy-MM-dd')
-      dailyPoints[dateKey] = (dailyPoints[dateKey] || 0) + record.points
+    scoreRecords.forEach((record) => {
+      const dateKey = format(record.recordedAt, "yyyy-MM-dd");
+      dailyPoints[dateKey] = (dailyPoints[dateKey] || 0) + record.points;
 
       // Only process if rule exists (not deleted)
       if (record.rule) {
-        const ruleKey = record.rule.id
+        const ruleKey = record.rule.id;
         if (!ruleBreakdown[ruleKey]) {
           ruleBreakdown[ruleKey] = {
-            name: record.rule.name || 'Quy tắc không xác định',
+            name: record.rule.name || "Quy tắc không xác định",
             points: 0,
-            count: 0
-          }
+            count: 0,
+          };
         }
-        ruleBreakdown[ruleKey].points += record.points
-        ruleBreakdown[ruleKey].count += 1
+        ruleBreakdown[ruleKey].points += record.points;
+        ruleBreakdown[ruleKey].count += 1;
       }
-    })
+    });
 
     // Convert to arrays for charts and calculate accumulated scores
     const trendData = Object.entries(dailyPoints)
       .map(([date, points]) => ({ date, dailyPoints: points }))
       .sort((a, b) => a.date.localeCompare(b.date))
-      .reduce((acc, item, index) => {
-        const accumulatedPoints = index === 0
-          ? item.dailyPoints
-          : acc[index - 1].points + item.dailyPoints
-        acc.push({
-          date: item.date,
-          points: accumulatedPoints
-        })
-        return acc
-      }, [] as Array<{ date: string; points: number }>)
+      .reduce(
+        (acc, item, index) => {
+          const accumulatedPoints =
+            index === 0
+              ? item.dailyPoints
+              : acc[index - 1].points + item.dailyPoints;
+          acc.push({
+            date: item.date,
+            points: accumulatedPoints,
+          });
+          return acc;
+        },
+        [] as Array<{ date: string; points: number }>,
+      );
 
-    const ruleData = Object.entries(ruleBreakdown).map(([ruleId, data]) => ({
-      ruleId,
-      name: data.name,
-      totalPoints: data.points,
-      count: data.count,
-      averagePoints: data.points / data.count
-    })).sort((a, b) => b.totalPoints - a.totalPoints)
+    const ruleData = Object.entries(ruleBreakdown)
+      .map(([ruleId, data]) => ({
+        ruleId,
+        name: data.name,
+        totalPoints: data.points,
+        count: data.count,
+        averagePoints: data.points / data.count,
+      }))
+      .sort((a, b) => b.totalPoints - a.totalPoints);
 
     // Get comparison with previous period
-    let previousPeriodData = null
-    const periodDuration = endDate.getTime() - startDate.getTime()
-    const previousStartDate = new Date(startDate.getTime() - periodDuration)
-    const previousEndDate = new Date(startDate.getTime() - 1)
+    let previousPeriodData = null;
+    const periodDuration = endDate.getTime() - startDate.getTime();
+    const previousStartDate = new Date(startDate.getTime() - periodDuration);
+    const previousEndDate = new Date(startDate.getTime() - 1);
 
     // Build where clause for previous period
     const previousWhereClause: any = {
       recordedAt: {
         gte: previousStartDate,
-        lte: previousEndDate
-      }
-    }
-    
+        lte: previousEndDate,
+      },
+    };
+
     if (userId) {
-      previousWhereClause.userId = targetUserId
+      previousWhereClause.userId = targetUserId;
     }
-    
+
     if (groupId) {
-      previousWhereClause.groupId = groupId
+      previousWhereClause.groupId = groupId;
     }
 
     const previousScoreRecords = await prisma.scoreRecord.findMany({
-      where: previousWhereClause
-    })
+      where: previousWhereClause,
+    });
 
-    const previousTotalPoints = previousScoreRecords.reduce((sum, record) => sum + record.points, 0)
-    const pointsChange = totalPoints - previousTotalPoints
-    const pointsChangePercent = previousTotalPoints > 0 ? (pointsChange / previousTotalPoints) * 100 : 0
+    const previousTotalPoints = previousScoreRecords.reduce(
+      (sum, record) => sum + record.points,
+      0,
+    );
+    const pointsChange = totalPoints - previousTotalPoints;
+    const pointsChangePercent =
+      previousTotalPoints > 0 ? (pointsChange / previousTotalPoints) * 100 : 0;
 
     previousPeriodData = {
       totalPoints: previousTotalPoints,
       recordCount: previousScoreRecords.length,
       pointsChange,
-      pointsChangePercent
-    }
+      pointsChangePercent,
+    };
 
     // Add group breakdown for multi-group view (when no specific group is selected)
-    let groupBreakdownData: any[] = []
+    let groupBreakdownData: any[] = [];
     if (!groupId) {
       // Get all groups with their score records
-      const groupStats: { [key: string]: { name: string; points: number; count: number } } = {}
-      
+      const groupStats: {
+        [key: string]: { name: string; points: number; count: number };
+      } = {};
+
       // Initialize all groups
       const allGroups = await prisma.group.findMany({
-        select: { id: true, name: true }
-      })
-      
-      allGroups.forEach(group => {
+        select: { id: true, name: true },
+      });
+
+      allGroups.forEach((group) => {
         groupStats[group.id] = {
-          name: group.name || 'Nhóm không xác định',
+          name: group.name || "Nhóm không xác định",
           points: 0,
-          count: 0
-        }
-      })
-      
+          count: 0,
+        };
+      });
+
       // Calculate stats for each group
-      scoreRecords.forEach(record => {
+      scoreRecords.forEach((record) => {
         if (record.group && groupStats[record.groupId]) {
-          groupStats[record.groupId].points += record.points
-          groupStats[record.groupId].count += 1
+          groupStats[record.groupId].points += record.points;
+          groupStats[record.groupId].count += 1;
         }
-      })
-      
+      });
+
       groupBreakdownData = Object.entries(groupStats)
         .filter(([_, data]) => data.count > 0) // Only include groups with actual data
         .map(([groupId, data]) => ({
@@ -190,8 +219,12 @@ export async function GET(request: NextRequest) {
           name: data.name,
           totalPoints: data.points,
           recordCount: data.count,
-          averagePoints: data.count > 0 ? Math.round((data.points / data.count) * 100) / 100 : 0
-        })).sort((a, b) => b.totalPoints - a.totalPoints)
+          averagePoints:
+            data.count > 0
+              ? Math.round((data.points / data.count) * 100) / 100
+              : 0,
+        }))
+        .sort((a, b) => b.totalPoints - a.totalPoints);
     }
 
     return NextResponse.json({
@@ -199,21 +232,21 @@ export async function GET(request: NextRequest) {
         period,
         dateRange: {
           start: startDate.toISOString(),
-          end: endDate.toISOString()
+          end: endDate.toISOString(),
         },
         summary: {
           totalPoints,
           recordCount: scoreRecords.length,
           averagePoints: Math.round(averagePoints * 100) / 100,
-          previousPeriod: previousPeriodData
+          previousPeriod: previousPeriodData,
         },
         trendData,
         ruleBreakdown: ruleData,
-        groupBreakdown: groupBreakdownData
-      }
-    })
+        groupBreakdown: groupBreakdownData,
+      },
+    });
   } catch (error) {
-    console.error('Lỗi tải dữ liệu phân tích:', error)
-    return NextResponse.json({ error: 'Lỗi máy chủ nội bộ' }, { status: 500 })
+    console.error("Lỗi tải dữ liệu phân tích:", error);
+    return NextResponse.json({ error: "Lỗi máy chủ nội bộ" }, { status: 500 });
   }
 }

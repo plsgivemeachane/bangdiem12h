@@ -570,6 +570,12 @@ export default function DashboardClient() {
                 >
                   {DASHBOARD.OVERVIEW.VIEW_SCORING_RULES}
                 </Button>
+                <Button asChild className="w-full justify-start">
+                  <Link href="/score-records">
+                    <Trophy className="h-4 w-4 mr-2" />
+                    Score Records
+                  </Link>
+                </Button>
                 {user?.role === 'ADMIN' && (
                   <>
                     <Button asChild className="w-full justify-start">

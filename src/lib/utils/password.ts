@@ -1,14 +1,14 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from "bcryptjs";
 
 // Password configuration constants
 export const PASSWORD_CONFIG = {
-  rounds: 12,              // bcrypt rounds for security/performance balance
-  minLength: 8,           // minimum password length
-  maxLength: 100,         // maximum password length
-  minUppercase: 1,        // minimum uppercase letters
-  minLowercase: 1,        // minimum lowercase letters
-  minNumbers: 1,          // minimum numbers
-  minSpecial: 1,          // minimum special characters
+  rounds: 12, // bcrypt rounds for security/performance balance
+  minLength: 8, // minimum password length
+  maxLength: 100, // maximum password length
+  minUppercase: 1, // minimum uppercase letters
+  minLowercase: 1, // minimum lowercase letters
+  minNumbers: 1, // minimum numbers
+  minSpecial: 1, // minimum special characters
 };
 
 /**
@@ -20,19 +20,19 @@ export const PASSWORD_CONFIG = {
 export async function hashPassword(password: string): Promise<string> {
   // Validate password length
   if (password.length < PASSWORD_CONFIG.minLength) {
-    throw new Error('Mật khẩu phải có ít nhất 8 ký tự');
+    throw new Error("Mật khẩu phải có ít nhất 8 ký tự");
   }
-  
+
   if (password.length > PASSWORD_CONFIG.maxLength) {
-    throw new Error('Mật khẩu không được vượt quá 100 ký tự');
+    throw new Error("Mật khẩu không được vượt quá 100 ký tự");
   }
 
   try {
     const hashedPassword = await bcrypt.hash(password, PASSWORD_CONFIG.rounds);
     return hashedPassword;
   } catch (error) {
-    console.error('Băm mật khẩu thất bại:', error);
-    throw new Error('Xử lý mật khẩu thất bại');
+    console.error("Băm mật khẩu thất bại:", error);
+    throw new Error("Xử lý mật khẩu thất bại");
   }
 }
 
@@ -42,16 +42,19 @@ export async function hashPassword(password: string): Promise<string> {
  * @param hashedPassword - Hashed password to compare against
  * @returns Promise<boolean> - True if password matches, false otherwise
  */
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  hashedPassword: string,
+): Promise<boolean> {
   try {
     if (!password || !hashedPassword) {
       return false;
     }
-    
+
     const isValid = await bcrypt.compare(password, hashedPassword);
     return isValid;
   } catch (error) {
-    console.error('Xác minh mật khẩu thất bại:', error);
+    console.error("Xác minh mật khẩu thất bại:", error);
     return false;
   }
 }
@@ -87,25 +90,33 @@ export function validatePasswordStrength(password: string): {
   if (uppercaseCount >= PASSWORD_CONFIG.minUppercase) {
     score += 1;
   } else {
-    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minUppercase} chữ hoa`);
+    errors.push(
+      `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minUppercase} chữ hoa`,
+    );
   }
 
   if (lowercaseCount >= PASSWORD_CONFIG.minLowercase) {
     score += 1;
   } else {
-    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minLowercase} chữ thường`);
+    errors.push(
+      `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minLowercase} chữ thường`,
+    );
   }
 
   if (numberCount >= PASSWORD_CONFIG.minNumbers) {
     score += 1;
   } else {
-    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minNumbers} chữ số`);
+    errors.push(
+      `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minNumbers} chữ số`,
+    );
   }
 
   if (specialCount >= PASSWORD_CONFIG.minSpecial) {
     score += 1;
   } else {
-    errors.push(`Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minSpecial} ký tự đặc biệt`);
+    errors.push(
+      `Mật khẩu phải có ít nhất ${PASSWORD_CONFIG.minSpecial} ký tự đặc biệt`,
+    );
   }
 
   // Additional strength indicators
@@ -113,7 +124,12 @@ export function validatePasswordStrength(password: string): {
     score += 1; // Extra bonus for very long passwords
   }
 
-  if (uppercaseCount >= 2 && lowercaseCount >= 2 && numberCount >= 2 && specialCount >= 2) {
+  if (
+    uppercaseCount >= 2 &&
+    lowercaseCount >= 2 &&
+    numberCount >= 2 &&
+    specialCount >= 2
+  ) {
     score += 1; // Bonus for meeting enhanced requirements
   }
 
@@ -121,7 +137,7 @@ export function validatePasswordStrength(password: string): {
   return {
     isValid,
     errors,
-    score: Math.min(score, 5) // Cap at 5
+    score: Math.min(score, 5), // Cap at 5
   };
 }
 
@@ -131,39 +147,42 @@ export function validatePasswordStrength(password: string): {
  * @returns string - Generated password
  */
 export function generateSecurePassword(length: number = 16): string {
-  const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
-  const numberChars = '0123456789';
-  const specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+  const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+  const numberChars = "0123456789";
+  const specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
 
   // Ensure at least one of each required character type
   const requiredChars = [
     uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)],
     lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)],
     numberChars[Math.floor(Math.random() * numberChars.length)],
-    specialChars[Math.floor(Math.random() * specialChars.length)]
+    specialChars[Math.floor(Math.random() * specialChars.length)],
   ];
 
   // Create the character pool for the remaining characters
   const allChars = uppercaseChars + lowercaseChars + numberChars + specialChars;
-  
+
   // Fill the rest of the password
   const remainingLength = length - requiredChars.length;
   const remainingChars = Array.from(
     { length: remainingLength },
-    () => allChars[Math.floor(Math.random() * allChars.length)]
+    () => allChars[Math.floor(Math.random() * allChars.length)],
   );
 
   // Combine and shuffle
   const allPasswordChars = [...requiredChars, ...remainingChars];
-  
+
   // Fisher-Yates shuffle
   for (let i = allPasswordChars.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [allPasswordChars[i], allPasswordChars[j]] = [allPasswordChars[j], allPasswordChars[i]];
+    [allPasswordChars[i], allPasswordChars[j]] = [
+      allPasswordChars[j],
+      allPasswordChars[i],
+    ];
   }
 
-  return allPasswordChars.join('');
+  return allPasswordChars.join("");
 }
 
 /**
@@ -173,11 +192,23 @@ export function generateSecurePassword(length: number = 16): string {
  */
 export function isCommonPassword(password: string): boolean {
   const commonPasswords = [
-    'password', '123456', '123456789', 'qwerty', 'abc123',
-    'password123', 'admin', 'letmein', 'welcome', 'monkey',
-    '1234567890', 'dragon', 'master', 'hello', 'login'
+    "password",
+    "123456",
+    "123456789",
+    "qwerty",
+    "abc123",
+    "password123",
+    "admin",
+    "letmein",
+    "welcome",
+    "monkey",
+    "1234567890",
+    "dragon",
+    "master",
+    "hello",
+    "login",
   ];
-  
+
   return commonPasswords.includes(password.toLowerCase());
 }
 
@@ -190,7 +221,7 @@ export const passwordUtils = {
   validatePasswordStrength,
   generateSecurePassword,
   isCommonPassword,
-  config: PASSWORD_CONFIG
+  config: PASSWORD_CONFIG,
 };
 
 export default passwordUtils;

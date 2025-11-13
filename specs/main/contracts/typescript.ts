@@ -17,7 +17,7 @@ export interface User {
   id: string;
   name?: string;
   email: string;
-  role: 'USER' | 'ADMIN';
+  role: "USER" | "ADMIN";
   createdAt: string;
 }
 
@@ -34,7 +34,12 @@ export interface PasswordResetResponse {
 // Error Response Type
 export interface ErrorResponse {
   success: false;
-  error: 'VALIDATION_ERROR' | 'USER_EXISTS' | 'INVALID_CREDENTIALS' | 'SERVER_ERROR' | 'NOT_FOUND';
+  error:
+    | "VALIDATION_ERROR"
+    | "USER_EXISTS"
+    | "INVALID_CREDENTIALS"
+    | "SERVER_ERROR"
+    | "NOT_FOUND";
   message: string;
 }
 
@@ -44,7 +49,7 @@ export interface UserWithPassword {
   name?: string;
   email: string;
   password?: string;
-  role: 'USER' | 'ADMIN';
+  role: "USER" | "ADMIN";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,12 +59,18 @@ export interface PrismaUserCreateInput {
   name?: string;
   email: string;
   password?: string;
-  role?: 'USER' | 'ADMIN';
+  role?: "USER" | "ADMIN";
 }
 
 // Activity Log Types for Authentication Events
 export interface AuthActivityLog {
-  action: 'USER_REGISTERED' | 'USER_LOGIN' | 'LOGIN_FAILED' | 'PASSWORD_RESET_REQUESTED' | 'PASSWORD_RESET_COMPLETED' | 'ADMIN_USER_CREATED';
+  action:
+    | "USER_REGISTERED"
+    | "USER_LOGIN"
+    | "LOGIN_FAILED"
+    | "PASSWORD_RESET_REQUESTED"
+    | "PASSWORD_RESET_COMPLETED"
+    | "ADMIN_USER_CREATED";
   description: string;
   metadata?: Record<string, any>;
 }
@@ -91,31 +102,32 @@ export interface ValidationResult {
 // Validation Schemas (for Zod)
 export const registrationSchema = {
   name: {
-    type: 'string',
+    type: "string",
     minLength: 1,
     maxLength: 100,
-    optional: true
+    optional: true,
   },
   email: {
-    type: 'string',
-    format: 'email',
-    required: true
+    type: "string",
+    format: "email",
+    required: true,
   },
   password: {
-    type: 'string',
+    type: "string",
     minLength: 8,
     maxLength: 100,
     required: true,
-    pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]'
-  }
+    pattern:
+      "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]",
+  },
 } as const;
 
 export const passwordResetSchema = {
   email: {
-    type: 'string',
-    format: 'email',
-    required: true
-  }
+    type: "string",
+    format: "email",
+    required: true,
+  },
 } as const;
 
 // Configuration Types
@@ -130,7 +142,7 @@ export const DEFAULT_AUTH_CONFIG: AuthConfig = {
   bcryptRounds: 12,
   sessionTimeout: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
   maxLoginAttempts: 5,
-  passwordResetExpiration: 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+  passwordResetExpiration: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
 } as const;
 
 // Environment Variables
@@ -143,12 +155,12 @@ export interface EnvVars {
 // Database Index Requirements
 export interface DatabaseIndexes {
   users: {
-    email: 'unique';
-    password: 'index WHERE password IS NOT NULL';
+    email: "unique";
+    password: "index WHERE password IS NOT NULL";
   };
   activityLogs: {
-    timestamp: 'index';
-    action: 'index';
-    userId: 'index';
+    timestamp: "index";
+    action: "index";
+    userId: "index";
   };
 }
