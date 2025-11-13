@@ -134,10 +134,10 @@ export async function GET(
     // Convert to array and sort
     const allPerformances = Array.from(userPerformanceMap.values())
     
-    // Sort by total records (descending) for top performers
+    // Sort by total points (descending) for top performers
     const topPerformers = [...allPerformances]
       .filter(p => p.totalRecords > 0)
-      .sort((a, b) => b.totalRecords - a.totalRecords)
+      .sort((a, b) => b.totalPoints - a.totalPoints)
       .slice(0, 3)
 
     // Sort by total points (ascending) for bottom performers (only those with records)

@@ -16,72 +16,6 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period') || 'month' // week, month, year
     const userId = searchParams.get('userId') // optional, for admin views
 
-    let groups: any[] = []
-    let isAllGroups = false
-
-    // Handle empty/missing groupId as "all user's groups"
-    if (!groupId || groupId === '') {
-      isAllGroups = true
-      // Fetch all groups where user is a member
-      const userMemberships = await prisma.groupMember.findMany({
-        where: { userId: session.user.id },
-        include: {
-          group: {
-            include: {
-              members: true
-            }
-          }
-        }
-      })
-      
-      groups = userMemberships.map(membership => membership.group)
-      
-      if (groups.length === 0) {
-        // User has no groups, return empty analytics
-        return NextResponse.json({
-          analytics: {
-            period,
-            dateRange: { start: new Date().toISOString(), end: new Date().toISOString() },
-            summary: {
-              totalPoints: 0,
-              recordCount: 0,
-              averagePoints: 0,
-              previousPeriod: { totalPoints: 0, recordCount: 0, pointsChange: 0, pointsChangePercent: 0 }
-            },
-            trendData: [],
-            ruleBreakdown: [],
-            groupBreakdown: []
-          }
-        })
-      }
-    } else {
-      // Single group mode - verify user has access to this group
-      const group = await prisma.group.findUnique({
-        where: { id: groupId },
-        include: {
-          members: {
-            where: userId ? {} : { userId: session.user.id }
-          }
-        }
-      })
-
-      if (!group) {
-        return NextResponse.json({ error: 'Không tìm thấy nhóm' }, { status: 404 })
-      }
-
-      // If userId is specified, verify admin access
-      if (userId && userId !== session.user.id) {
-        const hasAdminAccess = group.members.some(member => 
-          member.userId === session.user.id && (member.role === 'OWNER' || member.role === 'ADMIN')
-        )
-        if (!hasAdminAccess) {
-          return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 403 })
-        }
-      }
-      
-      groups = [group]
-    }
-
     const targetUserId = userId || session.user.id
     const now = new Date()
     let startDate: Date
@@ -104,21 +38,22 @@ export async function GET(request: NextRequest) {
         break
     }
 
-    // Get score records for the period (across all groups or single group)
-    const groupIds = groups.map(g => g.id)
-    
-    // Build where clause - only filter by userId if explicitly requested (for admin views)
+    // Build where clause for score records
     const whereClause: any = {
-      groupId: { in: groupIds },
       recordedAt: {
         gte: startDate,
         lte: endDate
       }
     }
-    
-    // Only add userId filter if explicitly viewing a specific user's stats
+
+    // Add userId filter if specified
     if (userId) {
       whereClause.userId = targetUserId
+    }
+
+    // Add groupId filter if specified
+    if (groupId) {
+      whereClause.groupId = groupId
     }
     
     const scoreRecords = await prisma.scoreRecord.findMany({
@@ -180,9 +115,8 @@ export async function GET(request: NextRequest) {
     const previousStartDate = new Date(startDate.getTime() - periodDuration)
     const previousEndDate = new Date(startDate.getTime() - 1)
 
-    // Build where clause for previous period (same logic as current period)
+    // Build where clause for previous period
     const previousWhereClause: any = {
-      groupId: { in: groupIds },
       recordedAt: {
         gte: previousStartDate,
         lte: previousEndDate
@@ -191,6 +125,10 @@ export async function GET(request: NextRequest) {
     
     if (userId) {
       previousWhereClause.userId = targetUserId
+    }
+    
+    if (groupId) {
+      previousWhereClause.groupId = groupId
     }
 
     const previousScoreRecords = await prisma.scoreRecord.findMany({
@@ -208,12 +146,18 @@ export async function GET(request: NextRequest) {
       pointsChangePercent
     }
 
-    // Add group breakdown for multi-group view
+    // Add group breakdown for multi-group view (when no specific group is selected)
     let groupBreakdownData: any[] = []
-    if (isAllGroups && groups.length > 1) {
+    if (!groupId) {
+      // Get all groups with their score records
       const groupStats: { [key: string]: { name: string; points: number; count: number } } = {}
       
-      groups.forEach(group => {
+      // Initialize all groups
+      const allGroups = await prisma.group.findMany({
+        select: { id: true, name: true }
+      })
+      
+      allGroups.forEach(group => {
         groupStats[group.id] = {
           name: group.name || 'Nhóm không xác định',
           points: 0,
@@ -221,6 +165,7 @@ export async function GET(request: NextRequest) {
         }
       })
       
+      // Calculate stats for each group
       scoreRecords.forEach(record => {
         if (record.group && groupStats[record.groupId]) {
           groupStats[record.groupId].points += record.points
@@ -228,13 +173,15 @@ export async function GET(request: NextRequest) {
         }
       })
       
-      groupBreakdownData = Object.entries(groupStats).map(([groupId, data]) => ({
-        groupId,
-        name: data.name,
-        totalPoints: data.points,
-        recordCount: data.count,
-        averagePoints: data.count > 0 ? Math.round((data.points / data.count) * 100) / 100 : 0
-      })).sort((a, b) => b.totalPoints - a.totalPoints)
+      groupBreakdownData = Object.entries(groupStats)
+        .filter(([_, data]) => data.count > 0) // Only include groups with actual data
+        .map(([groupId, data]) => ({
+          groupId,
+          name: data.name,
+          totalPoints: data.points,
+          recordCount: data.count,
+          averagePoints: data.count > 0 ? Math.round((data.points / data.count) * 100) / 100 : 0
+        })).sort((a, b) => b.totalPoints - a.totalPoints)
     }
 
     return NextResponse.json({

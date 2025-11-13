@@ -27,6 +27,7 @@ import { GroupsApi } from '@/lib/api/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { Group, GroupMember, GroupStats } from '@/types'
 import { canManageGroup, getUserGroupRole } from '@/lib/utils/global-admin-permissions'
+import { getVietnameseSurname, getResponsiveDisplayName } from '@/lib/utils/vietnamese-names'
 import toast from 'react-hot-toast'
 
 const ROLE_LABELS: Record<string, string> = {
@@ -289,27 +290,37 @@ export default function GroupDetailPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Top performer</CardTitle>
+            <CardTitle className="text-sm font-medium">Nhiều điểm nhất</CardTitle>
             <Crown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">
-              {groupStats?.topPerformers?.[0]?.userName?.split(' ')[0] || 'N/A'}
+              <span className="hidden sm:block">
+                {groupStats?.topPerformers?.[0]?.userName || 'N/A'}
+              </span>
+              <span className="block sm:hidden">
+                {getVietnameseSurname(groupStats?.topPerformers?.[0]?.userName || '') || 'N/A'}
+              </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              {groupStats?.topPerformers?.[0]?.totalRecords || 0} bản ghi
+              {groupStats?.topPerformers?.[0]?.totalPoints || 0} điểm
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ít hoạt động</CardTitle>
+            <CardTitle className="text-sm font-medium">Ít điểm nhất</CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">
-              {groupStats?.bottomPerformers?.[0]?.userName?.split(' ')[0] || 'N/A'}
+              <span className="hidden sm:block">
+                {groupStats?.bottomPerformers?.[0]?.userName || 'N/A'}
+              </span>
+              <span className="block sm:hidden">
+                {getVietnameseSurname(groupStats?.bottomPerformers?.[0]?.userName || '') || 'N/A'}
+              </span>
             </div>
             <p className="text-xs text-muted-foreground">
               {groupStats?.bottomPerformers?.[0]?.totalPoints || 0} điểm
@@ -339,7 +350,7 @@ export default function GroupDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-yellow-500" />
-                Top Performers (Nhiều bản ghi nhất)
+                Top Performers (Nhiều điểm nhất)
               </CardTitle>
               <CardDescription>
                 Những thành viên có nhiều hoạt động nhất
@@ -355,7 +366,14 @@ export default function GroupDetailPage() {
                           <span className="text-sm font-bold text-yellow-700">#{index + 1}</span>
                         </div>
                         <div>
-                          <p className="font-medium">{performer.userName}</p>
+                          <p className="font-medium">
+                            <span className="hidden sm:block">
+                              {performer.userName || 'N/A'}
+                            </span>
+                            <span className="block sm:hidden">
+                              {getVietnameseSurname(performer.userName || '') || 'N/A'}
+                            </span>
+                          </p>
                           <p className="text-sm text-muted-foreground">{performer.userEmail}</p>
                         </div>
                       </div>
@@ -395,7 +413,14 @@ export default function GroupDetailPage() {
                           <span className="text-sm font-bold text-red-700">#{index + 1}</span>
                         </div>
                         <div>
-                          <p className="font-medium">{performer.userName}</p>
+                          <p className="font-medium">
+                            <span className="hidden sm:block">
+                              {performer.userName || 'N/A'}
+                            </span>
+                            <span className="block sm:hidden">
+                              {getVietnameseSurname(performer.userName || '') || 'N/A'}
+                            </span>
+                          </p>
                           <p className="text-sm text-muted-foreground">{performer.userEmail}</p>
                         </div>
                       </div>

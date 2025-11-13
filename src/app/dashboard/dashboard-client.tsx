@@ -466,11 +466,11 @@ export default function DashboardClient() {
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Crown className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Top performer</span>
+                          <span className="text-sm text-muted-foreground">Nhiều điểm nhất</span>
                         </div>
                         <p className="text-sm font-medium">
                           {enhancedGroupStats.topPerformers && enhancedGroupStats.topPerformers.length > 0 ? 
-                            `${enhancedGroupStats.topPerformers[0].userName} (${enhancedGroupStats.topPerformers[0].totalRecords})` : 
+                            `${enhancedGroupStats.topPerformers[0].userName.split(' ')[0]} (${enhancedGroupStats.topPerformers[0].totalPoints})` : 
                             'N/A'
                           }
                         </p>
@@ -479,7 +479,7 @@ export default function DashboardClient() {
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Ít hoạt động</span>
+                          <span className="text-sm text-muted-foreground">Cần cải thiện</span>
                         </div>
                         <p className="text-sm font-medium">
                           {enhancedGroupStats.bottomPerformers && enhancedGroupStats.bottomPerformers.length > 0 ? 
