@@ -1,43 +1,46 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import {
-  AlertTriangle,
-  Crown,
-  Loader2
-} from 'lucide-react'
+import { useState } from "react";
+import { AlertTriangle, Crown, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { UserTag } from '@/components/ui/user-tag'
-import { GroupMember } from '@/types'
-import { MESSAGES, LABELS, ACTIONS, DESCRIPTIONS, PLACEHOLDERS, GROUP_ROLES } from '@/lib/translations'
-import toast from 'react-hot-toast'
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { UserTag } from "@/components/ui/user-tag";
+import { GroupMember } from "@/types";
+import {
+  MESSAGES,
+  LABELS,
+  ACTIONS,
+  DESCRIPTIONS,
+  PLACEHOLDERS,
+  GROUP_ROLES,
+} from "@/lib/translations";
+import toast from "react-hot-toast";
 
 interface OwnerTransferDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: (newOwner: GroupMember) => void
-  groupId: string
-  groupName: string
-  members: GroupMember[]
-  currentUserId: string
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (newOwner: GroupMember) => void;
+  groupId: string;
+  groupName: string;
+  members: GroupMember[];
+  currentUserId: string;
 }
 
 export function OwnerTransferDialog({
@@ -47,66 +50,68 @@ export function OwnerTransferDialog({
   groupId,
   groupName,
   members,
-  currentUserId
+  currentUserId,
 }: OwnerTransferDialogProps) {
-  const [selectedMemberId, setSelectedMemberId] = useState<string>('')
-  const [confirmChecked, setConfirmChecked] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [selectedMemberId, setSelectedMemberId] = useState<string>("");
+  const [confirmChecked, setConfirmChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filter out current owner from the list
   const eligibleMembers = members.filter(
-    member => member.userId !== currentUserId && member.role !== 'OWNER'
-  )
+    (member) => member.userId !== currentUserId && member.role !== "OWNER",
+  );
 
-  const selectedMember = members.find(m => m.id === selectedMemberId)
+  const selectedMember = members.find((m) => m.id === selectedMemberId);
 
   const handleTransfer = async () => {
     if (!selectedMemberId || !confirmChecked) {
-      toast.error('Vui lòng chọn một thành viên và xác nhận việc chuyển giao')
-      return
+      toast.error("Vui lòng chọn một thành viên và xác nhận việc chuyển giao");
+      return;
     }
 
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
       const response = await fetch(`/api/groups/${groupId}/members`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           memberId: selectedMemberId,
-          role: 'OWNER'
-        })
-      })
+          role: "OWNER",
+        }),
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Không thể chuyển quyền sở hữu')
+        const error = await response.json();
+        throw new Error(error.error || "Không thể chuyển quyền sở hữu");
       }
 
-      const data = await response.json()
-      
-      toast.success(`Quyền sở hữu đã được chuyển cho ${selectedMember?.user?.name || 'chủ sở hữu mới'}`)
-      onSuccess(data.member)
-      handleClose()
+      const data = await response.json();
+
+      toast.success(
+        `Quyền sở hữu đã được chuyển cho ${selectedMember?.user?.name || "chủ sở hữu mới"}`,
+      );
+      onSuccess(data.member);
+      handleClose();
     } catch (error) {
-      console.error('Lỗi khi chuyển quyền sở hữu:', error)
+      console.error("Lỗi khi chuyển quyền sở hữu:", error);
       if (error instanceof Error) {
-        toast.error(error.message)
+        toast.error(error.message);
       } else {
-        toast.error('Không thể chuyển quyền sở hữu')
+        toast.error("Không thể chuyển quyền sở hữu");
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    setSelectedMemberId('')
-    setConfirmChecked(false)
-    onClose()
-  }
+    setSelectedMemberId("");
+    setConfirmChecked(false);
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -117,7 +122,10 @@ export function OwnerTransferDialog({
             {MESSAGES.OWNER_TRANSFER.TRANSFER_OWNERSHIP}
           </DialogTitle>
           <DialogDescription>
-            {MESSAGES.OWNER_TRANSFER.TRANSFER_DESCRIPTION.replace('{groupName}', groupName)}
+            {MESSAGES.OWNER_TRANSFER.TRANSFER_DESCRIPTION.replace(
+              "{groupName}",
+              groupName,
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -125,7 +133,9 @@ export function OwnerTransferDialog({
           {/* Warning Alert */}
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>{MESSAGES.OWNER_TRANSFER.THIS_ACTION_PERMANENT}</AlertTitle>
+            <AlertTitle>
+              {MESSAGES.OWNER_TRANSFER.THIS_ACTION_PERMANENT}
+            </AlertTitle>
             <AlertDescription>
               {MESSAGES.OWNER_TRANSFER.PERMANENT_DESCRIPTION}
             </AlertDescription>
@@ -133,7 +143,9 @@ export function OwnerTransferDialog({
 
           {/* Member Selection */}
           <div className="space-y-2">
-            <Label htmlFor="member-select">{MESSAGES.OWNER_TRANSFER.SELECT_NEW_OWNER}</Label>
+            <Label htmlFor="member-select">
+              {MESSAGES.OWNER_TRANSFER.SELECT_NEW_OWNER}
+            </Label>
             {eligibleMembers.length > 0 ? (
               <Select
                 value={selectedMemberId}
@@ -165,10 +177,14 @@ export function OwnerTransferDialog({
           {/* Transfer Summary */}
           {selectedMember && (
             <div className="rounded-lg border p-4 space-y-2">
-              <h4 className="font-medium text-sm">{MESSAGES.OWNER_TRANSFER.TRANSFER_SUMMARY}</h4>
+              <h4 className="font-medium text-sm">
+                {MESSAGES.OWNER_TRANSFER.TRANSFER_SUMMARY}
+              </h4>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">{MESSAGES.OWNER_TRANSFER.NEW_OWNER}:</span>
+                  <span className="text-muted-foreground">
+                    {MESSAGES.OWNER_TRANSFER.NEW_OWNER}:
+                  </span>
                   <UserTag
                     name={selectedMember.user?.name}
                     email={selectedMember.user?.email}
@@ -177,7 +193,9 @@ export function OwnerTransferDialog({
                   />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{MESSAGES.OWNER_TRANSFER.YOUR_NEW_ROLE}:</span>
+                  <span className="text-muted-foreground">
+                    {MESSAGES.OWNER_TRANSFER.YOUR_NEW_ROLE}:
+                  </span>
                   <span className="font-medium">{GROUP_ROLES.ADMIN}</span>
                 </div>
               </div>
@@ -189,7 +207,9 @@ export function OwnerTransferDialog({
             <Checkbox
               id="confirm"
               checked={confirmChecked}
-              onCheckedChange={(checked) => setConfirmChecked(checked as boolean)}
+              onCheckedChange={(checked) =>
+                setConfirmChecked(checked as boolean)
+              }
               disabled={!selectedMemberId}
             />
             <Label
@@ -202,11 +222,7 @@ export function OwnerTransferDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             {ACTIONS.CANCEL}
           </Button>
           <Button
@@ -220,5 +236,5 @@ export function OwnerTransferDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

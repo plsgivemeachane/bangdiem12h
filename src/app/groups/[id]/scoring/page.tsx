@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Trophy,
@@ -13,170 +13,192 @@ import {
   Award,
   Filter,
   RefreshCw,
-  Trash2
-} from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Loading } from '@/components/ui/loading'
-import { ScoreRecordingModal } from '@/components/ui/score-recording-modal'
-import { GroupsApi } from '@/lib/api/groups'
-import { useAuth } from '@/hooks/use-auth'
-import { Group } from '@/types'
-import toast from 'react-hot-toast'
+  Trash2,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Loading } from "@/components/ui/loading";
+import { ScoreRecordingModal } from "@/components/ui/score-recording-modal";
+import { GroupsApi } from "@/lib/api/groups";
+import { useAuth } from "@/hooks/use-auth";
+import { Group } from "@/types";
+import toast from "react-hot-toast";
 
 export default function GroupScoringPage() {
-  const params = useParams()
-  const router = useRouter()
-  const groupId = params.id as string
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  
-  const [group, setGroup] = useState<Group | null>(null)
-  const [scoreRecords, setScoreRecords] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRecordingScore, setIsRecordingScore] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
-  const [showScoreModal, setShowScoreModal] = useState(false)
+  const params = useParams();
+  const router = useRouter();
+  const groupId = params.id as string;
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const [group, setGroup] = useState<Group | null>(null);
+  const [scoreRecords, setScoreRecords] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRecordingScore, setIsRecordingScore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showScoreModal, setShowScoreModal] = useState(false);
   const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: ''
-  })
+    startDate: "",
+    endDate: "",
+  });
 
   // Load group and score data on mount
   useEffect(() => {
     if (groupId && isAuthenticated) {
-      loadGroupData()
+      loadGroupData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupId, isAuthenticated])
+  }, [groupId, isAuthenticated]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/auth/signin')
-      return
+      router.push("/auth/signin");
+      return;
     }
-  }, [isAuthenticated, authLoading, router])
+  }, [isAuthenticated, authLoading, router]);
 
   const loadGroupData = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      
+      setIsLoading(true);
+      setError(null);
+
       // Load group details and score records in parallel
       const [groupData, scoreData] = await Promise.all([
         GroupsApi.getGroup(groupId),
         GroupsApi.getScoreRecords(groupId, {
           startDate: filters.startDate || undefined,
           endDate: filters.endDate || undefined,
-          limit: 50
-        })
-      ])
-      
-      setGroup(groupData)
-      setScoreRecords(scoreData.scoreRecords)
+          limit: 50,
+        }),
+      ]);
+
+      setGroup(groupData);
+      setScoreRecords(scoreData.scoreRecords);
     } catch (error) {
-      console.error('Không thể tải dữ liệu nhóm:', error)
+      console.error("Không thể tải dữ liệu nhóm:", error);
       if (error instanceof Error) {
-        if (error.message.includes('Group not found') || error.message.includes('Không tìm thấy nhóm')) {
-          setError('Không tìm thấy nhóm hoặc bạn không có quyền truy cập.')
-        } else if (error.message.includes('Access denied') || error.message.includes('Không đủ quyền')) {
-          setError('Bạn không có quyền xem nhóm này.')
+        if (
+          error.message.includes("Group not found") ||
+          error.message.includes("Không tìm thấy nhóm")
+        ) {
+          setError("Không tìm thấy nhóm hoặc bạn không có quyền truy cập.");
+        } else if (
+          error.message.includes("Access denied") ||
+          error.message.includes("Không đủ quyền")
+        ) {
+          setError("Bạn không có quyền xem nhóm này.");
         } else {
-          setError(error.message)
+          setError(error.message);
         }
       } else {
-        setError('Không thể tải dữ liệu nhóm')
+        setError("Không thể tải dữ liệu nhóm");
       }
-      toast.error('Không thể tải dữ liệu nhóm')
+      toast.error("Không thể tải dữ liệu nhóm");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleBackToGroup = () => {
-    router.push(`/groups/${groupId}`)
-  }
+    router.push(`/groups/${groupId}`);
+  };
 
   const handleRefresh = () => {
-    loadGroupData()
-  }
+    loadGroupData();
+  };
 
   const handleFilterChange = () => {
-    loadGroupData()
-  }
+    loadGroupData();
+  };
 
   const handleRecordScore = () => {
-    if (group?.scoringRules && group.scoringRules.filter(rule => rule.isActive).length > 0) {
-      setShowScoreModal(true)
+    if (
+      group?.scoringRules &&
+      group.scoringRules.filter((rule) => rule.isActive).length > 0
+    ) {
+      setShowScoreModal(true);
     } else {
-      toast.error('Không có quy tắc chấm điểm đang hoạt động cho nhóm này')
+      toast.error("Không có quy tắc chấm điểm đang hoạt động cho nhóm này");
     }
-  }
+  };
 
   const handleScoreModalClose = () => {
-    setShowScoreModal(false)
-  }
+    setShowScoreModal(false);
+  };
 
   const handleScoreRecorded = (newScoreRecord: any) => {
     // Add the new score record to the list
-    setScoreRecords(prev => [newScoreRecord, ...prev])
-    toast.success(`Điểm ${newScoreRecord.points} đã được ghi!`)
-  }
+    setScoreRecords((prev) => [newScoreRecord, ...prev]);
+    toast.success(`Điểm ${newScoreRecord.points} đã được ghi!`);
+  };
 
   const handleDeleteScore = async (record: any) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bản ghi điểm này không?')) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa bản ghi điểm này không?")) {
       try {
-        const response = await fetch('/api/score-records', {
-          method: 'DELETE',
+        const response = await fetch("/api/score-records", {
+          method: "DELETE",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: record.id })
-        })
-        
+          body: JSON.stringify({ id: record.id }),
+        });
+
         if (response.ok) {
           // Remove from local state
-          setScoreRecords(prev => prev.filter(r => r.id !== record.id))
-          toast.success('Đã xóa bản ghi điểm')
+          setScoreRecords((prev) => prev.filter((r) => r.id !== record.id));
+          toast.success("Đã xóa bản ghi điểm");
         } else {
-          const error = await response.json()
-          toast.error(error.error || 'Không thể xóa bản ghi điểm')
+          const error = await response.json();
+          toast.error(error.error || "Không thể xóa bản ghi điểm");
         }
       } catch (error) {
-        console.error('Không thể xóa bản ghi điểm:', error)
-        toast.error('Không thể xóa bản ghi điểm')
+        console.error("Không thể xóa bản ghi điểm:", error);
+        toast.error("Không thể xóa bản ghi điểm");
       }
     }
-  }
+  };
 
   // Get user's role in the group
-  const currentUserMember = group?.members?.find(member => member.userId === user?.id)
-  const userRole = currentUserMember?.role || 'VIEWER'
+  const currentUserMember = group?.members?.find(
+    (member) => member.userId === user?.id,
+  );
+  const userRole = currentUserMember?.role || "VIEWER";
   // Only Group ADMINs can record scores
-  const canRecordScores = currentUserMember && ['OWNER', 'ADMIN'].includes(currentUserMember.role)
+  const canRecordScores =
+    currentUserMember && ["OWNER", "ADMIN"].includes(currentUserMember.role);
 
   // Calculate stats
-  const totalPoints = scoreRecords.reduce((sum, record) => sum + (record.points || 0), 0)
-  const averagePoints = scoreRecords.length > 0 ? totalPoints / scoreRecords.length : 0
-  const thisWeekRecords = scoreRecords.filter(record => {
-    const recordDate = new Date(record.recordedAt)
-    const weekAgo = new Date()
-    weekAgo.setDate(weekAgo.getDate() - 7)
-    return recordDate >= weekAgo
-  })
+  const totalPoints = scoreRecords.reduce(
+    (sum, record) => sum + (record.points || 0),
+    0,
+  );
+  const averagePoints =
+    scoreRecords.length > 0 ? totalPoints / scoreRecords.length : 0;
+  const thisWeekRecords = scoreRecords.filter((record) => {
+    const recordDate = new Date(record.recordedAt);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return recordDate >= weekAgo;
+  });
 
   const formatDate = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date
-    return dateObj.toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return dateObj.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   // Show loading spinner during authentication check
   if (authLoading) {
@@ -184,7 +206,7 @@ export default function GroupScoringPage() {
       <div className="container mx-auto px-4 py-8">
         <Loading text="Đang kiểm tra xác thực..." />
       </div>
-    )
+    );
   }
 
   // Show login prompt if not authenticated
@@ -197,13 +219,13 @@ export default function GroupScoringPage() {
             <p className="text-muted-foreground mb-6">
               Vui lòng đăng nhập để truy cập chấm điểm nhóm này.
             </p>
-            <Button onClick={() => router.push('/auth/signin')}>
+            <Button onClick={() => router.push("/auth/signin")}>
               Đăng nhập
             </Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   // Loading state
@@ -212,7 +234,7 @@ export default function GroupScoringPage() {
       <div className="container mx-auto px-4 py-8">
         <Loading text="Đang tải dữ liệu chấm điểm..." />
       </div>
-    )
+    );
   }
 
   // Error state
@@ -223,21 +245,21 @@ export default function GroupScoringPage() {
           <CardContent className="text-center py-12">
             <h2 className="text-2xl font-bold mb-4">Không tìm thấy nhóm</h2>
             <p className="text-muted-foreground mb-6">
-              {error || 'Nhóm bạn đang tìm kiếm không tồn tại.'}
+              {error || "Nhóm bạn đang tìm kiếm không tồn tại."}
             </p>
             <div className="flex gap-4 justify-center">
               <Button onClick={handleBackToGroup} variant="outline">
                 <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline ml-2">Quay lại danh sách nhóm</span>
+                <span className="hidden sm:inline ml-2">
+                  Quay lại danh sách nhóm
+                </span>
               </Button>
-              <Button onClick={loadGroupData}>
-                Thử lại
-              </Button>
+              <Button onClick={loadGroupData}>Thử lại</Button>
             </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -261,7 +283,7 @@ export default function GroupScoringPage() {
             </p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -285,9 +307,7 @@ export default function GroupScoringPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPoints}</div>
-            <p className="text-xs text-muted-foreground">
-              Tất cả thời gian
-            </p>
+            <p className="text-xs text-muted-foreground">Tất cả thời gian</p>
           </CardContent>
         </Card>
 
@@ -298,9 +318,7 @@ export default function GroupScoringPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{scoreRecords.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Số lần ghi điểm
-            </p>
+            <p className="text-xs text-muted-foreground">Số lần ghi điểm</p>
           </CardContent>
         </Card>
 
@@ -310,7 +328,9 @@ export default function GroupScoringPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Math.round(averagePoints * 10) / 10}</div>
+            <div className="text-2xl font-bold">
+              {Math.round(averagePoints * 10) / 10}
+            </div>
             <p className="text-xs text-muted-foreground">
               Điểm trung bình mỗi lần
             </p>
@@ -324,9 +344,7 @@ export default function GroupScoringPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{thisWeekRecords.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Hoạt động gần đây
-            </p>
+            <p className="text-xs text-muted-foreground">Hoạt động gần đây</p>
           </CardContent>
         </Card>
       </div>
@@ -344,7 +362,7 @@ export default function GroupScoringPage() {
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
             >
-              {showFilters ? 'Ẩn' : 'Hiển thị'}
+              {showFilters ? "Ẩn" : "Hiển thị"}
             </Button>
           </div>
         </CardHeader>
@@ -356,7 +374,9 @@ export default function GroupScoringPage() {
                 <input
                   type="date"
                   value={filters.startDate}
-                  onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                  onChange={(e) =>
+                    setFilters({ ...filters, startDate: e.target.value })
+                  }
                   className="w-full mt-1 px-3 py-2 border border-input rounded-md"
                 />
               </div>
@@ -365,7 +385,9 @@ export default function GroupScoringPage() {
                 <input
                   type="date"
                   value={filters.endDate}
-                  onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                  onChange={(e) =>
+                    setFilters({ ...filters, endDate: e.target.value })
+                  }
                   className="w-full mt-1 px-3 py-2 border border-input rounded-md"
                 />
               </div>
@@ -389,13 +411,18 @@ export default function GroupScoringPage() {
           {scoreRecords && scoreRecords.length > 0 ? (
             <div className="space-y-4">
               {scoreRecords.map((record) => (
-                <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={record.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                       <Trophy className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">{record.rule?.name || 'Quy tắc không xác định'}</p>
+                      <p className="font-medium">
+                        {record.rule?.name || "Quy tắc không xác định"}
+                      </p>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>{formatDate(record.recordedAt)}</span>
@@ -411,9 +438,7 @@ export default function GroupScoringPage() {
                     <div className="text-2xl font-bold text-primary">
                       +{record.points}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      điểm
-                    </p>
+                    <p className="text-xs text-muted-foreground">điểm</p>
                     {canRecordScores && (
                       <Button
                         variant="ghost"
@@ -431,9 +456,13 @@ export default function GroupScoringPage() {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Trophy className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">Chưa có bản ghi điểm nào</p>
+              <p className="text-lg font-medium mb-2">
+                Chưa có bản ghi điểm nào
+              </p>
               <p className="text-sm mb-4">
-                {canRecordScores ? 'Ghi điểm đầu tiên của bạn để bắt đầu.' : 'Chưa có điểm nào được ghi trong nhóm này.'}
+                {canRecordScores
+                  ? "Ghi điểm đầu tiên của bạn để bắt đầu."
+                  : "Chưa có điểm nào được ghi trong nhóm này."}
               </p>
               {canRecordScores && (
                 <Button onClick={handleRecordScore} disabled={isRecordingScore}>
@@ -457,24 +486,26 @@ export default function GroupScoringPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {group.scoringRules.filter(rule => rule.isActive).map((rule) => (
-                <div key={rule.id} className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">{rule.name}</h3>
-                    <Badge variant="outline" className="text-primary">
-                      +{rule.points} điểm
-                    </Badge>
+              {group.scoringRules
+                .filter((rule) => rule.isActive)
+                .map((rule) => (
+                  <div key={rule.id} className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium">{rule.name}</h3>
+                      <Badge variant="outline" className="text-primary">
+                        +{rule.points} điểm
+                      </Badge>
+                    </div>
+                    {rule.description && (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {rule.description}
+                      </p>
+                    )}
+                    <div className="text-xs text-muted-foreground">
+                      Được tạo {formatDate(rule.createdAt)}
+                    </div>
                   </div>
-                  {rule.description && (
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {rule.description}
-                    </p>
-                  )}
-                  <div className="text-xs text-muted-foreground">
-                    Được tạo {formatDate(rule.createdAt)}
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </CardContent>
         </Card>
@@ -493,5 +524,5 @@ export default function GroupScoringPage() {
         />
       )}
     </div>
-  )
+  );
 }

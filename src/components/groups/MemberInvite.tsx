@@ -1,27 +1,27 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Dialog,   
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -30,12 +30,12 @@ import {
   FormLabel,
   FormDescription,
   FormMessage,
-} from '@/components/ui/form'
+} from "@/components/ui/form";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -43,144 +43,167 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command'
-import { AddMemberForm, GroupMember } from '@/types'
+} from "@/components/ui/command";
+import { AddMemberForm, GroupMember } from "@/types";
 
 // User search result type from the API
 interface SearchUserResult {
-  id: string
-  email: string
-  name: string | null
-  role?: string
-  createdAt?: Date
+  id: string;
+  email: string;
+  name: string | null;
+  role?: string;
+  createdAt?: Date;
 }
-import { LoadingSpinner } from '@/components/ui/loading'
-import { UserTag } from '@/components/ui/user-tag'
-import { GroupsApi } from '@/lib/api/groups'
-import { useDebounce } from '@/hooks/use-debounce'
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { COMPONENTS, VALIDATION, MESSAGES, GROUP_ROLES } from '@/lib/translations'
-import toast from 'react-hot-toast'
+import { LoadingSpinner } from "@/components/ui/loading";
+import { UserTag } from "@/components/ui/user-tag";
+import { GroupsApi } from "@/lib/api/groups";
+import { useDebounce } from "@/hooks/use-debounce";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  COMPONENTS,
+  VALIDATION,
+  MESSAGES,
+  GROUP_ROLES,
+} from "@/lib/translations";
+import toast from "react-hot-toast";
 
 const memberFormSchema = z.object({
-  email: z.string()
+  email: z
+    .string()
     .min(1, VALIDATION.MEMBER.EMAIL_REQUIRED)
     .email(VALIDATION.MEMBER.EMAIL_INVALID)
     .trim(),
-  role: z.enum(['MEMBER', 'ADMIN'], {
+  role: z.enum(["MEMBER", "ADMIN"], {
     required_error: VALIDATION.MEMBER.ROLE_REQUIRED,
   }),
-})
+});
 
-type FormData = z.infer<typeof memberFormSchema>
+type FormData = z.infer<typeof memberFormSchema>;
 
 interface MemberInviteProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: (member?: GroupMember) => void
-  groupId: string
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (member?: GroupMember) => void;
+  groupId: string;
 }
 
-export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInviteProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [open, setOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [users, setUsers] = useState<SearchUserResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<SearchUserResult | null>(null)
-  const debouncedSearchQuery = useDebounce(searchQuery, 300)
+export function MemberInvite({
+  isOpen,
+  onClose,
+  onSuccess,
+  groupId,
+}: MemberInviteProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [users, setUsers] = useState<SearchUserResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<SearchUserResult | null>(
+    null,
+  );
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const form = useForm<FormData>({
     resolver: zodResolver(memberFormSchema),
     defaultValues: {
-      email: '',
-      role: 'MEMBER',
+      email: "",
+      role: "MEMBER",
     },
-  })
+  });
 
   // Load initial users when dropdown opens
   useEffect(() => {
     const loadInitialUsers = async () => {
       if (open && users.length === 0 && searchQuery.length === 0) {
-        setIsSearching(true)
+        setIsSearching(true);
         try {
           // Fetch all users (no query) to get initial list, excluding existing group members
-          const results = await GroupsApi.searchUsers('', groupId)
-          setUsers(results)
+          const results = await GroupsApi.searchUsers("", groupId);
+          setUsers(results);
         } catch (error) {
-          console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX, error)
+          console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX, error);
           // Don't show error toast for initial load
         } finally {
-          setIsSearching(false)
+          setIsSearching(false);
         }
       }
-    }
+    };
 
-    loadInitialUsers()
-  }, [open, users.length, searchQuery.length, groupId])
+    loadInitialUsers();
+  }, [open, users.length, searchQuery.length, groupId]);
 
   // Perform search when debounced query changes
   useEffect(() => {
     const performSearch = async () => {
       // If empty or just spaces, don't search (keep initial list)
       if (debouncedSearchQuery.trim().length === 0) {
-        return
+        return;
       }
 
       // Only search if user typed at least 1 character
       if (debouncedSearchQuery.length < 1) {
-        return
+        return;
       }
 
-      setIsSearching(true)
+      setIsSearching(true);
       try {
-        const results = await GroupsApi.searchUsers(debouncedSearchQuery, groupId)
-        setUsers(results)
+        const results = await GroupsApi.searchUsers(
+          debouncedSearchQuery,
+          groupId,
+        );
+        setUsers(results);
       } catch (error) {
-        console.error(COMPONENTS.MEMBER_INVITE.ERROR_SEARCH, error)
-        toast.error(COMPONENTS.MEMBER_INVITE.ERROR_SEARCH)
-        setUsers([])
+        console.error(COMPONENTS.MEMBER_INVITE.ERROR_SEARCH, error);
+        toast.error(COMPONENTS.MEMBER_INVITE.ERROR_SEARCH);
+        setUsers([]);
       } finally {
-        setIsSearching(false)
+        setIsSearching(false);
       }
-    }
+    };
 
-    performSearch()
-  }, [debouncedSearchQuery, groupId])
+    performSearch();
+  }, [debouncedSearchQuery, groupId]);
 
   const handleSubmit = async (data: FormData) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const newMember = await GroupsApi.addMember(groupId, data as AddMemberForm)
-      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_ADDED)
-      onSuccess(newMember)
-      form.reset()
-      onClose()
+      const newMember = await GroupsApi.addMember(
+        groupId,
+        data as AddMemberForm,
+      );
+      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_ADDED);
+      onSuccess(newMember);
+      form.reset();
+      onClose();
     } catch (error) {
-      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX, error)
-      toast.error(error instanceof Error ? error.message : COMPONENTS.MEMBER_INVITE.ERROR_ADD)
+      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX, error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : COMPONENTS.MEMBER_INVITE.ERROR_ADD,
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
     if (!isLoading) {
-      form.reset()
-      setSelectedUser(null)
-      setSearchQuery('')
-      setUsers([])
-      setOpen(false)
-      onClose()
+      form.reset();
+      setSelectedUser(null);
+      setSearchQuery("");
+      setUsers([]);
+      setOpen(false);
+      onClose();
     }
-  }
+  };
 
   const handleSelectUser = (user: SearchUserResult) => {
-    setSelectedUser(user)
-    form.setValue('email', user.email)
-    setOpen(false)
-  }
+    setSelectedUser(user);
+    form.setValue("email", user.email);
+    setOpen(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -193,7 +216,10 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="email"
@@ -209,7 +235,7 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                           aria-expanded={open}
                           className={cn(
                             "w-full justify-between",
-                            !selectedUser && "text-muted-foreground"
+                            !selectedUser && "text-muted-foreground",
                           )}
                           disabled={isLoading}
                         >
@@ -229,10 +255,15 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0 overflow-hidden" align="start">
+                    <PopoverContent
+                      className="w-[400px] p-0 overflow-hidden"
+                      align="start"
+                    >
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder={COMPONENTS.MEMBER_INVITE.PLACEHOLDER_SEARCH_INPUT}
+                          placeholder={
+                            COMPONENTS.MEMBER_INVITE.PLACEHOLDER_SEARCH_INPUT
+                          }
                           value={searchQuery}
                           onValueChange={setSearchQuery}
                         />
@@ -242,17 +273,26 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                               <div className="flex items-center justify-center py-6">
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                 <span className="text-sm text-muted-foreground">
-                                  {searchQuery.length === 0 ? COMPONENTS.MEMBER_INVITE.LOADING_USERS : COMPONENTS.MEMBER_INVITE.LOADING_SEARCH}
+                                  {searchQuery.length === 0
+                                    ? COMPONENTS.MEMBER_INVITE.LOADING_USERS
+                                    : COMPONENTS.MEMBER_INVITE.LOADING_SEARCH}
                                 </span>
                               </div>
                             ) : (
                               <div className="py-6 text-center text-sm text-muted-foreground">
-                                    {COMPONENTS.MEMBER_INVITE.NO_USERS_FOUND}
+                                {COMPONENTS.MEMBER_INVITE.NO_USERS_FOUND}
                               </div>
                             )}
                           </CommandEmpty>
                           {users.length > 0 && (
-                            <CommandGroup heading={searchQuery.trim().length > 0 ? COMPONENTS.MEMBER_INVITE.GROUP_HEADING_SEARCH : COMPONENTS.MEMBER_INVITE.GROUP_HEADING_ALL}>
+                            <CommandGroup
+                              heading={
+                                searchQuery.trim().length > 0
+                                  ? COMPONENTS.MEMBER_INVITE
+                                      .GROUP_HEADING_SEARCH
+                                  : COMPONENTS.MEMBER_INVITE.GROUP_HEADING_ALL
+                              }
+                            >
                               {users.map((user) => (
                                 <CommandItem
                                   key={user.id}
@@ -263,7 +303,9 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      selectedUser?.id === user.id ? "opacity-100" : "opacity-0"
+                                      selectedUser?.id === user.id
+                                        ? "opacity-100"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <UserTag
@@ -301,11 +343,17 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={COMPONENTS.MEMBER_INVITE.PLACEHOLDER_ROLE} />
+                        <SelectValue
+                          placeholder={
+                            COMPONENTS.MEMBER_INVITE.PLACEHOLDER_ROLE
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="MEMBER">{GROUP_ROLES.MEMBER}</SelectItem>
+                      <SelectItem value="MEMBER">
+                        {GROUP_ROLES.MEMBER}
+                      </SelectItem>
                       <SelectItem value="ADMIN">{GROUP_ROLES.ADMIN}</SelectItem>
                     </SelectContent>
                   </Select>
@@ -335,17 +383,17 @@ export function MemberInvite({ isOpen, onClose, onSuccess, groupId }: MemberInvi
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 // Member management component for viewing and managing existing members
 interface MemberManagementProps {
-  isOpen: boolean
-  onClose: () => void
-  groupId: string
-  members: GroupMember[]
-  onMemberUpdate?: (member: GroupMember) => void
-  onMemberRemove?: (memberId: string) => void
+  isOpen: boolean;
+  onClose: () => void;
+  groupId: string;
+  members: GroupMember[];
+  onMemberUpdate?: (member: GroupMember) => void;
+  onMemberRemove?: (memberId: string) => void;
 }
 
 export function MemberManagement({
@@ -354,111 +402,141 @@ export function MemberManagement({
   groupId,
   members,
   onMemberUpdate,
-  onMemberRemove
+  onMemberRemove,
 }: MemberManagementProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRoleChange = async (memberId: string, newRole: 'MEMBER' | 'ADMIN') => {
-    setIsLoading(true)
+  const handleRoleChange = async (
+    memberId: string,
+    newRole: "MEMBER" | "ADMIN",
+  ) => {
+    setIsLoading(true);
     try {
-      const updatedMember = await GroupsApi.updateMemberRole(groupId, memberId, newRole)
-      onMemberUpdate?.(updatedMember)
-      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_ROLE_UPDATE)
+      const updatedMember = await GroupsApi.updateMemberRole(
+        groupId,
+        memberId,
+        newRole,
+      );
+      onMemberUpdate?.(updatedMember);
+      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_ROLE_UPDATE);
     } catch (error) {
-      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX_ROLE, error)
-      toast.error(error instanceof Error ? error.message : COMPONENTS.MEMBER_INVITE.ERROR_ROLE_UPDATE)
+      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX_ROLE, error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : COMPONENTS.MEMBER_INVITE.ERROR_ROLE_UPDATE,
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleRemoveMember = async (memberId: string, memberEmail: string) => {
-    const confirmMessage = COMPONENTS.MEMBER_INVITE.CONFIRM_REMOVE.replace('{email}', memberEmail)
+    const confirmMessage = COMPONENTS.MEMBER_INVITE.CONFIRM_REMOVE.replace(
+      "{email}",
+      memberEmail,
+    );
     if (!window.confirm(confirmMessage)) {
-      return
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await GroupsApi.removeMember(groupId, memberId)
-      onMemberRemove?.(memberId)
-      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_MEMBER_REMOVED)
+      await GroupsApi.removeMember(groupId, memberId);
+      onMemberRemove?.(memberId);
+      toast.success(COMPONENTS.MEMBER_INVITE.SUCCESS_MEMBER_REMOVED);
     } catch (error) {
-      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX_REMOVE, error)
-      toast.error(error instanceof Error ? error.message : COMPONENTS.MEMBER_INVITE.ERROR_MEMBER_REMOVED)
+      console.error(COMPONENTS.MEMBER_INVITE.ERROR_PREFIX_REMOVE, error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : COMPONENTS.MEMBER_INVITE.ERROR_MEMBER_REMOVED,
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>{COMPONENTS.MEMBER_INVITE.MANAGEMENT_TITLE}</DialogTitle>
-            <DialogDescription>
-              {COMPONENTS.MEMBER_INVITE.MANAGEMENT_DESCRIPTION}
-            </DialogDescription>
-          </DialogHeader>
-  
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {members.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {COMPONENTS.MEMBER_INVITE.NO_MEMBERS}
-              </div>
-            ) : (
-              members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="space-y-1">
-                    <UserTag
-                      name={member.user?.name}
-                      email={member.user?.email}
-                      size="sm"
-                      showEmail={true}
-                    />
-                    <div className="text-xs text-muted-foreground">
-                      {COMPONENTS.MEMBER_INVITE.JOINED_DATE.replace('{date}', new Date(member.joinedAt).toLocaleDateString())}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={member.role}
-                      onValueChange={(value: 'MEMBER' | 'ADMIN') => handleRoleChange(member.id, value)}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MEMBER">{GROUP_ROLES.MEMBER}</SelectItem>
-                        <SelectItem value="ADMIN">{GROUP_ROLES.ADMIN}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemoveMember(member.id, member.user?.email || 'unknown@example.com')}
-                      disabled={isLoading}
-                    >
-                      {COMPONENTS.MEMBER_INVITE.BUTTON_REMOVE}
-                    </Button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>{COMPONENTS.MEMBER_INVITE.MANAGEMENT_TITLE}</DialogTitle>
+          <DialogDescription>
+            {COMPONENTS.MEMBER_INVITE.MANAGEMENT_DESCRIPTION}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 max-h-96 overflow-y-auto">
+          {members.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {COMPONENTS.MEMBER_INVITE.NO_MEMBERS}
+            </div>
+          ) : (
+            members.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between p-3 border rounded-lg"
+              >
+                <div className="space-y-1">
+                  <UserTag
+                    name={member.user?.name}
+                    email={member.user?.email}
+                    size="sm"
+                    showEmail={true}
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    {COMPONENTS.MEMBER_INVITE.JOINED_DATE.replace(
+                      "{date}",
+                      new Date(member.joinedAt).toLocaleDateString(),
+                    )}
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-  
-          <DialogFooter>
-            <Button onClick={onClose} disabled={isLoading}>
-              {COMPONENTS.MEMBER_INVITE.BUTTON_CLOSE}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    )
-  }
+
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={member.role}
+                    onValueChange={(value: "MEMBER" | "ADMIN") =>
+                      handleRoleChange(member.id, value)
+                    }
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MEMBER">
+                        {GROUP_ROLES.MEMBER}
+                      </SelectItem>
+                      <SelectItem value="ADMIN">{GROUP_ROLES.ADMIN}</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      handleRemoveMember(
+                        member.id,
+                        member.user?.email || "unknown@example.com",
+                      )
+                    }
+                    disabled={isLoading}
+                  >
+                    {COMPONENTS.MEMBER_INVITE.BUTTON_REMOVE}
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button onClick={onClose} disabled={isLoading}>
+            {COMPONENTS.MEMBER_INVITE.BUTTON_CLOSE}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,176 +1,183 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Activity, User, Group as GroupIcon, ExternalLink } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Loading } from '@/components/ui/loading'
-import { UserTag } from '@/components/ui/user-tag'
-import { ActivityType } from '@/types'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import { Activity, User, Group as GroupIcon, ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Loading } from "@/components/ui/loading";
+import { UserTag } from "@/components/ui/user-tag";
+import { ActivityType } from "@/types";
+import Link from "next/link";
 
 interface ActivityLog {
-  id: string
-  action: ActivityType
-  description: string
-  metadata?: Record<string, any>
-  timestamp: Date
+  id: string;
+  action: ActivityType;
+  description: string;
+  metadata?: Record<string, any>;
+  timestamp: Date;
   user: {
-    id: string
-    name: string | null
-    email: string
-  } | null
+    id: string;
+    name: string | null;
+    email: string;
+  } | null;
   group: {
-    id: string
-    name: string
-  } | null
+    id: string;
+    name: string;
+  } | null;
 }
 
 interface ActivityFeedProps {
-  groupId?: string
-  userId?: string
-  limit?: number
-  compact?: boolean
-  showViewAll?: boolean
+  groupId?: string;
+  userId?: string;
+  limit?: number;
+  compact?: boolean;
+  showViewAll?: boolean;
 }
 
-export function ActivityFeed({ 
-  groupId, 
-  userId, 
-  limit = 5, 
+export function ActivityFeed({
+  groupId,
+  userId,
+  limit = 5,
   compact = false,
-  showViewAll = true 
+  showViewAll = true,
 }: ActivityFeedProps) {
-  const [activities, setActivities] = useState<ActivityLog[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadActivities()
+    loadActivities();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupId, userId, limit])
+  }, [groupId, userId, limit]);
 
   const loadActivities = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
 
-      const params = new URLSearchParams()
-      if (groupId) params.set('groupId', groupId)
-      if (userId) params.set('userId', userId)
-      params.set('limit', limit.toString())
-      params.set('page', '1')
+      const params = new URLSearchParams();
+      if (groupId) params.set("groupId", groupId);
+      if (userId) params.set("userId", userId);
+      params.set("limit", limit.toString());
+      params.set("page", "1");
 
-      const response = await fetch(`/api/activity-logs?${params.toString()}`)
-      
+      const response = await fetch(`/api/activity-logs?${params.toString()}`);
+
       if (!response.ok) {
-        throw new Error('Không thể tải hoạt động')
+        throw new Error("Không thể tải hoạt động");
       }
 
-      const data = await response.json()
-      setActivities(data.activityLogs || [])
+      const data = await response.json();
+      setActivities(data.activityLogs || []);
     } catch (error) {
-      console.error('Không thể tải hoạt động:', error)
-      setError(error instanceof Error ? error.message : 'Không thể tải hoạt động')
+      console.error("Không thể tải hoạt động:", error);
+      setError(
+        error instanceof Error ? error.message : "Không thể tải hoạt động",
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const formatDate = (date: Date) => {
-    const now = new Date()
-    const activityDate = new Date(date)
-    const diffMs = now.getTime() - activityDate.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
+    const now = new Date();
+    const activityDate = new Date(date);
+    const diffMs = now.getTime() - activityDate.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Vừa xong'
-    if (diffMins < 60) return `${diffMins} phút trước`
-    if (diffHours < 24) return `${diffHours} giờ trước`
-    if (diffDays < 7) return `${diffDays} ngày trước`
-    
-    return activityDate.toLocaleDateString('vi-VN', {
-      month: 'short',
-      day: 'numeric',
-      year: activityDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-    })
-  }
+    if (diffMins < 1) return "Vừa xong";
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+
+    return activityDate.toLocaleDateString("vi-VN", {
+      month: "short",
+      day: "numeric",
+      year:
+        activityDate.getFullYear() !== now.getFullYear()
+          ? "numeric"
+          : undefined,
+    });
+  };
 
   const getActionBadgeVariant = (action: ActivityType): string => {
     const actionColors: Record<ActivityType, string> = {
-      [ActivityType.USER_REGISTERED]: 'bg-green-100 text-green-800',
-      [ActivityType.USER_LOGIN]: 'bg-blue-100 text-blue-800',
-      [ActivityType.LOGIN_FAILED]: 'bg-red-100 text-red-800',
-      [ActivityType.PASSWORD_RESET_REQUESTED]: 'bg-yellow-100 text-yellow-800',
-      [ActivityType.PASSWORD_RESET_COMPLETED]: 'bg-green-100 text-green-800',
-      [ActivityType.ADMIN_USER_CREATED]: 'bg-purple-100 text-purple-800',
-      [ActivityType.ADMIN_USER_ROLE_UPDATED]: 'bg-blue-100 text-blue-800',
-      [ActivityType.ADMIN_USER_DELETED]: 'bg-red-100 text-red-800',
-      [ActivityType.ADMIN_PASSWORD_RESET_BY_ADMIN]: 'bg-yellow-100 text-yellow-800',
-      [ActivityType.GROUP_CREATED]: 'bg-indigo-100 text-indigo-800',
-      [ActivityType.GROUP_UPDATED]: 'bg-orange-100 text-orange-800',
-      [ActivityType.GROUP_DELETED]: 'bg-red-100 text-red-800',
-      [ActivityType.MEMBER_INVITED]: 'bg-blue-100 text-blue-800',
-      [ActivityType.MEMBER_JOINED]: 'bg-green-100 text-green-800',
-      [ActivityType.MEMBER_ADDED]: 'bg-green-100 text-green-800',
-      [ActivityType.MEMBER_REMOVED]: 'bg-red-100 text-red-800',
-      [ActivityType.MEMBER_ROLE_UPDATED]: 'bg-blue-100 text-blue-800',
-      [ActivityType.OWNERSHIP_TRANSFERRED]: 'bg-yellow-100 text-yellow-800',
-      [ActivityType.SCORING_RULE_CREATED]: 'bg-indigo-100 text-indigo-800',
-      [ActivityType.RULE_ADDED_TO_GROUP]: 'bg-purple-100 text-purple-800',
-      [ActivityType.RULE_REMOVED_FROM_GROUP]: 'bg-orange-100 text-orange-800',
-      [ActivityType.SCORING_RULE_UPDATED]: 'bg-orange-100 text-orange-800',
-      [ActivityType.SCORING_RULE_TOGGLED]: 'bg-yellow-100 text-yellow-800',
-      [ActivityType.SCORING_RULE_DELETED]: 'bg-red-100 text-red-800',
-      [ActivityType.SCORE_RECORDED]: 'bg-green-100 text-green-800',
-      [ActivityType.SCORE_UPDATED]: 'bg-blue-100 text-blue-800',
-      [ActivityType.SCORE_DELETED]: 'bg-red-100 text-red-800'
-    }
-    
-    return actionColors[action] || 'bg-gray-100 text-gray-800'
-  }
+      [ActivityType.USER_REGISTERED]: "bg-green-100 text-green-800",
+      [ActivityType.USER_LOGIN]: "bg-blue-100 text-blue-800",
+      [ActivityType.LOGIN_FAILED]: "bg-red-100 text-red-800",
+      [ActivityType.PASSWORD_RESET_REQUESTED]: "bg-yellow-100 text-yellow-800",
+      [ActivityType.PASSWORD_RESET_COMPLETED]: "bg-green-100 text-green-800",
+      [ActivityType.ADMIN_USER_CREATED]: "bg-purple-100 text-purple-800",
+      [ActivityType.ADMIN_USER_ROLE_UPDATED]: "bg-blue-100 text-blue-800",
+      [ActivityType.ADMIN_USER_DELETED]: "bg-red-100 text-red-800",
+      [ActivityType.ADMIN_PASSWORD_RESET_BY_ADMIN]:
+        "bg-yellow-100 text-yellow-800",
+      [ActivityType.GROUP_CREATED]: "bg-indigo-100 text-indigo-800",
+      [ActivityType.GROUP_UPDATED]: "bg-orange-100 text-orange-800",
+      [ActivityType.GROUP_DELETED]: "bg-red-100 text-red-800",
+      [ActivityType.MEMBER_INVITED]: "bg-blue-100 text-blue-800",
+      [ActivityType.MEMBER_JOINED]: "bg-green-100 text-green-800",
+      [ActivityType.MEMBER_ADDED]: "bg-green-100 text-green-800",
+      [ActivityType.MEMBER_REMOVED]: "bg-red-100 text-red-800",
+      [ActivityType.MEMBER_ROLE_UPDATED]: "bg-blue-100 text-blue-800",
+      [ActivityType.OWNERSHIP_TRANSFERRED]: "bg-yellow-100 text-yellow-800",
+      [ActivityType.SCORING_RULE_CREATED]: "bg-indigo-100 text-indigo-800",
+      [ActivityType.RULE_ADDED_TO_GROUP]: "bg-purple-100 text-purple-800",
+      [ActivityType.RULE_REMOVED_FROM_GROUP]: "bg-orange-100 text-orange-800",
+      [ActivityType.SCORING_RULE_UPDATED]: "bg-orange-100 text-orange-800",
+      [ActivityType.SCORING_RULE_TOGGLED]: "bg-yellow-100 text-yellow-800",
+      [ActivityType.SCORING_RULE_DELETED]: "bg-red-100 text-red-800",
+      [ActivityType.SCORE_RECORDED]: "bg-green-100 text-green-800",
+      [ActivityType.SCORE_UPDATED]: "bg-blue-100 text-blue-800",
+      [ActivityType.SCORE_DELETED]: "bg-red-100 text-red-800",
+    };
+
+    return actionColors[action] || "bg-gray-100 text-gray-800";
+  };
 
   const formatActionName = (action: ActivityType): string => {
     const translations: Record<ActivityType, string> = {
-      [ActivityType.USER_REGISTERED]: 'Người dùng đăng ký',
-      [ActivityType.USER_LOGIN]: 'Người dùng đăng nhập',
-      [ActivityType.LOGIN_FAILED]: 'Đăng nhập thất bại',
-      [ActivityType.PASSWORD_RESET_REQUESTED]: 'Yêu cầu đặt lại mật khẩu',
-      [ActivityType.PASSWORD_RESET_COMPLETED]: 'Đặt lại mật khẩu hoàn tất',
-      [ActivityType.ADMIN_USER_CREATED]: 'Quản trị viên tạo người dùng',
-      [ActivityType.ADMIN_USER_ROLE_UPDATED]: 'Quản trị viên cập nhật vai trò',
-      [ActivityType.ADMIN_USER_DELETED]: 'Quản trị viên xóa người dùng',
-      [ActivityType.ADMIN_PASSWORD_RESET_BY_ADMIN]: 'Quản trị viên đặt lại mật khẩu',
-      [ActivityType.GROUP_CREATED]: 'Tạo nhóm',
-      [ActivityType.GROUP_UPDATED]: 'Cập nhật nhóm',
-      [ActivityType.GROUP_DELETED]: 'Xóa nhóm',
-      [ActivityType.MEMBER_INVITED]: 'Mời thành viên',
-      [ActivityType.MEMBER_JOINED]: 'Thành viên tham gia',
-      [ActivityType.MEMBER_ADDED]: 'Thêm thành viên',
-      [ActivityType.MEMBER_REMOVED]: 'Xóa thành viên',
-      [ActivityType.MEMBER_ROLE_UPDATED]: 'Cập nhật vai trò thành viên',
-      [ActivityType.OWNERSHIP_TRANSFERRED]: 'Chuyển quyền sở hữu',
-      [ActivityType.SCORING_RULE_CREATED]: 'Tạo quy tắc chấm điểm',
-      [ActivityType.SCORING_RULE_UPDATED]: 'Cập nhật quy tắc chấm điểm',
-      [ActivityType.SCORING_RULE_TOGGLED]: 'Bật/tắt quy tắc chấm điểm',
-      [ActivityType.SCORING_RULE_DELETED]: 'Xóa quy tắc chấm điểm',
-      [ActivityType.RULE_ADDED_TO_GROUP]: 'Thêm quy tắc vào nhóm',
-      [ActivityType.RULE_REMOVED_FROM_GROUP]: 'Xóa quy tắc khỏi nhóm',
-      [ActivityType.SCORE_RECORDED]: 'Ghi điểm',
-      [ActivityType.SCORE_UPDATED]: 'Cập nhật điểm',
-      [ActivityType.SCORE_DELETED]: 'Xóa điểm'
-    }
-    
-    return translations[action] || action.replace(/_/g, ' ')
-  }
+      [ActivityType.USER_REGISTERED]: "Người dùng đăng ký",
+      [ActivityType.USER_LOGIN]: "Người dùng đăng nhập",
+      [ActivityType.LOGIN_FAILED]: "Đăng nhập thất bại",
+      [ActivityType.PASSWORD_RESET_REQUESTED]: "Yêu cầu đặt lại mật khẩu",
+      [ActivityType.PASSWORD_RESET_COMPLETED]: "Đặt lại mật khẩu hoàn tất",
+      [ActivityType.ADMIN_USER_CREATED]: "Quản trị viên tạo người dùng",
+      [ActivityType.ADMIN_USER_ROLE_UPDATED]: "Quản trị viên cập nhật vai trò",
+      [ActivityType.ADMIN_USER_DELETED]: "Quản trị viên xóa người dùng",
+      [ActivityType.ADMIN_PASSWORD_RESET_BY_ADMIN]:
+        "Quản trị viên đặt lại mật khẩu",
+      [ActivityType.GROUP_CREATED]: "Tạo nhóm",
+      [ActivityType.GROUP_UPDATED]: "Cập nhật nhóm",
+      [ActivityType.GROUP_DELETED]: "Xóa nhóm",
+      [ActivityType.MEMBER_INVITED]: "Mời thành viên",
+      [ActivityType.MEMBER_JOINED]: "Thành viên tham gia",
+      [ActivityType.MEMBER_ADDED]: "Thêm thành viên",
+      [ActivityType.MEMBER_REMOVED]: "Xóa thành viên",
+      [ActivityType.MEMBER_ROLE_UPDATED]: "Cập nhật vai trò thành viên",
+      [ActivityType.OWNERSHIP_TRANSFERRED]: "Chuyển quyền sở hữu",
+      [ActivityType.SCORING_RULE_CREATED]: "Tạo quy tắc chấm điểm",
+      [ActivityType.SCORING_RULE_UPDATED]: "Cập nhật quy tắc chấm điểm",
+      [ActivityType.SCORING_RULE_TOGGLED]: "Bật/tắt quy tắc chấm điểm",
+      [ActivityType.SCORING_RULE_DELETED]: "Xóa quy tắc chấm điểm",
+      [ActivityType.RULE_ADDED_TO_GROUP]: "Thêm quy tắc vào nhóm",
+      [ActivityType.RULE_REMOVED_FROM_GROUP]: "Xóa quy tắc khỏi nhóm",
+      [ActivityType.SCORE_RECORDED]: "Ghi điểm",
+      [ActivityType.SCORE_UPDATED]: "Cập nhật điểm",
+      [ActivityType.SCORE_DELETED]: "Xóa điểm",
+    };
+
+    return translations[action] || action.replace(/_/g, " ");
+  };
 
   if (isLoading) {
     return (
       <div className="py-8">
         <Loading text="Đang tải hoạt động..." />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -181,7 +188,7 @@ export function ActivityFeed({
           Thử lại
         </Button>
       </div>
-    )
+    );
   }
 
   if (activities.length === 0) {
@@ -190,40 +197,50 @@ export function ActivityFeed({
         <Activity className="mx-auto h-10 w-10 mb-3 opacity-50" />
         <p className="text-sm">Không có hoạt động gần đây</p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-3">
       {activities.map((activity) => (
-        <div 
-          key={activity.id} 
-          className={compact 
-            ? "flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-            : "flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+        <div
+          key={activity.id}
+          className={
+            compact
+              ? "flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+              : "flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
           }
         >
-          <div className={compact
-            ? "w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
-            : "w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
-          }>
-            <Activity className={compact ? "h-4 w-4 text-primary" : "h-5 w-5 text-primary"} />
+          <div
+            className={
+              compact
+                ? "w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
+                : "w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
+            }
+          >
+            <Activity
+              className={
+                compact ? "h-4 w-4 text-primary" : "h-5 w-5 text-primary"
+              }
+            />
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <Badge className={`${getActionBadgeVariant(activity.action)} text-xs`}>
+              <Badge
+                className={`${getActionBadgeVariant(activity.action)} text-xs`}
+              >
                 {formatActionName(activity.action)}
               </Badge>
               <span className="text-xs text-muted-foreground">
                 {formatDate(activity.timestamp)}
               </span>
             </div>
-            
+
             <p className={compact ? "text-sm mb-1" : "font-medium mb-1"}>
               {activity.description}
             </p>
-            
+
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               {activity.user && (
                 <UserTag
@@ -234,7 +251,7 @@ export function ActivityFeed({
                   className="text-xs"
                 />
               )}
-              
+
               {activity.group && !groupId && (
                 <div className="flex items-center gap-1">
                   <GroupIcon className="h-3 w-3" />
@@ -243,24 +260,28 @@ export function ActivityFeed({
               )}
             </div>
 
-            {!compact && activity.metadata && Object.keys(activity.metadata).length > 0 && (
-              <details className="mt-2">
-                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
-                  Xem chi tiết
-                </summary>
-                <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">
-                  {JSON.stringify(activity.metadata, null, 2)}
-                </pre>
-              </details>
-            )}
+            {!compact &&
+              activity.metadata &&
+              Object.keys(activity.metadata).length > 0 && (
+                <details className="mt-2">
+                  <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                    Xem chi tiết
+                  </summary>
+                  <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">
+                    {JSON.stringify(activity.metadata, null, 2)}
+                  </pre>
+                </details>
+              )}
           </div>
         </div>
       ))}
 
       {showViewAll && (
         <div className="pt-2">
-          <Link 
-            href={groupId ? `/activity-logs?groupId=${groupId}` : '/activity-logs'}
+          <Link
+            href={
+              groupId ? `/activity-logs?groupId=${groupId}` : "/activity-logs"
+            }
             className="w-full"
           >
             <Button variant="outline" size="sm" className="w-full">
@@ -271,5 +292,5 @@ export function ActivityFeed({
         </div>
       )}
     </div>
-  )
+  );
 }

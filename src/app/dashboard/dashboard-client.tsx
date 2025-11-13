@@ -1,21 +1,55 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Loading } from '@/components/ui/loading'
-import { ActivityFeed } from '@/components/activity/ActivityFeed'
-import { RuleCreationModal } from '@/components/ui/rule-creation-modal'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DashboardStats, Group, ScoringRule, GroupStats, UserPerformance } from '@/types'
-import { Users, Trophy, Target, Activity, Plus, Settings, Crown, TrendingDown } from 'lucide-react'
-import Link from 'next/link'
-import { useAuth } from '@/hooks/use-auth'
-import { useRouter } from 'next/navigation'
-import { format } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Loading } from "@/components/ui/loading";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { RuleCreationModal } from "@/components/ui/rule-creation-modal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DashboardStats,
+  Group,
+  ScoringRule,
+  GroupStats,
+  UserPerformance,
+} from "@/types";
+import {
+  Users,
+  Trophy,
+  Target,
+  Activity,
+  Plus,
+  Settings,
+  Crown,
+  TrendingDown,
+} from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 import {
   DASHBOARD,
   ACTIONS,
@@ -27,81 +61,92 @@ import {
   GROUP_ROLES,
   NAV,
   PLACEHOLDERS,
-  GLOBAL_RULES
-} from '@/lib/translations'
-import toast from 'react-hot-toast'
+  GLOBAL_RULES,
+} from "@/lib/translations";
+import toast from "react-hot-toast";
 
 export default function DashboardClient() {
-  const { isAuthenticated, isLoading, user } = useAuth()
-  const router = useRouter()
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalGroups: 0,
     totalScoreRecords: 0,
     totalPoints: 0,
-    recentActivity: []
-  })
-  const [groups, setGroups] = useState<Group[]>([])
-  const [globalRules, setGlobalRules] = useState<ScoringRule[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showScoringRulesDialog, setShowScoringRulesDialog] = useState(false)
-  const [showRuleModal, setShowRuleModal] = useState(false)
-  const [totalActivityCount, setTotalActivityCount] = useState<number>(0)
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('')
-  const [userScoreRecords, setUserScoreRecords] = useState<any[]>([])
-  const [groupStats, setGroupStats] = useState<any>(null)
-  const [enhancedGroupStats, setEnhancedGroupStats] = useState<GroupStats | null>(null)
+    recentActivity: [],
+  });
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [globalRules, setGlobalRules] = useState<ScoringRule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showScoringRulesDialog, setShowScoringRulesDialog] = useState(false);
+  const [showRuleModal, setShowRuleModal] = useState(false);
+  const [totalActivityCount, setTotalActivityCount] = useState<number>(0);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [userScoreRecords, setUserScoreRecords] = useState<any[]>([]);
+  const [groupStats, setGroupStats] = useState<any>(null);
+  const [enhancedGroupStats, setEnhancedGroupStats] =
+    useState<GroupStats | null>(null);
 
   // Check if user is a regular user (not admin of any groups)
-  const isRegularUser = user && (!user.role || (user.role !== 'ADMIN' && !groups.some(group =>
-    group.members?.some((member: any) =>
-      member.userId === user.id && (member.role === 'ADMIN' || member.role === 'OWNER')
-    )
-  )))
+  const isRegularUser =
+    user &&
+    (!user.role ||
+      (user.role !== "ADMIN" &&
+        !groups.some((group) =>
+          group.members?.some(
+            (member: any) =>
+              member.userId === user.id &&
+              (member.role === "ADMIN" || member.role === "OWNER"),
+          ),
+        )));
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      fetchDashboardData()
+      fetchDashboardData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, isAuthenticated])
+  }, [isLoading, isAuthenticated]);
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       // Fetch groups
-      const groupsResponse = await fetch('/api/groups')
+      const groupsResponse = await fetch("/api/groups");
       if (!groupsResponse.ok) {
-        throw new Error(MESSAGES.ERROR.FAILED_TO_LOAD)
+        throw new Error(MESSAGES.ERROR.FAILED_TO_LOAD);
       }
-      const groupsData = await groupsResponse.json()
-      setGroups(groupsData.groups || [])
+      const groupsData = await groupsResponse.json();
+      setGroups(groupsData.groups || []);
 
       // Fetch analytics data for stats
-      const analyticsResponse = await fetch('/api/analytics?period=month')
+      const analyticsResponse = await fetch("/api/analytics?period=month");
       if (!analyticsResponse.ok) {
-        throw new Error(MESSAGES.ERROR.FAILED_TO_LOAD)
+        throw new Error(MESSAGES.ERROR.FAILED_TO_LOAD);
       }
-      const analyticsData = await analyticsResponse.json()
+      const analyticsData = await analyticsResponse.json();
 
       // Fetch recent activity
-      const activityResponse = await fetch('/api/activity-logs?limit=10&page=1')
-      const activityData = activityResponse.ok ? await activityResponse.json() : { activityLogs: [], pagination: { totalCount: 0 } }
-      const totalActivityCount = activityData.pagination?.totalCount || 0
+      const activityResponse = await fetch(
+        "/api/activity-logs?limit=10&page=1",
+      );
+      const activityData = activityResponse.ok
+        ? await activityResponse.json()
+        : { activityLogs: [], pagination: { totalCount: 0 } };
+      const totalActivityCount = activityData.pagination?.totalCount || 0;
 
       // Fetch global scoring rules (for admin users)
-      let globalRulesData = []
-      if (user?.role === 'ADMIN') {
+      let globalRulesData = [];
+      if (user?.role === "ADMIN") {
         try {
-          const rulesResponse = await fetch('/api/scoring-rules')
+          const rulesResponse = await fetch("/api/scoring-rules");
           if (rulesResponse.ok) {
-            const rulesData = await rulesResponse.json()
-            globalRulesData = rulesData.scoringRules || []
+            const rulesData = await rulesResponse.json();
+            globalRulesData = rulesData.scoringRules || [];
           }
         } catch (error) {
-          console.error('Failed to fetch global rules:', error)
+          console.error("Failed to fetch global rules:", error);
         }
       }
 
@@ -109,29 +154,35 @@ export default function DashboardClient() {
       if (isRegularUser && user) {
         try {
           // Fetch user's score records
-          const recordsResponse = await fetch('/api/score-records?userId=' + user.id + '&limit=10')
+          const recordsResponse = await fetch(
+            "/api/score-records?userId=" + user.id + "&limit=10",
+          );
           if (recordsResponse.ok) {
-            const recordsData = await recordsResponse.json()
-            setUserScoreRecords(recordsData.records || [])
+            const recordsData = await recordsResponse.json();
+            setUserScoreRecords(recordsData.records || []);
           }
 
           // Fetch group stats for user's first group (assuming one group per user)
           if (groups.length > 0) {
-            const groupStatsResponse = await fetch(`/api/analytics?groupId=${groups[0].id}`)
+            const groupStatsResponse = await fetch(
+              `/api/analytics?groupId=${groups[0].id}`,
+            );
             if (groupStatsResponse.ok) {
-              const groupStatsData = await groupStatsResponse.json()
-              setGroupStats(groupStatsData.analytics || null)
+              const groupStatsData = await groupStatsResponse.json();
+              setGroupStats(groupStatsData.analytics || null);
             }
 
             // Fetch enhanced group statistics
-            const enhancedStatsResponse = await fetch(`/api/groups/${groups[0].id}/stats`)
+            const enhancedStatsResponse = await fetch(
+              `/api/groups/${groups[0].id}/stats`,
+            );
             if (enhancedStatsResponse.ok) {
-              const enhancedStatsData = await enhancedStatsResponse.json()
-              setEnhancedGroupStats(enhancedStatsData.stats || null)
+              const enhancedStatsData = await enhancedStatsResponse.json();
+              setEnhancedGroupStats(enhancedStatsData.stats || null);
             }
           }
         } catch (error) {
-          console.error('Failed to fetch user data:', error)
+          console.error("Failed to fetch user data:", error);
         }
       }
 
@@ -140,81 +191,82 @@ export default function DashboardClient() {
         totalGroups: groupsData.groups?.length || 0,
         totalScoreRecords: analyticsData.analytics?.summary?.recordCount || 0,
         totalPoints: analyticsData.analytics?.summary?.totalPoints || 0,
-        recentActivity: activityData.activityLogs || []
-      })
+        recentActivity: activityData.activityLogs || [],
+      });
 
       // Store total activity count in a separate state for display
-      setTotalActivityCount(totalActivityCount)
+      setTotalActivityCount(totalActivityCount);
 
       // Set global rules for admin users
-      setGlobalRules(globalRulesData)
-
+      setGlobalRules(globalRulesData);
     } catch (err) {
-      console.error(MESSAGES.ERROR.FAILED_TO_LOAD + ':', err)
-      setError(err instanceof Error ? err.message : MESSAGES.ERROR.FAILED_TO_LOAD)
+      console.error(MESSAGES.ERROR.FAILED_TO_LOAD + ":", err);
+      setError(
+        err instanceof Error ? err.message : MESSAGES.ERROR.FAILED_TO_LOAD,
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleReload = () => {
-    fetchDashboardData()
-  }
+    fetchDashboardData();
+  };
 
   const handleGroupSelectForRules = (groupId: string) => {
-    setSelectedGroupId(groupId)
-    setShowScoringRulesDialog(false)
-    router.push(`/groups/${groupId}/rules`)
-  }
+    setSelectedGroupId(groupId);
+    setShowScoringRulesDialog(false);
+    router.push(`/groups/${groupId}/rules`);
+  };
 
   const handleQuickRulesAccess = () => {
     // If user has only one group, navigate directly
     if (groups.length === 1) {
-      router.push(`/groups/${groups[0].id}/rules`)
+      router.push(`/groups/${groups[0].id}/rules`);
     } else if (groups.length === 0) {
       // No groups - redirect to create group
-      router.push('/groups')
+      router.push("/groups");
     } else {
       // Multiple groups - show dialog
-      setShowScoringRulesDialog(true)
+      setShowScoringRulesDialog(true);
     }
-  }
+  };
 
   const handleCreateGlobalRule = () => {
-    setShowRuleModal(true)
-  }
+    setShowRuleModal(true);
+  };
 
   const handleRuleModalClose = () => {
-    setShowRuleModal(false)
-  }
+    setShowRuleModal(false);
+  };
 
   const handleRuleCreated = (newRule: ScoringRule) => {
-    setGlobalRules(prev => [...prev, newRule])
-    toast.success(`Rule "${newRule.name}" created successfully!`)
-  }
+    setGlobalRules((prev) => [...prev, newRule]);
+    toast.success(`Rule "${newRule.name}" created successfully!`);
+  };
 
   const formatDate = (date: Date | string | null | undefined) => {
     try {
-      if (!date) return '--:-- --/--/----'
-      
-      const dateObj = date instanceof Date ? date : new Date(date)
-      
+      if (!date) return "--:-- --/--/----";
+
+      const dateObj = date instanceof Date ? date : new Date(date);
+
       // Check if the date is valid
-      if (isNaN(dateObj.getTime())) return '--:-- --/--/----'
-      
-      return format(dateObj, 'HH:mm dd/MM/yyyy', { locale: vi })
+      if (isNaN(dateObj.getTime())) return "--:-- --/--/----";
+
+      return format(dateObj, "HH:mm dd/MM/yyyy", { locale: vi });
     } catch (error) {
-      console.error('Error formatting date:', error)
-      return '--:-- --/--/----'
+      console.error("Error formatting date:", error);
+      return "--:-- --/--/----";
     }
-  }
+  };
 
   if (isLoading || loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Loading text={ACTIONS.LOADING_DASHBOARD} />
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
@@ -222,7 +274,9 @@ export default function DashboardClient() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">{DASHBOARD.OVERVIEW.AUTHENTICATION_REQUIRED}</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              {DASHBOARD.OVERVIEW.AUTHENTICATION_REQUIRED}
+            </h2>
             <p className="text-muted-foreground mb-6">
               {DASHBOARD.OVERVIEW.PLEASE_SIGNIN_ACCESS}
             </p>
@@ -232,7 +286,7 @@ export default function DashboardClient() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -240,23 +294,23 @@ export default function DashboardClient() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">{DASHBOARD.OVERVIEW.DASHBOARD_LOAD_ERROR}</h2>
-            <p className="text-muted-foreground mb-6">
-              {error}
-            </p>
-            <Button onClick={handleReload}>
-              {ACTIONS.RELOAD}
-            </Button>
+            <h2 className="text-2xl font-bold mb-4">
+              {DASHBOARD.OVERVIEW.DASHBOARD_LOAD_ERROR}
+            </h2>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <Button onClick={handleReload}>{ACTIONS.RELOAD}</Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">{PAGE_TITLES.DASHBOARD}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {PAGE_TITLES.DASHBOARD}
+        </h1>
         <p className="text-muted-foreground">
           {DASHBOARD.OVERVIEW.WELCOME_BACK}
         </p>
@@ -266,7 +320,9 @@ export default function DashboardClient() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{DASHBOARD.OVERVIEW.TOTAL_GROUPS_STAT}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {DASHBOARD.OVERVIEW.TOTAL_GROUPS_STAT}
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -279,7 +335,9 @@ export default function DashboardClient() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{DASHBOARD.OVERVIEW.SCORE_RECORDS_STAT}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {DASHBOARD.OVERVIEW.SCORE_RECORDS_STAT}
+            </CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -292,7 +350,9 @@ export default function DashboardClient() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{DASHBOARD.OVERVIEW.TOTAL_POINTS_STAT}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {DASHBOARD.OVERVIEW.TOTAL_POINTS_STAT}
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -305,7 +365,9 @@ export default function DashboardClient() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{DASHBOARD.OVERVIEW.ACTIVITY_STAT}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {DASHBOARD.OVERVIEW.ACTIVITY_STAT}
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -339,7 +401,10 @@ export default function DashboardClient() {
             ) : (
               <div className="space-y-3">
                 {groups.slice(0, 5).map((group) => (
-                  <div key={group.id} className="flex items-center justify-between">
+                  <div
+                    key={group.id}
+                    className="flex items-center justify-between"
+                  >
                     <div
                       className="flex-1 cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded transition-colors"
                       onClick={() => router.push(`/groups/${group.id}`)}
@@ -357,7 +422,10 @@ export default function DashboardClient() {
                 {groups.length > 5 && (
                   <Button variant="outline" asChild className="w-full">
                     <Link href="/groups">
-                      {DASHBOARD.OVERVIEW.VIEW_ALL.replace('{count}', groups.length.toString())}
+                      {DASHBOARD.OVERVIEW.VIEW_ALL.replace(
+                        "{count}",
+                        groups.length.toString(),
+                      )}
                     </Link>
                   </Button>
                 )}
@@ -380,20 +448,35 @@ export default function DashboardClient() {
                 {userScoreRecords.length === 0 ? (
                   <div className="text-center py-6">
                     <Trophy className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">Chưa có bản ghi điểm nào</p>
+                    <p className="text-muted-foreground">
+                      Chưa có bản ghi điểm nào
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {userScoreRecords.slice(0, 5).map((record) => (
-                      <div key={record.id} className="flex items-center justify-between p-2 border rounded">
+                      <div
+                        key={record.id}
+                        className="flex items-center justify-between p-2 border rounded"
+                      >
                         <div>
-                          <p className="font-medium">{record.rule?.name || 'Quy tắc không xác định'}</p>
+                          <p className="font-medium">
+                            {record.rule?.name || "Quy tắc không xác định"}
+                          </p>
                           <p className="text-sm text-muted-foreground">
-                            {formatDate(record.recordedAt)} - {record.notes || 'Không có ghi chú'}
+                            {formatDate(record.recordedAt)} -{" "}
+                            {record.notes || "Không có ghi chú"}
                           </p>
                         </div>
-                        <Badge variant={record.points >= 0 ? 'default' : 'destructive'}>
-                          {record.points >= 0 ? `+${record.points}` : record.points} điểm
+                        <Badge
+                          variant={
+                            record.points >= 0 ? "default" : "destructive"
+                          }
+                        >
+                          {record.points >= 0
+                            ? `+${record.points}`
+                            : record.points}{" "}
+                          điểm
                         </Badge>
                       </div>
                     ))}
@@ -410,22 +493,32 @@ export default function DashboardClient() {
             <Card>
               <CardHeader>
                 <CardTitle>Tổ Stats</CardTitle>
-                <CardDescription>
-                  Thống kê nhóm của bạn
-                </CardDescription>
+                <CardDescription>Thống kê nhóm của bạn</CardDescription>
               </CardHeader>
               <CardContent>
                 {groups.length === 0 ? (
                   <div className="text-center py-4">
-                    <p className="text-muted-foreground">Bạn chưa tham gia nhóm nào</p>
+                    <p className="text-muted-foreground">
+                      Bạn chưa tham gia nhóm nào
+                    </p>
                   </div>
                 ) : enhancedGroupStats ? (
                   <div className="space-y-4">
                     {/* Group Header */}
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg">{enhancedGroupStats.group.name}</h3>
-                      <Badge variant={enhancedGroupStats.group.isActive ? 'default' : 'secondary'}>
-                        {enhancedGroupStats.group.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                      <h3 className="font-semibold text-lg">
+                        {enhancedGroupStats.group.name}
+                      </h3>
+                      <Badge
+                        variant={
+                          enhancedGroupStats.group.isActive
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {enhancedGroupStats.group.isActive
+                          ? "Hoạt động"
+                          : "Không hoạt động"}
                       </Badge>
                     </div>
 
@@ -434,112 +527,155 @@ export default function DashboardClient() {
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Thành viên</span>
+                          <span className="text-sm text-muted-foreground">
+                            Thành viên
+                          </span>
                         </div>
-                        <p className="text-lg font-semibold">{enhancedGroupStats.totalMembers}</p>
+                        <p className="text-lg font-semibold">
+                          {enhancedGroupStats.totalMembers}
+                        </p>
                       </div>
 
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Activity className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Bản ghi tuần này</span>
+                          <span className="text-sm text-muted-foreground">
+                            Bản ghi tuần này
+                          </span>
                         </div>
-                        <p className="text-lg font-semibold">{enhancedGroupStats.weeklyRecords}</p>
+                        <p className="text-lg font-semibold">
+                          {enhancedGroupStats.weeklyRecords}
+                        </p>
                       </div>
 
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Trophy className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Điểm tuần này</span>
+                          <span className="text-sm text-muted-foreground">
+                            Điểm tuần này
+                          </span>
                         </div>
-                        <p className="text-lg font-semibold">{enhancedGroupStats.weeklyScore}</p>
+                        <p className="text-lg font-semibold">
+                          {enhancedGroupStats.weeklyScore}
+                        </p>
                       </div>
 
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Target className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Quy tắc</span>
+                          <span className="text-sm text-muted-foreground">
+                            Quy tắc
+                          </span>
                         </div>
-                        <p className="text-lg font-semibold">{enhancedGroupStats.activeRules}</p>
+                        <p className="text-lg font-semibold">
+                          {enhancedGroupStats.activeRules}
+                        </p>
                       </div>
 
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Crown className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Nhiều điểm nhất</span>
+                          <span className="text-sm text-muted-foreground">
+                            Nhiều điểm nhất
+                          </span>
                         </div>
                         <p className="text-sm font-medium">
-                          {enhancedGroupStats.topPerformers && enhancedGroupStats.topPerformers.length > 0 ? 
-                            `${enhancedGroupStats.topPerformers[0].userName.split(' ')[0]} (${enhancedGroupStats.topPerformers[0].totalPoints})` : 
-                            'N/A'
-                          }
+                          {enhancedGroupStats.topPerformers &&
+                          enhancedGroupStats.topPerformers.length > 0
+                            ? `${enhancedGroupStats.topPerformers[0].userName.split(" ")[0]} (${enhancedGroupStats.topPerformers[0].totalPoints})`
+                            : "N/A"}
                         </p>
                       </div>
 
                       <div className="bg-muted/50 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Cần cải thiện</span>
+                          <span className="text-sm text-muted-foreground">
+                            Cần cải thiện
+                          </span>
                         </div>
                         <p className="text-sm font-medium">
-                          {enhancedGroupStats.bottomPerformers && enhancedGroupStats.bottomPerformers.length > 0 ? 
-                            `${enhancedGroupStats.bottomPerformers[0].userName} (${enhancedGroupStats.bottomPerformers[0].totalPoints})` : 
-                            'N/A'
-                          }
+                          {enhancedGroupStats.bottomPerformers &&
+                          enhancedGroupStats.bottomPerformers.length > 0
+                            ? `${enhancedGroupStats.bottomPerformers[0].userName} (${enhancedGroupStats.bottomPerformers[0].totalPoints})`
+                            : "N/A"}
                         </p>
                       </div>
                     </div>
 
                     {/* Performance Rankings */}
-                    {(enhancedGroupStats.topPerformers?.length || 0) > 0 || (enhancedGroupStats.bottomPerformers?.length || 0) > 0 && (
-                      <div className="space-y-3 pt-2">
-                        <h4 className="font-medium text-sm">Hiệu suất thành viên</h4>
-                        
-                        {/* Top Performers */}
-                        {enhancedGroupStats.topPerformers && enhancedGroupStats.topPerformers.length > 0 && (
-                          <div>
-                            <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                              <Crown className="h-3 w-3" />
-                              Top performers
-                            </h5>
-                            <div className="space-y-1">
-                              {enhancedGroupStats.topPerformers.slice(0, 3).map((performer, index) => (
-                                <div key={performer.userId} className="flex items-center justify-between text-sm">
-                                  <span className="font-medium">{performer.userName}</span>
-                                  <div className="text-xs text-muted-foreground">
-                                    {performer.totalRecords} bản ghi • {performer.totalPoints} điểm
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                    {(enhancedGroupStats.topPerformers?.length || 0) > 0 ||
+                      ((enhancedGroupStats.bottomPerformers?.length || 0) >
+                        0 && (
+                        <div className="space-y-3 pt-2">
+                          <h4 className="font-medium text-sm">
+                            Hiệu suất thành viên
+                          </h4>
 
-                        {/* Bottom Performers */}
-                        {enhancedGroupStats.bottomPerformers && enhancedGroupStats.bottomPerformers.length > 0 && (
-                          <div>
-                            <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                              <TrendingDown className="h-3 w-3" />
-                              Cần cải thiện
-                            </h5>
-                            <div className="space-y-1">
-                              {enhancedGroupStats.bottomPerformers.slice(0, 3).map((member: any, index: number) => (
-                                <div key={member.userId} className="flex items-center justify-between text-sm">
-                                  <span className="font-medium">{member.userName}</span>
-                                  <div className="text-xs text-muted-foreground">
-                                    {member.totalPoints} điểm
-                                  </div>
+                          {/* Top Performers */}
+                          {enhancedGroupStats.topPerformers &&
+                            enhancedGroupStats.topPerformers.length > 0 && (
+                              <div>
+                                <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                                  <Crown className="h-3 w-3" />
+                                  Top performers
+                                </h5>
+                                <div className="space-y-1">
+                                  {enhancedGroupStats.topPerformers
+                                    .slice(0, 3)
+                                    .map((performer, index) => (
+                                      <div
+                                        key={performer.userId}
+                                        className="flex items-center justify-between text-sm"
+                                      >
+                                        <span className="font-medium">
+                                          {performer.userName}
+                                        </span>
+                                        <div className="text-xs text-muted-foreground">
+                                          {performer.totalRecords} bản ghi •{" "}
+                                          {performer.totalPoints} điểm
+                                        </div>
+                                      </div>
+                                    ))}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                              </div>
+                            )}
+
+                          {/* Bottom Performers */}
+                          {enhancedGroupStats.bottomPerformers &&
+                            enhancedGroupStats.bottomPerformers.length > 0 && (
+                              <div>
+                                <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                                  <TrendingDown className="h-3 w-3" />
+                                  Cần cải thiện
+                                </h5>
+                                <div className="space-y-1">
+                                  {enhancedGroupStats.bottomPerformers
+                                    .slice(0, 3)
+                                    .map((member: any, index: number) => (
+                                      <div
+                                        key={member.userId}
+                                        className="flex items-center justify-between text-sm"
+                                      >
+                                        <span className="font-medium">
+                                          {member.userName}
+                                        </span>
+                                        <div className="text-xs text-muted-foreground">
+                                          {member.totalPoints} điểm
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      ))}
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-muted-foreground">Đang tải thống kê...</p>
+                    <p className="text-muted-foreground">
+                      Đang tải thống kê...
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -558,10 +694,12 @@ export default function DashboardClient() {
                     {DASHBOARD.OVERVIEW.CREATE_NEW_GROUP}
                   </Link>
                 </Button>
-                <Button variant="outline" asChild className="w-full justify-start">
-                  <Link href="/groups">
-                    {DASHBOARD.OVERVIEW.MANAGE_GROUPS}
-                  </Link>
+                <Button
+                  variant="outline"
+                  asChild
+                  className="w-full justify-start"
+                >
+                  <Link href="/groups">{DASHBOARD.OVERVIEW.MANAGE_GROUPS}</Link>
                 </Button>
                 <Button
                   variant="outline"
@@ -576,7 +714,7 @@ export default function DashboardClient() {
                     Score Records
                   </Link>
                 </Button>
-                {user?.role === 'ADMIN' && (
+                {user?.role === "ADMIN" && (
                   <>
                     <Button asChild className="w-full justify-start">
                       <Link href="/admin/scoring-rules">
@@ -610,10 +748,15 @@ export default function DashboardClient() {
       </div>
 
       {/* Group Selection Dialog for Scoring Rules */}
-      <Dialog open={showScoringRulesDialog} onOpenChange={setShowScoringRulesDialog}>
+      <Dialog
+        open={showScoringRulesDialog}
+        onOpenChange={setShowScoringRulesDialog}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{DASHBOARD.OVERVIEW.SCORING_RULES_GROUP_SELECT}</DialogTitle>
+            <DialogTitle>
+              {DASHBOARD.OVERVIEW.SCORING_RULES_GROUP_SELECT}
+            </DialogTitle>
             <DialogDescription>
               {DASHBOARD.OVERVIEW.SCORING_RULES_GROUP_DESC}
             </DialogDescription>
@@ -628,38 +771,41 @@ export default function DashboardClient() {
                   <SelectValue placeholder={PLACEHOLDERS.CHOOSE_MEMBER} />
                 </SelectTrigger>
                 <SelectContent>
-                  {groups.filter(group => group.id && group.id.trim() !== '').map((group) => (
-                    <SelectItem key={group.id} value={group.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{group.name}</span>
-                        <Badge variant={group.isActive ? "default" : "secondary"} className="ml-2">
-                          {group.isActive ? LABELS.ACTIVE : LABELS.INACTIVE}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {groups
+                    .filter((group) => group.id && group.id.trim() !== "")
+                    .map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{group.name}</span>
+                          <Badge
+                            variant={group.isActive ? "default" : "secondary"}
+                            className="ml-2"
+                          >
+                            {group.isActive ? LABELS.ACTIVE : LABELS.INACTIVE}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="flex justify-end space-x-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowScoringRulesDialog(false)}
             >
               {ACTIONS.CANCEL}
             </Button>
             <Button asChild>
-              <Link href="/groups">
-                {DASHBOARD.OVERVIEW.CREATE_NEW_GROUP}
-              </Link>
+              <Link href="/groups">{DASHBOARD.OVERVIEW.CREATE_NEW_GROUP}</Link>
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Global Scoring Rules Section for Admins */}
-      {user?.role === 'ADMIN' && globalRules.length > 0 && (
+      {user?.role === "ADMIN" && globalRules.length > 0 && (
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -673,7 +819,10 @@ export default function DashboardClient() {
           <CardContent>
             <div className="space-y-3">
               {globalRules.slice(0, 3).map((rule) => (
-                <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={rule.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                       <Target className="h-4 w-4 text-blue-600" />
@@ -686,11 +835,16 @@ export default function DashboardClient() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={rule.points >= 0 ? 'default' : 'destructive'}>
-                      {rule.points >= 0 ? `+${rule.points}` : rule.points} {GLOBAL_RULES.POINTS}
+                    <Badge
+                      variant={rule.points >= 0 ? "default" : "destructive"}
+                    >
+                      {rule.points >= 0 ? `+${rule.points}` : rule.points}{" "}
+                      {GLOBAL_RULES.POINTS}
                     </Badge>
-                    <Badge variant={rule.isActive ? 'default' : 'secondary'}>
-                      {rule.isActive ? GLOBAL_RULES.ACTIVE : GLOBAL_RULES.INACTIVE}
+                    <Badge variant={rule.isActive ? "default" : "secondary"}>
+                      {rule.isActive
+                        ? GLOBAL_RULES.ACTIVE
+                        : GLOBAL_RULES.INACTIVE}
                     </Badge>
                   </div>
                 </div>
@@ -698,7 +852,10 @@ export default function DashboardClient() {
               {globalRules.length > 3 && (
                 <div className="text-center pt-2">
                   <Button variant="outline" size="sm">
-                    {GLOBAL_RULES.VIEW_ALL_RULES.replace('{count}', globalRules.length.toString())}
+                    {GLOBAL_RULES.VIEW_ALL_RULES.replace(
+                      "{count}",
+                      globalRules.length.toString(),
+                    )}
                   </Button>
                 </div>
               )}
@@ -708,15 +865,15 @@ export default function DashboardClient() {
       )}
 
       {/* Rule Creation Modal */}
-      {user?.role === 'ADMIN' && (
+      {user?.role === "ADMIN" && (
         <RuleCreationModal
           isOpen={showRuleModal}
           onClose={handleRuleModalClose}
           onRuleCreated={handleRuleCreated}
           mode="create"
-          isAdmin={user?.role === 'ADMIN'}
+          isAdmin={user?.role === "ADMIN"}
         />
       )}
     </div>
-  )
+  );
 }

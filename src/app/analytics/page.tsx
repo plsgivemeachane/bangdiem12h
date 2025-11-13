@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   BarChart,
   Bar,
@@ -17,8 +17,8 @@ import {
   Legend,
   ResponsiveContainer,
   Area,
-  AreaChart
-} from 'recharts'
+  AreaChart,
+} from "recharts";
 import {
   TrendingUp,
   TrendingDown,
@@ -34,300 +34,328 @@ import {
   Download,
   ChevronDown,
   FilterIcon,
-  Clock
-} from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Loading } from '@/components/ui/loading'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { UserTag } from '@/components/ui/user-tag'
-import { useAuth } from '@/hooks/use-auth'
-import toast from 'react-hot-toast'
+  Clock,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loading } from "@/components/ui/loading";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserTag } from "@/components/ui/user-tag";
+import { useAuth } from "@/hooks/use-auth";
+import toast from "react-hot-toast";
 
 interface AnalyticsData {
-  period: string
+  period: string;
   dateRange: {
-    start: string
-    end: string
-  }
+    start: string;
+    end: string;
+  };
   summary: {
-    totalPoints: number
-    recordCount: number
-    averagePoints: number
+    totalPoints: number;
+    recordCount: number;
+    averagePoints: number;
     previousPeriod: {
-      totalPoints: number
-      recordCount: number
-      pointsChange: number
-      pointsChangePercent: number
-    }
-  }
+      totalPoints: number;
+      recordCount: number;
+      pointsChange: number;
+      pointsChangePercent: number;
+    };
+  };
   trendData: Array<{
-    date: string
-    points: number
-  }>
+    date: string;
+    points: number;
+  }>;
   ruleBreakdown: Array<{
-    ruleId: string
-    name: string
-    totalPoints: number
-    count: number
-    averagePoints: number
-  }>
+    ruleId: string;
+    name: string;
+    totalPoints: number;
+    count: number;
+    averagePoints: number;
+  }>;
   groupBreakdown: Array<{
-    groupId: string
-    name: string
-    totalPoints: number
-    recordCount: number
-    averagePoints: number
-  }>
+    groupId: string;
+    name: string;
+    totalPoints: number;
+    recordCount: number;
+    averagePoints: number;
+  }>;
 }
 
 interface Group {
-  id: string
-  name: string
-  description?: string
+  id: string;
+  name: string;
+  description?: string;
 }
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0', '#ffb347', '#87ceeb']
+const COLORS = [
+  "#8884d8",
+  "#82ca9d",
+  "#ffc658",
+  "#ff7c7c",
+  "#8dd1e1",
+  "#d084d0",
+  "#ffb347",
+  "#87ceeb",
+];
 
 export default function AnalyticsPage() {
-  const router = useRouter()
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
-  const [dailyAnalyticsData, setDailyAnalyticsData] = useState<AnalyticsData | null>(null)
-  const [groups, setGroups] = useState<Group[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingGroups, setIsLoadingGroups] = useState(true)
-  const [isLoadingDaily, setIsLoadingDaily] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
-  const [selectedGroup, setSelectedGroup] = useState<string>('all')
-  const [showFilters, setShowFilters] = useState(false)
-  const [scoreRecords, setScoreRecords] = useState<any[]>([])
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null,
+  );
+  const [dailyAnalyticsData, setDailyAnalyticsData] =
+    useState<AnalyticsData | null>(null);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingGroups, setIsLoadingGroups] = useState(true);
+  const [isLoadingDaily, setIsLoadingDaily] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">(
+    "30d",
+  );
+  const [selectedGroup, setSelectedGroup] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [scoreRecords, setScoreRecords] = useState<any[]>([]);
   const [scoreRecordsPagination, setScoreRecordsPagination] = useState({
     total: 0,
     limit: 20,
     offset: 0,
-    hasMore: false
-  })
-  const [isLoadingRecords, setIsLoadingRecords] = useState(false)
-  const [selectedTab, setSelectedTab] = useState('trends')
+    hasMore: false,
+  });
+  const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("trends");
 
   // Tab options for mobile Select component
   const tabOptions = [
-    { value: 'trends', label: 'Xu hướng' },
-    { value: 'breakdown', label: 'Phân tích theo nhóm' },
-    { value: 'rules', label: 'Sử dụng quy tắc' },
-    { value: 'below-trending', label: 'Bản ghi điểm gần đây' }
-  ]
+    { value: "trends", label: "Xu hướng" },
+    { value: "breakdown", label: "Phân tích theo nhóm" },
+    { value: "rules", label: "Sử dụng quy tắc" },
+    { value: "below-trending", label: "Bản ghi điểm gần đây" },
+  ];
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/auth/signin')
-      return
+      router.push("/auth/signin");
+      return;
     }
-  }, [isAuthenticated, authLoading, router])
+  }, [isAuthenticated, authLoading, router]);
 
   // Load user's groups on mount
   useEffect(() => {
     if (isAuthenticated) {
-      loadGroups()
+      loadGroups();
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated]);
 
   // Load analytics data when filters change
   useEffect(() => {
     if (isAuthenticated && !isLoadingGroups) {
-      loadAnalyticsData()
-      loadDailyAnalyticsData()
+      loadAnalyticsData();
+      loadDailyAnalyticsData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, timeRange, selectedGroup, isLoadingGroups])
+  }, [isAuthenticated, timeRange, selectedGroup, isLoadingGroups]);
 
   // Load score records when filters change
   useEffect(() => {
     if (isAuthenticated && !isLoadingGroups) {
-      loadScoreRecords(0)
+      loadScoreRecords(0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, timeRange, selectedGroup, isLoadingGroups])
+  }, [isAuthenticated, timeRange, selectedGroup, isLoadingGroups]);
 
   const loadGroups = async () => {
     try {
-      setIsLoadingGroups(true)
-      const response = await fetch('/api/groups')
+      setIsLoadingGroups(true);
+      const response = await fetch("/api/groups");
 
       if (!response.ok) {
-        throw new Error('Không thể tải danh sách nhóm')
+        throw new Error("Không thể tải danh sách nhóm");
       }
 
-      const data = await response.json()
-      setGroups(data.groups || [])
+      const data = await response.json();
+      setGroups(data.groups || []);
     } catch (error) {
-      console.error('Không thể tải danh sách nhóm:', error)
-      toast.error('Không thể tải danh sách nhóm')
+      console.error("Không thể tải danh sách nhóm:", error);
+      toast.error("Không thể tải danh sách nhóm");
     } finally {
-      setIsLoadingGroups(false)
+      setIsLoadingGroups(false);
     }
-  }
+  };
 
   const loadAnalyticsData = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
 
       const params = new URLSearchParams({
-        period: timeRange === '7d' ? 'week' : timeRange === '1y' ? 'year' : 'month',
-        groupId: selectedGroup === 'all' ? '' : selectedGroup
-      })
+        period:
+          timeRange === "7d" ? "week" : timeRange === "1y" ? "year" : "month",
+        groupId: selectedGroup === "all" ? "" : selectedGroup,
+      });
 
-      const response = await fetch(`/api/analytics?${params.toString()}`)
+      const response = await fetch(`/api/analytics?${params.toString()}`);
 
       if (!response.ok) {
-        throw new Error('Không thể tải dữ liệu phân tích')
+        throw new Error("Không thể tải dữ liệu phân tích");
       }
 
-      const result = await response.json()
-      setAnalyticsData(result.analytics)
-
+      const result = await response.json();
+      setAnalyticsData(result.analytics);
     } catch (error) {
-      console.error('Không thể tải dữ liệu phân tích:', error)
-      setError(error instanceof Error ? error.message : 'Không thể tải dữ liệu phân tích')
-      toast.error('Không thể tải dữ liệu phân tích')
+      console.error("Không thể tải dữ liệu phân tích:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Không thể tải dữ liệu phân tích",
+      );
+      toast.error("Không thể tải dữ liệu phân tích");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const loadDailyAnalyticsData = async () => {
     try {
-      setIsLoadingDaily(true)
+      setIsLoadingDaily(true);
 
       const params = new URLSearchParams({
-        period: timeRange === '7d' ? 'week' : timeRange === '1y' ? 'year' : 'month',
-        groupId: selectedGroup === 'all' ? '' : selectedGroup
-      })
+        period:
+          timeRange === "7d" ? "week" : timeRange === "1y" ? "year" : "month",
+        groupId: selectedGroup === "all" ? "" : selectedGroup,
+      });
 
-      const response = await fetch(`/api/analytics/daily?${params.toString()}`)
+      const response = await fetch(`/api/analytics/daily?${params.toString()}`);
 
       if (!response.ok) {
-        throw new Error('Không thể tải dữ liệu phân tích hàng ngày')
+        throw new Error("Không thể tải dữ liệu phân tích hàng ngày");
       }
 
-      const result = await response.json()
-      setDailyAnalyticsData(result.analytics)
-
+      const result = await response.json();
+      setDailyAnalyticsData(result.analytics);
     } catch (error) {
-      console.error('Không thể tải dữ liệu phân tích hàng ngày:', error)
+      console.error("Không thể tải dữ liệu phân tích hàng ngày:", error);
       // Don't show error toast for daily data since it's secondary
-      setDailyAnalyticsData(null)
+      setDailyAnalyticsData(null);
     } finally {
-      setIsLoadingDaily(false)
+      setIsLoadingDaily(false);
     }
-  }
+  };
 
   const loadScoreRecords = async (offset = 0) => {
     try {
-      setIsLoadingRecords(true)
+      setIsLoadingRecords(true);
 
       // Calculate date range based on timeRange
-      const endDate = new Date()
-      const startDate = new Date()
-      
+      const endDate = new Date();
+      const startDate = new Date();
+
       switch (timeRange) {
-        case '7d':
-          startDate.setDate(endDate.getDate() - 7)
-          break
-        case '30d':
-          startDate.setDate(endDate.getDate() - 30)
-          break
-        case '90d':
-          startDate.setDate(endDate.getDate() - 90)
-          break
-        case '1y':
-          startDate.setFullYear(endDate.getFullYear() - 1)
-          break
+        case "7d":
+          startDate.setDate(endDate.getDate() - 7);
+          break;
+        case "30d":
+          startDate.setDate(endDate.getDate() - 30);
+          break;
+        case "90d":
+          startDate.setDate(endDate.getDate() - 90);
+          break;
+        case "1y":
+          startDate.setFullYear(endDate.getFullYear() - 1);
+          break;
       }
 
       const params = new URLSearchParams({
         limit: scoreRecordsPagination.limit.toString(),
         offset: offset.toString(),
         startDate: startDate.toISOString(),
-        endDate: endDate.toISOString()
-      })
+        endDate: endDate.toISOString(),
+      });
 
-      if (selectedGroup !== 'all') {
-        params.set('groupId', selectedGroup)
+      if (selectedGroup !== "all") {
+        params.set("groupId", selectedGroup);
       }
 
-      const response = await fetch(`/api/score-records?${params.toString()}`)
+      const response = await fetch(`/api/score-records?${params.toString()}`);
 
       if (!response.ok) {
-        throw new Error('Không thể tải danh sách bản ghi điểm')
+        throw new Error("Không thể tải danh sách bản ghi điểm");
       }
 
-      const result = await response.json()
-      
+      const result = await response.json();
+
       if (offset === 0) {
-        setScoreRecords(result.scoreRecords)
+        setScoreRecords(result.scoreRecords);
       } else {
-        setScoreRecords(prev => [...prev, ...result.scoreRecords])
+        setScoreRecords((prev) => [...prev, ...result.scoreRecords]);
       }
-      
-      setScoreRecordsPagination(result.pagination)
 
+      setScoreRecordsPagination(result.pagination);
     } catch (error) {
-      console.error('Không thể tải danh sách bản ghi điểm:', error)
-      toast.error('Không thể tải danh sách bản ghi điểm')
+      console.error("Không thể tải danh sách bản ghi điểm:", error);
+      toast.error("Không thể tải danh sách bản ghi điểm");
     } finally {
-      setIsLoadingRecords(false)
+      setIsLoadingRecords(false);
     }
-  }
+  };
 
   const loadMoreRecords = () => {
     if (!isLoadingRecords && scoreRecordsPagination.hasMore) {
-      const newOffset = scoreRecordsPagination.offset + scoreRecordsPagination.limit
-      loadScoreRecords(newOffset)
+      const newOffset =
+        scoreRecordsPagination.offset + scoreRecordsPagination.limit;
+      loadScoreRecords(newOffset);
     }
-  }
-
-
+  };
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k'
+      return (num / 1000).toFixed(1) + "k";
     }
-    return num.toString()
-  }
+    return num.toString();
+  };
 
   const calculateTrend = (current: number, previous: number) => {
-    if (previous === 0) return current > 0 ? 100 : 0
-    return ((current - previous) / previous) * 100
-  }
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   // Transform group breakdown data for Pie Chart - convert negative values to 0 for display only
   const getPieChartData = () => {
-    if (!analyticsData?.groupBreakdown) return []
-    return analyticsData.groupBreakdown.map(group => ({
+    if (!analyticsData?.groupBreakdown) return [];
+    return analyticsData.groupBreakdown.map((group) => ({
       ...group,
-      totalPoints: Math.max(0, group.totalPoints) // Display negative values as 0 in pie chart
-    }))
-  }
+      totalPoints: Math.max(0, group.totalPoints), // Display negative values as 0 in pie chart
+    }));
+  };
 
   // Show loading spinner during authentication check
   if (authLoading) {
@@ -335,7 +363,7 @@ export default function AnalyticsPage() {
       <div className="container mx-auto px-4 py-8">
         <Loading text="Đang kiểm tra xác thực..." />
       </div>
-    )
+    );
   }
 
   // Show login prompt if not authenticated
@@ -348,13 +376,13 @@ export default function AnalyticsPage() {
             <p className="text-muted-foreground mb-6">
               Vui lòng đăng nhập để xem dữ liệu phân tích.
             </p>
-            <Button onClick={() => router.push('/auth/signin')}>
+            <Button onClick={() => router.push("/auth/signin")}>
               Đăng nhập
             </Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (isLoading) {
@@ -362,7 +390,7 @@ export default function AnalyticsPage() {
       <div className="container mx-auto px-4 py-8">
         <Loading text="Đang tải dữ liệu phân tích..." />
       </div>
-    )
+    );
   }
 
   if (error || !analyticsData) {
@@ -370,17 +398,17 @@ export default function AnalyticsPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Không thể tải dữ liệu phân tích</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              Không thể tải dữ liệu phân tích
+            </h2>
             <p className="text-muted-foreground mb-6">
-              {error || 'Đã xảy ra lỗi khi tải dữ liệu phân tích.'}
+              {error || "Đã xảy ra lỗi khi tải dữ liệu phân tích."}
             </p>
-            <Button onClick={loadAnalyticsData}>
-              Thử lại
-            </Button>
+            <Button onClick={loadAnalyticsData}>Thử lại</Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -396,10 +424,11 @@ export default function AnalyticsPage() {
               </h1>
             </div>
             <p className="text-muted-foreground mt-1 text-sm">
-              Cung cấp cái nhìn toàn diện về hiệu suất và xu hướng ghi điểm của các nhóm
+              Cung cấp cái nhìn toàn diện về hiệu suất và xu hướng ghi điểm của
+              các nhóm
             </p>
           </div>
-          
+
           <div className="flex gap-2 flex-wrap">
             <Select value={selectedGroup} onValueChange={setSelectedGroup}>
               <SelectTrigger className="w-full sm:w-40 min-w-[140px]">
@@ -407,7 +436,7 @@ export default function AnalyticsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả các nhóm</SelectItem>
-                {groups.map(group => (
+                {groups.map((group) => (
                   <SelectItem key={group.id} value={group.id}>
                     {group.name}
                   </SelectItem>
@@ -415,7 +444,10 @@ export default function AnalyticsPage() {
               </SelectContent>
             </Select>
 
-            <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
+            <Select
+              value={timeRange}
+              onValueChange={(value: any) => setTimeRange(value)}
+            >
               <SelectTrigger className="w-full sm:w-32 min-w-[120px]">
                 <SelectValue />
               </SelectTrigger>
@@ -426,12 +458,16 @@ export default function AnalyticsPage() {
                 <SelectItem value="1y">Năm qua</SelectItem>
               </SelectContent>
             </Select>
-            
-            <Button variant="outline" onClick={() => {
-              loadAnalyticsData()
-              loadDailyAnalyticsData()
-              loadScoreRecords(0)
-            }} className="whitespace-nowrap">
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                loadAnalyticsData();
+                loadDailyAnalyticsData();
+                loadScoreRecords(0);
+              }}
+              className="whitespace-nowrap"
+            >
               <RefreshCw className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Làm mới</span>
             </Button>
@@ -447,15 +483,26 @@ export default function AnalyticsPage() {
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(analyticsData.summary.totalPoints)}</div>
+            <div className="text-2xl font-bold">
+              {formatNumber(analyticsData.summary.totalPoints)}
+            </div>
             <div className="flex items-center gap-1 text-xs">
               {analyticsData.summary.previousPeriod.pointsChange >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-green-500" />
               ) : (
                 <TrendingDown className="h-3 w-3 text-red-500" />
               )}
-              <span className={analyticsData.summary.previousPeriod.pointsChange >= 0 ? 'text-green-500' : 'text-red-500'}>
-                {Math.abs(analyticsData.summary.previousPeriod.pointsChangePercent).toFixed(1)}%
+              <span
+                className={
+                  analyticsData.summary.previousPeriod.pointsChange >= 0
+                    ? "text-green-500"
+                    : "text-red-500"
+                }
+              >
+                {Math.abs(
+                  analyticsData.summary.previousPeriod.pointsChangePercent,
+                ).toFixed(1)}
+                %
               </span>
               <span className="text-muted-foreground">so với kỳ trước</span>
             </div>
@@ -468,9 +515,12 @@ export default function AnalyticsPage() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.summary.recordCount}</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.summary.recordCount}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Trung bình {analyticsData.summary.averagePoints.toFixed(1)} điểm mỗi lượt
+              Trung bình {analyticsData.summary.averagePoints.toFixed(1)} điểm
+              mỗi lượt
             </p>
           </CardContent>
         </Card>
@@ -478,9 +528,9 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {selectedGroup === 'all' ? 'Số nhóm' : 'Chu kỳ'}
+              {selectedGroup === "all" ? "Số nhóm" : "Chu kỳ"}
             </CardTitle>
-            {selectedGroup === 'all' ? (
+            {selectedGroup === "all" ? (
               <Users className="h-4 w-4 text-muted-foreground" />
             ) : (
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -488,21 +538,27 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {selectedGroup === 'all' ? groups.length : analyticsData.period}
+              {selectedGroup === "all" ? groups.length : analyticsData.period}
             </div>
             <p className="text-xs text-muted-foreground">
-              {selectedGroup === 'all' ? 'Tổng số nhóm được theo dõi' : 'Chu kỳ phân tích'}
+              {selectedGroup === "all"
+                ? "Tổng số nhóm được theo dõi"
+                : "Chu kỳ phân tích"}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quy tắc được sử dụng</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Quy tắc được sử dụng
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.ruleBreakdown.length}</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.ruleBreakdown.length}
+            </div>
             <p className="text-xs text-muted-foreground">
               Số quy tắc chấm điểm khác nhau
             </p>
@@ -511,7 +567,11 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Main Analytics Tabs */}
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+      <Tabs
+        value={selectedTab}
+        onValueChange={setSelectedTab}
+        className="space-y-6"
+      >
         {/* Mobile: Select dropdown, Desktop: Grid layout */}
         {/* Mobile Select - hidden on desktop */}
         <div className="md:hidden">
@@ -531,16 +591,28 @@ export default function AnalyticsPage() {
 
         {/* Desktop TabsList - hidden on mobile */}
         <TabsList className="hidden md:grid md:grid-cols-4 gap-2 md:gap-1 w-full">
-          <TabsTrigger value="trends" className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="trends"
+            className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             Xu hướng
           </TabsTrigger>
-          <TabsTrigger value="breakdown" className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="breakdown"
+            className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             Phân tích theo nhóm
           </TabsTrigger>
-          <TabsTrigger value="rules" className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="rules"
+            className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             Sử dụng quy tắc
           </TabsTrigger>
-          <TabsTrigger value="below-trending" className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="below-trending"
+            className="w-full justify-center py-2 text-center font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             Bản ghi điểm gần đây
           </TabsTrigger>
         </TabsList>
@@ -587,7 +659,8 @@ export default function AnalyticsPage() {
                     <div className="flex justify-center items-center h-[300px]">
                       <Loading text="Đang tải dữ liệu hàng ngày..." />
                     </div>
-                  ) : dailyAnalyticsData && dailyAnalyticsData.trendData.length > 0 ? (
+                  ) : dailyAnalyticsData &&
+                    dailyAnalyticsData.trendData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={dailyAnalyticsData.trendData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -616,9 +689,12 @@ export default function AnalyticsPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Không có dữ liệu xu hướng</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Không có dữ liệu xu hướng
+                </h3>
                 <p className="text-muted-foreground">
-                  Không có dữ liệu xu hướng điểm nào trong khoảng thời gian đã chọn.
+                  Không có dữ liệu xu hướng điểm nào trong khoảng thời gian đã
+                  chọn.
                 </p>
               </CardContent>
             </Card>
@@ -635,9 +711,7 @@ export default function AnalyticsPage() {
                     <PieChartIcon className="h-5 w-5" />
                     Nhóm theo tổng điểm
                   </CardTitle>
-                  <CardDescription>
-                    Phân bổ điểm giữa các nhóm
-                  </CardDescription>
+                  <CardDescription>Phân bổ điểm giữa các nhóm</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -649,10 +723,15 @@ export default function AnalyticsPage() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="totalPoints"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) =>
+                          `${name} ${(percent * 100).toFixed(0)}%`
+                        }
                       >
                         {getPieChartData().map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -688,10 +767,22 @@ export default function AnalyticsPage() {
                 <CardContent>
                   <div className="space-y-4">
                     {analyticsData.groupBreakdown.map((group, index) => (
-                      <div key={group.groupId} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                      <div
+                        key={group.groupId}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS[index % COLORS.length] + '20' }}>
-                            <span className="font-bold" style={{ color: COLORS[index % COLORS.length] }}>
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center"
+                            style={{
+                              backgroundColor:
+                                COLORS[index % COLORS.length] + "20",
+                            }}
+                          >
+                            <span
+                              className="font-bold"
+                              style={{ color: COLORS[index % COLORS.length] }}
+                            >
                               {index + 1}
                             </span>
                           </div>
@@ -703,9 +794,12 @@ export default function AnalyticsPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold">{group.totalPoints}</p>
+                          <p className="text-2xl font-bold">
+                            {group.totalPoints}
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            Trung bình: {group.averagePoints.toFixed(1)} điểm/lượt
+                            Trung bình: {group.averagePoints.toFixed(1)}{" "}
+                            điểm/lượt
                           </p>
                         </div>
                       </div>
@@ -718,9 +812,12 @@ export default function AnalyticsPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Không có dữ liệu nhóm</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Không có dữ liệu nhóm
+                </h3>
                 <p className="text-muted-foreground">
-                  Không có dữ liệu so sánh nhóm nào trong khoảng thời gian đã chọn.
+                  Không có dữ liệu so sánh nhóm nào trong khoảng thời gian đã
+                  chọn.
                 </p>
               </CardContent>
             </Card>
@@ -740,7 +837,10 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={analyticsData.ruleBreakdown} layout="vertical">
+                    <BarChart
+                      data={analyticsData.ruleBreakdown}
+                      layout="vertical"
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
                       <YAxis dataKey="name" type="category" width={150} />
@@ -760,7 +860,10 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={analyticsData.ruleBreakdown} layout="vertical">
+                    <BarChart
+                      data={analyticsData.ruleBreakdown}
+                      layout="vertical"
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
                       <YAxis dataKey="name" type="category" width={150} />
@@ -778,10 +881,15 @@ export default function AnalyticsPage() {
                 <CardContent>
                   <div className="space-y-4">
                     {analyticsData.ruleBreakdown.map((rule, index) => (
-                      <div key={rule.ruleId} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                      <div
+                        key={rule.ruleId}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10">
-                            <span className="font-bold text-primary">{index + 1}</span>
+                            <span className="font-bold text-primary">
+                              {index + 1}
+                            </span>
                           </div>
                           <div>
                             <p className="font-medium">{rule.name}</p>
@@ -791,7 +899,9 @@ export default function AnalyticsPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold">{rule.totalPoints}</p>
+                          <p className="text-2xl font-bold">
+                            {rule.totalPoints}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             Trung bình: {rule.averagePoints.toFixed(1)} điểm/lần
                           </p>
@@ -806,9 +916,12 @@ export default function AnalyticsPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Không có dữ liệu quy tắc</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Không có dữ liệu quy tắc
+                </h3>
                 <p className="text-muted-foreground">
-                  Không có quy tắc chấm điểm nào được sử dụng trong khoảng thời gian đã chọn.
+                  Không có quy tắc chấm điểm nào được sử dụng trong khoảng thời
+                  gian đã chọn.
                 </p>
               </CardContent>
             </Card>
@@ -832,19 +945,25 @@ export default function AnalyticsPage() {
                     Bản ghi điểm gần đây
                   </CardTitle>
                   <CardDescription className="text-sm">
-                    Danh sách tất cả bản ghi điểm được sắp xếp theo thời gian gần nhất
+                    Danh sách tất cả bản ghi điểm được sắp xếp theo thời gian
+                    gần nhất
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="space-y-3">
                     {scoreRecords.map((record, index) => (
-                      <div key={record.id} className="p-3 sm:p-4 border rounded-lg hover:bg-accent/50 transition-colors touch-manipulation">
+                      <div
+                        key={record.id}
+                        className="p-3 sm:p-4 border rounded-lg hover:bg-accent/50 transition-colors touch-manipulation"
+                      >
                         {/* Mobile-first layout */}
                         <div className="flex items-start justify-between gap-3">
                           {/* Left side - User and Group info */}
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-primary/10 flex-shrink-0">
-                              <span className="font-bold text-primary text-xs sm:text-sm">{index + 1}</span>
+                              <span className="font-bold text-primary text-xs sm:text-sm">
+                                {index + 1}
+                              </span>
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
@@ -854,20 +973,29 @@ export default function AnalyticsPage() {
                                   size="sm"
                                   className="truncate"
                                 />
-                                <span className="text-muted-foreground text-xs hidden sm:inline">•</span>
-                                <span className="text-sm text-muted-foreground truncate">{record.group.name}</span>
+                                <span className="text-muted-foreground text-xs hidden sm:inline">
+                                  •
+                                </span>
+                                <span className="text-sm text-muted-foreground truncate">
+                                  {record.group.name}
+                                </span>
                               </div>
-                              <p className="text-xs text-muted-foreground mt-1 truncate">{record.rule.name}</p>
+                              <p className="text-xs text-muted-foreground mt-1 truncate">
+                                {record.rule.name}
+                              </p>
                             </div>
                           </div>
-                          
+
                           {/* Right side - Points and Date */}
                           <div className="flex flex-col items-end gap-2 flex-shrink-0">
                             <Badge
-                              variant={record.points >= 0 ? "default" : "destructive"}
+                              variant={
+                                record.points >= 0 ? "default" : "destructive"
+                              }
                               className="min-w-[50px] sm:min-w-[60px] text-center"
                             >
-                              {record.points > 0 ? '+' : ''}{record.points}
+                              {record.points > 0 ? "+" : ""}
+                              {record.points}
                             </Badge>
                             <p className="text-xs text-muted-foreground whitespace-nowrap">
                               {formatDate(record.recordedAt)}
@@ -877,7 +1005,7 @@ export default function AnalyticsPage() {
                       </div>
                     ))}
                   </div>
-                  
+
                   {scoreRecordsPagination.hasMore && (
                     <div className="mt-6 text-center">
                       <Button
@@ -886,7 +1014,7 @@ export default function AnalyticsPage() {
                         disabled={isLoadingRecords}
                         className="w-full sm:w-auto"
                       >
-                        {isLoadingRecords ? 'Đang tải...' : 'Tải thêm'}
+                        {isLoadingRecords ? "Đang tải..." : "Tải thêm"}
                       </Button>
                     </div>
                   )}
@@ -897,7 +1025,9 @@ export default function AnalyticsPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Không có bản ghi điểm</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Không có bản ghi điểm
+                </h3>
                 <p className="text-muted-foreground">
                   Chưa có bản ghi điểm nào trong khoảng thời gian đã chọn.
                 </p>
@@ -907,5 +1037,5 @@ export default function AnalyticsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

@@ -58,7 +58,7 @@ export function ScoreRecordingModal({
   });
 
   const selectedRule = availableRules.find(
-    (rule) => rule.id === formData.ruleId
+    (rule) => rule.id === formData.ruleId,
   );
 
   const handleInputChange = (field: string, value: string) => {
@@ -110,7 +110,7 @@ export function ScoreRecordingModal({
         const confirmMessage =
           SCORE_RECORDING.MESSAGES.CONFIRM_OVERRIDE.replace(
             "{customPoints}",
-            points.toString()
+            points.toString(),
           )
             .replace("{ruleName}", selectedRule.name)
             .replace("{defaultPoints}", selectedRule.points.toString());
@@ -155,7 +155,7 @@ export function ScoreRecordingModal({
 
       const successMessage = SCORE_RECORDING.MESSAGES.SUCCESS.replace(
         "{points}",
-        newScoreRecord.points.toString()
+        newScoreRecord.points.toString(),
       );
       toast.success(successMessage);
       onScoreRecorded?.(newScoreRecord);
@@ -323,7 +323,7 @@ export function ScoreRecordingModal({
                         <Target className="h-3 w-3 mr-1" />
                         {SCORE_RECORDING.BADGE_POINTS.replace(
                           "{points}",
-                          selectedRule.points.toString()
+                          selectedRule.points.toString(),
                         )}
                       </Badge>
                     </div>
@@ -344,7 +344,7 @@ export function ScoreRecordingModal({
                       >
                         {SCORE_RECORDING.OVERRIDE_CHECKBOX.replace(
                           "{points}",
-                          selectedRule.points.toString()
+                          selectedRule.points.toString(),
                         )}
                       </Label>
                     </div>
@@ -384,7 +384,7 @@ export function ScoreRecordingModal({
                     <p className="text-sm text-blue-600">
                       {SCORE_RECORDING.WARNING_DIFFERENT.replace(
                         "{defaultPoints}",
-                        selectedRule.points.toString()
+                        selectedRule.points.toString(),
                       ).replace("{customPoints}", formData.points)}
                     </p>
                   )}
@@ -433,7 +433,7 @@ export function ScoreRecordingModal({
               <p className="text-sm text-muted-foreground">
                 {SCORE_RECORDING.CHARACTER_COUNT.replace(
                   "{count}",
-                  formData.notes.length.toString()
+                  formData.notes.length.toString(),
                 )}
               </p>
             </div>

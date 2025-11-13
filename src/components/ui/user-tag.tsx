@@ -23,7 +23,7 @@ export function UserTag({
 }: UserTagProps) {
   const getInitials = (
     name: string | null | undefined,
-    email: string | null | undefined
+    email: string | null | undefined,
   ): string => {
     if (name) {
       const parts = name.trim().split(" ");
@@ -66,11 +66,11 @@ export function UserTag({
 
   const getDicebearUrl = (
     name: string | null | undefined,
-    email: string | null | undefined
+    email: string | null | undefined,
   ): string => {
     const seed = name || email || "user";
     return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(
-      seed
+      seed,
     )}`;
   };
 
@@ -91,7 +91,7 @@ export function UserTag({
         "flex items-center",
         sizeClasses.container,
         onClick && "cursor-pointer hover:opacity-80 transition-opacity",
-        className
+        className,
       )}
       onClick={handleClick}
     >
