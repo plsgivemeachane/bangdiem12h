@@ -6,6 +6,7 @@ import { logActivity } from "@/lib/activity-logger";
 import { ActivityType } from "@/types";
 import { API } from "@/lib/translations";
 import { injectVirtualAdminMembership } from "@/lib/utils/global-admin-permissions";
+import { getCacheHeaders } from "@/lib/cache/http-headers";
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,7 +52,16 @@ export async function GET(request: NextRequest) {
       injectVirtualAdminMembership(group, session.user as any),
     );
 
-    return NextResponse.json({ groups: groupsWithVirtualMembers });
+    const responseData = { groups: groupsWithVirtualMembers };
+    const response = NextResponse.json(responseData);
+
+    // Add caching headers for groups endpoint
+    const cacheHeaders = getCacheHeaders(request.url, responseData);
+    Object.entries(cacheHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+
+    return response;
   } catch (error) {
     console.error("API Error - Load groups list:", error);
     return NextResponse.json(

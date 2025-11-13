@@ -1,0 +1,322 @@
+/**
+ * URL Preloading Performance Monitor
+ * Tracks navigation improvements and validates the 50%+ performance target
+ */
+
+interface NavigationMetric {
+  fromUrl: string;
+  toUrl: string;
+  navigationTime: number; // milliseconds
+  preloaded: boolean;
+  timestamp: number;
+  userRole: string;
+}
+
+interface PrefetchMetric {
+  url: string;
+  success: boolean;
+  duration: number; // milliseconds
+  timestamp: number;
+  error?: string;
+}
+
+interface PerformanceReport {
+  totalNavigations: number;
+  preloadedNavigations: number;
+  averageNavigationTime: number;
+  preloadedNavigationTime: number;
+  nonPreloadedNavigationTime: number;
+  improvementPercentage: number;
+  prefetchSuccessRate: number;
+  timestamp: number;
+}
+
+class PerformanceMonitor {
+  private navigationMetrics: NavigationMetric[] = [];
+  private prefetchMetrics: PrefetchMetric[] = [];
+  private reportCache: Map<string, PerformanceReport> = new Map();
+  private readonly REPORT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  /**
+   * Record navigation time for analysis
+   */
+  recordNavigation(
+    fromUrl: string,
+    toUrl: string,
+    navigationTime: number,
+    preloaded: boolean,
+    userRole: string = 'USER'
+  ): void {
+    const metric: NavigationMetric = {
+      fromUrl,
+      toUrl,
+      navigationTime,
+      preloaded,
+      timestamp: Date.now(),
+      userRole
+    };
+
+    this.navigationMetrics.push(metric);
+
+    // Keep only recent metrics (last 24 hours)
+    const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    this.navigationMetrics = this.navigationMetrics.filter(
+      m => m.timestamp > dayAgo
+    );
+
+    console.log(`📊 Navigation recorded: ${fromUrl} → ${toUrl} (${navigationTime}ms, preloaded: ${preloaded})`);
+  }
+
+  /**
+   * Record prefetch operation result
+   */
+  recordPrefetch(url: string, success: boolean, duration: number, error?: string): void {
+    const metric: PrefetchMetric = {
+      url,
+      success,
+      duration,
+      timestamp: Date.now(),
+      error
+    };
+
+    this.prefetchMetrics.push(metric);
+
+    // Keep only recent metrics (last 24 hours)
+    const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    this.prefetchMetrics = this.prefetchMetrics.filter(
+      m => m.timestamp > dayAgo
+    );
+
+    if (success) {
+      console.log(`🔮 Prefetch successful: ${url} (${duration}ms)`);
+    } else {
+      console.warn(`⚠️ Prefetch failed: ${url} (${duration}ms) - ${error}`);
+    }
+  }
+
+  /**
+   * Generate performance report with caching
+   */
+  generateReport(): PerformanceReport {
+    const cacheKey = this.getReportCacheKey();
+    const cachedReport = this.reportCache.get(cacheKey);
+    
+    if (cachedReport && (Date.now() - cachedReport.timestamp) < this.REPORT_CACHE_TTL) {
+      return cachedReport;
+    }
+
+    const report = this.calculateReport();
+    this.reportCache.set(cacheKey, report);
+    return report;
+  }
+
+  private getReportCacheKey(): string {
+    // Use current hour as cache key for hourly reports
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
+  }
+
+  private calculateReport(): PerformanceReport {
+    const metrics = this.navigationMetrics;
+    const prefetchMetrics = this.prefetchMetrics;
+
+    const totalNavigations = metrics.length;
+    const preloadedNavigations = metrics.filter(m => m.preloaded).length;
+    
+    const navigationTimes = metrics.map(m => m.navigationTime);
+    const preloadedTimes = metrics.filter(m => m.preloaded).map(m => m.navigationTime);
+    const nonPreloadedTimes = metrics.filter(m => !m.preloaded).map(m => m.navigationTime);
+
+    const averageNavigationTime = this.average(navigationTimes);
+    const preloadedNavigationTime = this.average(preloadedTimes);
+    const nonPreloadedNavigationTime = this.average(nonPreloadedTimes);
+
+    // Calculate improvement percentage
+    let improvementPercentage = 0;
+    if (nonPreloadedNavigationTime > 0 && preloadedNavigationTime > 0) {
+      improvementPercentage = ((nonPreloadedNavigationTime - preloadedNavigationTime) / nonPreloadedNavigationTime) * 100;
+    }
+
+    // Calculate prefetch success rate
+    const successfulPrefetches = prefetchMetrics.filter(m => m.success).length;
+    const prefetchSuccessRate = prefetchMetrics.length > 0 
+      ? (successfulPrefetches / prefetchMetrics.length) * 100 
+      : 0;
+
+    return {
+      totalNavigations,
+      preloadedNavigations,
+      averageNavigationTime: Math.round(averageNavigationTime),
+      preloadedNavigationTime: Math.round(preloadedNavigationTime),
+      nonPreloadedNavigationTime: Math.round(nonPreloadedNavigationTime),
+      improvementPercentage: Math.round(improvementPercentage * 100) / 100,
+      prefetchSuccessRate: Math.round(prefetchSuccessRate * 100) / 100,
+      timestamp: Date.now()
+    };
+  }
+
+  private average(numbers: number[]): number {
+    return numbers.length > 0 
+      ? numbers.reduce((sum, num) => sum + num, 0) / numbers.length 
+      : 0;
+  }
+
+  /**
+   * Get recent navigation metrics for detailed analysis
+   */
+  getRecentNavigations(limit: number = 20): NavigationMetric[] {
+    return this.navigationMetrics
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, limit);
+  }
+
+  /**
+   * Get recent prefetch metrics for debugging
+   */
+  getRecentPrefetches(limit: number = 20): PrefetchMetric[] {
+    return this.prefetchMetrics
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, limit);
+  }
+
+  /**
+   * Validate if the performance target is being met
+   */
+  validatePerformanceTarget(): {
+    isMeetingTarget: boolean;
+    currentImprovement: number;
+    targetImprovement: number;
+    status: 'excellent' | 'good' | 'needs-improvement' | 'insufficient-data';
+  } {
+    const report = this.generateReport();
+    const currentImprovement = report.improvementPercentage;
+    const targetImprovement = 50; // 50% target from spec
+
+    let status: 'excellent' | 'good' | 'needs-improvement' | 'insufficient-data' = 'insufficient-data';
+    
+    if (report.totalNavigations < 10) {
+      status = 'insufficient-data';
+    } else if (currentImprovement >= targetImprovement) {
+      status = 'excellent';
+    } else if (currentImprovement >= targetImprovement * 0.7) {
+      status = 'good';
+    } else {
+      status = 'needs-improvement';
+    }
+
+    return {
+      isMeetingTarget: currentImprovement >= targetImprovement,
+      currentImprovement,
+      targetImprovement,
+      status
+    };
+  }
+
+  /**
+   * Clear all metrics (useful for testing)
+   */
+  clearMetrics(): void {
+    this.navigationMetrics = [];
+    this.prefetchMetrics = [];
+    this.reportCache.clear();
+    console.log('🧹 Performance metrics cleared');
+  }
+
+  /**
+   * Export metrics for external analysis
+   */
+  exportMetrics(): {
+    navigationMetrics: NavigationMetric[];
+    prefetchMetrics: PrefetchMetric[];
+    report: PerformanceReport;
+  } {
+    return {
+      navigationMetrics: this.navigationMetrics,
+      prefetchMetrics: this.prefetchMetrics,
+      report: this.generateReport()
+    };
+  }
+}
+
+import { useEffect, useRef } from 'react';
+
+// Export singleton instance
+export const performanceMonitor = new PerformanceMonitor();
+
+/**
+ * Hook for measuring navigation performance
+ */
+export function useNavigationPerformance(toUrl: string, preloaded: boolean) {
+  const startTimeRef = useRef<number>();
+  const fromUrlRef = useRef<string>();
+
+  useEffect(() => {
+    // Record navigation start
+    fromUrlRef.current = window.location.pathname;
+    startTimeRef.current = performance.now();
+
+    return () => {
+      // Record navigation completion
+      if (startTimeRef.current && fromUrlRef.current) {
+        const navigationTime = performance.now() - startTimeRef.current;
+        performanceMonitor.recordNavigation(
+          fromUrlRef.current,
+          toUrl,
+          navigationTime,
+          preloaded
+        );
+      }
+    };
+  }, [toUrl, preloaded]);
+}
+
+/**
+ * Utility function to measure and record prefetch performance
+ */
+export async function measurePrefetchPerformance(
+  url: string,
+  prefetchFn: () => Promise<void>
+): Promise<void> {
+  const startTime = performance.now();
+  
+  try {
+    await prefetchFn();
+    const duration = performance.now() - startTime;
+    performanceMonitor.recordPrefetch(url, true, duration);
+  } catch (error) {
+    const duration = performance.now() - startTime;
+    performanceMonitor.recordPrefetch(url, false, duration, error instanceof Error ? error.message : 'Unknown error');
+    throw error; // Re-throw to maintain existing error handling
+  }
+}
+
+/**
+ * Start performance monitoring (for development/debugging)
+ * Call this function once in your root component
+ */
+export function startPerformanceMonitoring(): void {
+  if (process.env.NODE_ENV !== 'development') {
+    return;
+  }
+
+  // Set up periodic performance reporting
+  setInterval(() => {
+    const validation = performanceMonitor.validatePerformanceTarget();
+    console.group('🔍 URL Preloading Performance Report');
+    console.log('Target Achievement:', validation.isMeetingTarget ? '✅' : '❌');
+    console.log('Current Improvement:', `${validation.currentImprovement}%`);
+    console.log('Target Improvement:', `${validation.targetImprovement}%`);
+    console.log('Status:', validation.status);
+    
+    const report = performanceMonitor.generateReport();
+    console.log('Total Navigations:', report.totalNavigations);
+    console.log('Preloaded Navigations:', report.preloadedNavigations);
+    console.log('Preloaded Avg Time:', `${report.preloadedNavigationTime}ms`);
+    console.log('Non-Preloaded Avg Time:', `${report.nonPreloadedNavigationTime}ms`);
+    console.log('Prefetch Success Rate:', `${report.prefetchSuccessRate}%`);
+    
+    console.groupEnd();
+  }, 30000); // Log every 30 seconds in development
+  
+  console.log('🚀 URL Preloading Performance Monitoring Started');
+}

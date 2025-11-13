@@ -50,6 +50,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { useAutoPrefetch } from "@/lib/cache/url-patterns";
 import {
   DASHBOARD,
   ACTIONS,
@@ -68,6 +69,10 @@ import toast from "react-hot-toast";
 export default function DashboardClient() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
+  
+  // Auto-prefetch high priority routes on component mount
+  useAutoPrefetch();
+  
   const [stats, setStats] = useState<DashboardStats>({
     totalGroups: 0,
     totalScoreRecords: 0,
@@ -119,6 +124,62 @@ export default function DashboardClient() {
       }
       const groupsData = await groupsResponse.json();
       setGroups(groupsData.groups || []);
+      
+      // Strategic prefetch: Preload group-specific routes after fetching groups
+      // This ensures that when users click on group navigation, pages load instantly
+      if (groupsData.groups && groupsData.groups.length > 0) {
+        try {
+          // Import dynamically to avoid circular dependencies
+          const { getRoutesByBasePath, analyzeRoutesForPrefetch } = await import("@/lib/cache/url-patterns");
+          
+          // Analyze and prefetch group-related routes based on actual group data
+          const contextData = {
+            isAuthenticated,
+            user,
+            userRole: user?.role || 'USER',
+            groups: groupsData.groups
+          };
+          
+          const groupRoutes = getRoutesByBasePath('/groups', contextData, user?.role || 'USER');
+          
+          // Create prefetch operations for all routes
+          const prefetchOperations: Promise<void>[] = [];
+          
+          for (const route of groupRoutes.filter(route => route.pattern.priority === 'high')) {
+            try {
+              // Generate concrete URLs for each group
+              if (route.url.includes('/groups/[id]')) {
+                // Dynamic routes with group IDs
+                groupsData.groups.forEach((group: any) => {
+                  if (group?.id) {
+                    const concreteUrl = route.url.replace('[id]', group.id);
+                    const prefetchPromise = (async () => {
+                      await router.prefetch(concreteUrl);
+                      console.log(`🔮 Dashboard prefetched: ${concreteUrl}`);
+                    })();
+                    prefetchOperations.push(prefetchPromise);
+                  }
+                });
+              } else {
+                // Static routes
+                const prefetchPromise = (async () => {
+                  await router.prefetch(route.url);
+                  console.log(`🔮 Dashboard prefetched: ${route.url}`);
+                })();
+                prefetchOperations.push(prefetchPromise);
+              }
+            } catch (routeError) {
+              console.warn(`⚠️ Dashboard route prefetch preparation failed for ${route.url}:`, routeError);
+            }
+          }
+          
+          // Execute all prefetches in parallel with error handling
+          await Promise.allSettled(prefetchOperations);
+        } catch (prefetchError) {
+          console.warn('⚠️ Dashboard prefetch initialization failed:', prefetchError);
+          // Don't throw - prefetch is best-effort, shouldn't break dashboard
+        }
+      }
 
       // Fetch analytics data for stats
       const analyticsResponse = await fetch("/api/analytics?period=month");

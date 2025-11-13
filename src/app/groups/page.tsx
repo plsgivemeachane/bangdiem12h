@@ -17,6 +17,7 @@ import { GroupsApi } from "@/lib/api/groups";
 import { useAuth } from "@/hooks/use-auth";
 import { Group } from "@/types";
 import { useRouter } from "next/navigation";
+import { useAutoPrefetch, getRoutesByBasePath } from "@/lib/cache/url-patterns";
 import toast from "react-hot-toast";
 import {
   GROUPS_PAGE,
@@ -37,6 +38,9 @@ export default function GroupsPage() {
   const [error, setError] = useState<string | null>(null);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+
+  // Auto-prefetch high priority routes on component mount
+  useAutoPrefetch();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -59,6 +63,71 @@ export default function GroupsPage() {
       setError(null);
       const groupsData = await GroupsApi.getGroups();
       setGroups(groupsData);
+      
+      // Strategic prefetch: Preload group-specific routes after loading groups
+      // This ensures that when users click on "Manage Members" or "View Details",
+      // the pages are instantly available
+      if (groupsData.length > 0) {
+        try {
+          // Context data for permission-aware prefetching
+          const contextData = {
+            isAuthenticated,
+            user,
+            userRole: user?.role || 'USER',
+            groups: groupsData
+          };
+          
+          // Get routes by base path with permission filtering
+          const groupRoutes = getRoutesByBasePath('/groups', contextData, user?.role || 'USER');
+          
+          // Create prefetch operations for high-priority routes
+          const prefetchOperations: Promise<void>[] = [];
+          
+          // Prefetch each group's detail pages and member pages
+          groupsData.forEach((group: Group) => {
+            if (group?.id) {
+              // Prefetch group detail page
+              const detailUrl = `/groups/${group.id}`;
+              const detailPromise = (async () => {
+                await router.prefetch(detailUrl);
+                console.log(`🔮 Groups page prefetched: ${detailUrl}`);
+              })();
+              prefetchOperations.push(detailPromise);
+              
+              // Prefetch group members page (commonly accessed)
+              const membersUrl = `/groups/${group.id}/members`;
+              const membersPromise = (async () => {
+                await router.prefetch(membersUrl);
+                console.log(`🔮 Groups page prefetched: ${membersUrl}`);
+              })();
+              prefetchOperations.push(membersPromise);
+              
+              // For admin users, also prefetch scoring-related pages
+              if (user?.role === 'ADMIN') {
+                const scoringUrl = `/groups/${group.id}/scoring`;
+                const scoringPromise = (async () => {
+                  await router.prefetch(scoringUrl);
+                  console.log(`🔮 Groups page prefetched: ${scoringUrl}`);
+                })();
+                prefetchOperations.push(scoringPromise);
+                
+                const rulesUrl = `/groups/${group.id}/rules`;
+                const rulesPromise = (async () => {
+                  await router.prefetch(rulesUrl);
+                  console.log(`🔮 Groups page prefetched: ${rulesUrl}`);
+                })();
+                prefetchOperations.push(rulesPromise);
+              }
+            }
+          });
+          
+          // Execute all prefetches in parallel with error handling
+          await Promise.allSettled(prefetchOperations);
+        } catch (prefetchError) {
+          console.warn('⚠️ Groups page prefetch initialization failed:', prefetchError);
+          // Don't throw - prefetch is best-effort, shouldn't break groups page
+        }
+      }
     } catch (error) {
       console.error(MESSAGES.ERROR.FAILED_TO_LOAD, ":", error);
       setError(
