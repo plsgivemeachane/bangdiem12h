@@ -14,7 +14,8 @@
     "seed:admin": "node prisma/seed.js",
     "dev": "next dev",
     "vercel-build": "npx prisma generate && npm run build",
-    "postinstall": "npx prisma generate"
+    "postinstall": "npx prisma generate",
+    "format": "npx prettier --write \"src/**/*.ts\" \"src/**/*.tsx\""
   },
   "prisma": {
     "seed": "node prisma/seed.js"

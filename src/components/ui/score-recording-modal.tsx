@@ -292,7 +292,8 @@ export function ScoreRecordingModal({
                           <div className="flex items-center justify-between w-full">
                             <span>{rule.name}</span>
                             <Badge variant="outline" className="ml-2">
-                              {formatPoints(rule.points)} {SCORE_RECORDING.UNIT_POINTS}
+                              {formatPoints(rule.points)}{" "}
+                              {SCORE_RECORDING.UNIT_POINTS}
                             </Badge>
                           </div>
                         </SelectItem>

@@ -23,7 +23,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
-import { MemberInvite, MemberManagement } from "@/components/groups/MemberInvite";
+import {
+  MemberInvite,
+  MemberManagement,
+} from "@/components/groups/MemberInvite";
 import { OwnerTransferDialog } from "@/components/groups/OwnerTransferDialog";
 import { UserTag } from "@/components/ui/user-tag";
 import { GroupsApi } from "@/lib/api/groups";

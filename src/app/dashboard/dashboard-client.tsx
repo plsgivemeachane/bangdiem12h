@@ -855,7 +855,11 @@ export default function DashboardClient() {
               ))}
               {globalRules.length > 3 && (
                 <div className="text-center pt-2">
-                  <Button variant="outline" size="sm" onClick={handleViewAllGlobalRules}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleViewAllGlobalRules}
+                  >
                     {GLOBAL_RULES.VIEW_ALL_RULES.replace(
                       "{count}",
                       globalRules.length.toString(),
