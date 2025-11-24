@@ -1,6 +1,6 @@
-# Group Scoring System
+# Quản lý lớp học (Class Management)
 
-A comprehensive group scoring and tracking system built with Next.js 14, TypeScript, Prisma, and PostgreSQL.
+A comprehensive class management and scoring system built with Next.js 14, TypeScript, Prisma, and PostgreSQL.
 
 ## Features
 

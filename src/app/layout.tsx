@@ -9,8 +9,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bảng điểm 12H",
-  description: "A comprehensive group scoring and tracking system",
+  title: "Quản lý lớp học 12H",
+  description: "Hệ thống quản lý lớp học và chấm điểm nhóm",
 };
 
 export default function RootLayout({

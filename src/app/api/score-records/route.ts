@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity-logger";
 import { ActivityType } from "@/types";
 import { API } from "@/lib/translations";
+import { isGlobalAdmin } from "@/lib/utils/global-admin-permissions";
 
 // PUT endpoint for updating individual score records
 export async function PUT(request: NextRequest) {
@@ -52,23 +53,28 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verify current user is ADMIN/OWNER of the group
+    // Verify current user is ADMIN/OWNER of the group
     const currentUserMember = existingRecord.group.members[0];
-    if (!currentUserMember) {
-      return NextResponse.json(
-        {
-          error: API.ERROR.NOT_GROUP_MEMBER,
-        },
-        { status: 403 },
-      );
-    }
 
-    if (!["OWNER", "ADMIN"].includes(currentUserMember.role)) {
-      return NextResponse.json(
-        {
-          error: API.ERROR.ONLY_ADMIN_OWNER_EDIT_SCORES,
-        },
-        { status: 403 },
-      );
+    // Check if global admin
+    if (!isGlobalAdmin(session.user as any)) {
+      if (!currentUserMember) {
+        return NextResponse.json(
+          {
+            error: API.ERROR.NOT_GROUP_MEMBER,
+          },
+          { status: 403 },
+        );
+      }
+
+      if (!["OWNER", "ADMIN"].includes(currentUserMember.role)) {
+        return NextResponse.json(
+          {
+            error: API.ERROR.ONLY_ADMIN_OWNER_EDIT_SCORES,
+          },
+          { status: 403 },
+        );
+      }
     }
 
     // Build update data
@@ -189,23 +195,27 @@ export async function POST(request: NextRequest) {
     }
 
     const currentUserMember = group.members[0];
-    if (!currentUserMember) {
-      return NextResponse.json(
-        {
-          error: API.ERROR.NOT_GROUP_MEMBER,
-        },
-        { status: 403 },
-      );
-    }
 
-    // Only Group ADMINs can record scores
-    if (!["OWNER", "ADMIN"].includes(currentUserMember.role)) {
-      return NextResponse.json(
-        {
-          error: API.ERROR.ONLY_ADMIN_OWNER_MANAGE_SCORES,
-        },
-        { status: 403 },
-      );
+    // Check if global admin
+    if (!isGlobalAdmin(session.user as any)) {
+      if (!currentUserMember) {
+        return NextResponse.json(
+          {
+            error: API.ERROR.NOT_GROUP_MEMBER,
+          },
+          { status: 403 },
+        );
+      }
+
+      // Only Group ADMINs can record scores
+      if (!["OWNER", "ADMIN"].includes(currentUserMember.role)) {
+        return NextResponse.json(
+          {
+            error: API.ERROR.ONLY_ADMIN_OWNER_MANAGE_SCORES,
+          },
+          { status: 403 },
+        );
+      }
     }
 
     // Verify target user is in the group
@@ -440,23 +450,28 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verify current user is ADMIN/OWNER of the group
+    // Verify current user is ADMIN/OWNER of the group
     const currentUserMember = existingRecord.group.members[0];
-    if (!currentUserMember) {
-      return NextResponse.json(
-        {
-          error: API.ERROR.NOT_GROUP_MEMBER,
-        },
-        { status: 403 },
-      );
-    }
 
-    if (!["OWNER", "ADMIN"].includes(currentUserMember.role)) {
-      return NextResponse.json(
-        {
-          error: API.ERROR.ONLY_ADMIN_OWNER_DELETE_SCORES,
-        },
-        { status: 403 },
-      );
+    // Check if global admin
+    if (!isGlobalAdmin(session.user as any)) {
+      if (!currentUserMember) {
+        return NextResponse.json(
+          {
+            error: API.ERROR.NOT_GROUP_MEMBER,
+          },
+          { status: 403 },
+        );
+      }
+
+      if (!["OWNER", "ADMIN"].includes(currentUserMember.role)) {
+        return NextResponse.json(
+          {
+            error: API.ERROR.ONLY_ADMIN_OWNER_DELETE_SCORES,
+          },
+          { status: 403 },
+        );
+      }
     }
 
     // Delete the score record

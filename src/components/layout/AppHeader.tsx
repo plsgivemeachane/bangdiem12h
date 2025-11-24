@@ -46,6 +46,11 @@ export function AppHeader() {
     return null;
   }
 
+  // Don't show header on landing page
+  if (pathname === "/") {
+    return null;
+  }
+
   // Don't show if not authenticated (except loading state)
   if (!isLoading && !isAuthenticated) {
     return null;

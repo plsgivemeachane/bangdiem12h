@@ -8,6 +8,7 @@ import { API } from "@/lib/translations";
 import {
   injectVirtualAdminMembership,
   canManageGroup,
+  isGlobalAdmin,
 } from "@/lib/utils/global-admin-permissions";
 
 export async function GET(
@@ -127,11 +128,15 @@ export async function PATCH(
     }
 
     const userMember = group.members[0];
-    if (!userMember || !["OWNER", "ADMIN"].includes(userMember.role)) {
-      return NextResponse.json(
-        { error: API.ERROR.INSUFFICIENT_PERMISSIONS },
-        { status: 403 },
-      );
+
+    // Check if global admin
+    if (!isGlobalAdmin(session.user as any)) {
+      if (!userMember || !["OWNER", "ADMIN"].includes(userMember.role)) {
+        return NextResponse.json(
+          { error: API.ERROR.INSUFFICIENT_PERMISSIONS },
+          { status: 403 },
+        );
+      }
     }
 
     const updatedGroup = await prisma.group.update({

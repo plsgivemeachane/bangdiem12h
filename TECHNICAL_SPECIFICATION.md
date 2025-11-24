@@ -1,13 +1,13 @@
-# BangDiemLop (Class Points) - Technical Specification
+# Quản lý lớp học (Class Management) - Technical Specification
 
-**System Name**: BangDiemLop (Class Points Management System)  
+**System Name**: Quản lý lớp học (Class Management System)  
 **Version**: 1.0.0  
 **Last Updated**: 2025-11-10  
 **Status**: Production Ready  
 
 ## Executive Summary
 
-BangDiemLop is a comprehensive web-based group scoring and class management system built with modern technologies. The platform enables educators to create groups, define custom scoring rules, track student performance, and maintain detailed activity logs. The system supports both OAuth and email/password authentication with role-based access control.
+Quản lý lớp học is a comprehensive web-based class management and scoring system built with modern technologies. The platform enables educators to create groups, define custom scoring rules, track student performance, and maintain detailed activity logs. The system supports both OAuth and email/password authentication with role-based access control.
 
 ## 1. System Architecture
 

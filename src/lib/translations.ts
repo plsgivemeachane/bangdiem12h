@@ -276,7 +276,7 @@ export const PAGE_TITLES = {
 
 // Descriptions
 export const DESCRIPTIONS = {
-  GROUP_SCORING_SYSTEM: "Hệ thống chấm điểm nhóm",
+  GROUP_SCORING_SYSTEM: "Quản lý lớp học",
   WELCOME_BACK: "Chào mừng trở lại",
   NO_DATA: "Không có dữ liệu",
   LOADING: "Đang tải...",
@@ -561,7 +561,7 @@ export const GROUPS_PAGE = {
 // Sign in page
 export const SIGNIN = {
   WELCOME_BACK: "Chào mừng trở lại",
-  LOGIN_TO_GROUP_SYSTEM: "Đăng nhập vào Hệ thống chấm điểm nhóm",
+  LOGIN_TO_GROUP_SYSTEM: "Đăng nhập vào Quản lý lớp học",
   ENTER_EMAIL: "Nhập email của bạn",
   ENTER_PASSWORD: "Nhập mật khẩu của bạn",
   SIGNIN: "Đăng nhập",
@@ -575,7 +575,7 @@ export const SIGNIN = {
 
 // App header
 export const APP_HEADER = {
-  GROUP_SCORING_SYSTEM: "Chấm Điểm Nhóm",
+  GROUP_SCORING_SYSTEM: "Quản lý lớp học",
   OPEN_MAIN_MENU: "Mở menu chính",
 };
 
