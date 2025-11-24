@@ -1,7 +1,7 @@
 'use client'
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown, Users, Scale, Activity, BarChart, TrendingUp, ClipboardCheck, History as HistoryIcon, Zap, ShieldCheck, Smartphone } from "lucide-react";
+import { ChevronDown, Users, Scale, Activity, BarChart, TrendingUp, ClipboardCheck, History as HistoryIcon, Zap, ShieldCheck, Smartphone, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { UserTag } from "@/components/ui/user-tag";
@@ -60,16 +60,17 @@ export default function LandingPage() {
                     Our platform is designed to streamline the complexities of class management, making education more accessible and efficient for everyone. From scheduling to progress tracking, we empower educators and students alike to focus on what truly matters: learning and growth.
                 </p>
 
-                {/* Glassmorphism Button with Jumping Animation */}
-                <button
+                {/* Dynamic CTA Button */}
+                <Button
+                    onClick={() => router.push(isAuthenticated ? "/dashboard" : "/auth/signin")}
                     className="mt-10 px-8 py-4 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 text-gray-800 font-semibold text-2xl hover:bg-white/30 animate-jump"
                     style={{
                         animation: 'jump 2s ease-in-out infinite'
                     }}
                 >
-                    Start here
-                    <ChevronDown className="w-5 h-5" />
-                </button>
+                    {isAuthenticated ? "Go to Dashboard" : "Start Now"}
+                    <ArrowRight className="w-5 h-5" />
+                </Button>
             </main>
 
             {/* Features Section */}
