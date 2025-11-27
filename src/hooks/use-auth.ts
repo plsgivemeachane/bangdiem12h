@@ -109,7 +109,7 @@ export function usePermissions() {
       // Check specific permissions based on role
       switch (permission) {
         case "create-group":
-          return true; // All authenticated users can create groups
+          return user.role === "ADMIN";
         case "edit-group":
           return user.role === "OWNER" || user.role === "ADMIN";
         case "delete-group":

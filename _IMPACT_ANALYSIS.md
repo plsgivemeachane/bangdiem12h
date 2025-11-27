@@ -1,17 +1,15 @@
-# Impact Analysis: Global Admin Permissions in Score Records API
+# Impact Analysis: Restoring ActivityFeed
 
 ## Regression Risks
-- **False Positives**: If `isGlobalAdmin` is implemented incorrectly, regular users might get admin access. (Low risk if using the existing helper).
-- **Existing Admin Access**: Ensure that existing Group Admins/Owners still have access. The logic should be an OR condition.
+- **Low**: Adding a component that was previously there (or intended to be there) should not break existing functionality.
+- **Layout Shift**: The dashboard layout will change. We need to ensure it fits well with the existing "Recent Groups" and "Quick Actions" cards.
 
 ## Backward Compatibility
-- **API Contract**: The API response format remains the same.
-- **Permissions**: This change expands permissions to Global Admins. It does not restrict existing permissions.
+- No API changes required.
+- The `ActivityFeed` component likely already exists and works (since it's imported).
 
 ## Validation Strategy
 - **Manual Verification**:
-  - Test with a Global Admin account (who is NOT a group member).
-  - Test with a Group Owner/Admin account.
-  - Test with a regular Group Member (should fail).
-  - Test with a non-member (should fail).
-- **Code Review**: Verify that the `isGlobalAdmin` check is placed *before* or *in parallel with* the group membership check.
+    - Check if the "Recent Activities" section appears on the dashboard.
+    - Verify that it displays the data fetched from the API.
+    - Check for any console errors.

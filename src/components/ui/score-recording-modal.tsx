@@ -1,8 +1,7 @@
 "use client";
-
 import { formatPoints } from "@/lib/utils";
-import React, { useState } from "react";
-import { X, Save, Award, Calendar, FileText, Target } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Save, Award, Calendar, FileText, Target, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { GroupsApi } from "@/lib/api/groups";
-import { ScoringRule, GroupMember } from "@/types";
+import { ScoringRule, GroupMember, Group } from "@/types";
 import { SCORE_RECORDING } from "@/lib/translations";
 import toast from "react-hot-toast";
 
@@ -37,6 +36,7 @@ interface ScoreRecordingModalProps {
   groupName: string;
   availableRules: ScoringRule[];
   groupMembers: GroupMember[];
+  groups?: Group[]; // Optional list of groups for selection
 }
 
 export function ScoreRecordingModal({
@@ -47,9 +47,17 @@ export function ScoreRecordingModal({
   groupName,
   availableRules,
   groupMembers,
+  groups,
 }: ScoreRecordingModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [overridePoints, setOverridePoints] = useState(false);
+
+  // State for selected group context
+  const [selectedGroupId, setSelectedGroupId] = useState(groupId);
+  const [currentRules, setCurrentRules] = useState<ScoringRule[]>(availableRules);
+  const [currentMembers, setCurrentMembers] = useState<GroupMember[]>(groupMembers);
+  const [currentGroupName, setCurrentGroupName] = useState(groupName);
+
   const [formData, setFormData] = useState({
     targetUserId: "",
     ruleId: "",
@@ -58,9 +66,47 @@ export function ScoreRecordingModal({
     recordedAt: new Date().toISOString().split("T")[0], // Default to today
   });
 
-  const selectedRule = availableRules.find(
+  // Update context when group selection changes or props change
+  useEffect(() => {
+    if (groups && groups.length > 0) {
+      const group = groups.find(g => g.id === selectedGroupId);
+      if (group) {
+        setCurrentGroupName(group.name);
+        // Use groupRules if available (from dashboard fetch), otherwise fallback to scoringRules
+        const rules = group.groupRules?.map((gr: any) => gr.rule) || group.scoringRules || [];
+        setCurrentRules(rules);
+        setCurrentMembers(group.members || []);
+      }
+    } else {
+      // Fallback to props if no groups list provided (backward compatibility)
+      setCurrentGroupName(groupName);
+      setCurrentRules(availableRules);
+      setCurrentMembers(groupMembers);
+    }
+  }, [selectedGroupId, groups, groupName, availableRules, groupMembers]);
+
+  // Reset form when modal opens or group changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        targetUserId: "",
+        ruleId: "",
+        points: "",
+        notes: "",
+      }));
+      setOverridePoints(false);
+    }
+  }, [isOpen, selectedGroupId]);
+
+  const selectedRule = currentRules.find(
     (rule) => rule.id === formData.ruleId,
   );
+
+  const handleGroupChange = (newGroupId: string) => {
+    setSelectedGroupId(newGroupId);
+    // Form reset is handled by useEffect
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -70,7 +116,7 @@ export function ScoreRecordingModal({
 
     // Auto-fill points when rule is selected
     if (field === "ruleId" && value) {
-      const rule = availableRules.find((r) => r.id === value);
+      const rule = currentRules.find((r) => r.id === value);
       if (rule) {
         setFormData((prev) => ({
           ...prev,
@@ -142,7 +188,7 @@ export function ScoreRecordingModal({
           : selectedRule?.points;
 
       const scoreData = {
-        groupId,
+        groupId: selectedGroupId,
         ruleId: formData.ruleId,
         targetUserId: formData.targetUserId,
         points: finalPoints,
@@ -200,6 +246,8 @@ export function ScoreRecordingModal({
 
   if (!isOpen) return null;
 
+  const showGroupSelector = groups && groups.length > 1;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
@@ -210,7 +258,7 @@ export function ScoreRecordingModal({
               {SCORE_RECORDING.TITLE}
             </CardTitle>
             <CardDescription>
-              Thêm bản ghi điểm mới vào {groupName}
+              Thêm bản ghi điểm mới vào {currentGroupName}
             </CardDescription>
           </div>
           <Button
@@ -225,6 +273,35 @@ export function ScoreRecordingModal({
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Group Selector - Only show if multiple groups provided */}
+            {showGroupSelector && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="group-select"
+                  className="text-base font-medium flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Chọn nhóm
+                </Label>
+                <Select
+                  value={selectedGroupId}
+                  onValueChange={handleGroupChange}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Chọn nhóm..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groups.map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Member Selection */}
             <div className="space-y-2">
               <Label
@@ -251,7 +328,7 @@ export function ScoreRecordingModal({
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {groupMembers.map((member) => (
+                  {currentMembers.map((member) => (
                     <SelectItem key={member.userId} value={member.userId}>
                       <div className="flex items-center justify-between w-full">
                         <span>{member.user?.name || member.user?.email}</span>
@@ -285,7 +362,7 @@ export function ScoreRecordingModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableRules
+                    {currentRules
                       .filter((rule) => rule.isActive)
                       .map((rule) => (
                         <SelectItem key={rule.id} value={rule.id}>
@@ -300,12 +377,12 @@ export function ScoreRecordingModal({
                       ))}
                   </SelectContent>
                 </Select>
-                {availableRules.filter((rule) => rule.isActive).length ===
+                {currentRules.filter((rule) => rule.isActive).length ===
                   0 && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {SCORE_RECORDING.NO_ACTIVE_RULES}
-                  </p>
-                )}
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {SCORE_RECORDING.NO_ACTIVE_RULES}
+                    </p>
+                  )}
               </div>
 
               {/* Selected Rule Info */}
@@ -457,7 +534,7 @@ export function ScoreRecordingModal({
                   !formData.targetUserId ||
                   !formData.ruleId ||
                   (overridePoints && !formData.points) ||
-                  availableRules.filter((rule) => rule.isActive).length === 0
+                  currentRules.filter((rule) => rule.isActive).length === 0
                 }
                 className="min-w-32"
               >

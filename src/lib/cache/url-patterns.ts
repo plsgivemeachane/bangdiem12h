@@ -148,7 +148,7 @@ const ROUTER_PATTERNS: RoutePattern[] = [
 // Permission mapping based on useAuth hook findings
 const PERMISSION_MAP = {
   'view-dashboard': ['USER', 'ADMIN', 'OWNER'],
-  'create-group': ['USER', 'ADMIN', 'OWNER'],
+  'create-group': ['ADMIN', 'OWNER'],
   'view-groups': ['USER', 'ADMIN', 'OWNER'],
   'view-group': ['USER', 'ADMIN', 'OWNER'],
   'edit-group': ['ADMIN', 'OWNER'],

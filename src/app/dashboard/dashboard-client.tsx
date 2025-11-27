@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
 import { ActivityFeed } from "@/components/activity/ActivityFeed";
 import { RuleCreationModal } from "@/components/ui/rule-creation-modal";
+import { ScoreRecordingModal } from "@/components/ui/score-recording-modal";
 import {
   Dialog,
   DialogContent,
@@ -69,10 +70,10 @@ import toast from "react-hot-toast";
 export default function DashboardClient() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
-  
+
   // Auto-prefetch high priority routes on component mount
   useAutoPrefetch();
-  
+
   const [stats, setStats] = useState<DashboardStats>({
     totalGroups: 0,
     totalScoreRecords: 0,
@@ -85,6 +86,8 @@ export default function DashboardClient() {
   const [error, setError] = useState<string | null>(null);
   const [showScoringRulesDialog, setShowScoringRulesDialog] = useState(false);
   const [showRuleModal, setShowRuleModal] = useState(false);
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [adminGroup, setAdminGroup] = useState<Group | null>(null);
   const [totalActivityCount, setTotalActivityCount] = useState<number>(0);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [userScoreRecords, setUserScoreRecords] = useState<any[]>([]);
@@ -124,14 +127,23 @@ export default function DashboardClient() {
       }
       const groupsData = await groupsResponse.json();
       setGroups(groupsData.groups || []);
-      
+
+      // Find first group where user is ADMIN or OWNER
+      if (user && groupsData.groups) {
+        const foundAdminGroup = groupsData.groups.find((g: Group) =>
+          g.createdById === user.id ||
+          g.members?.some((m: any) => m.userId === user.id && (m.role === 'ADMIN' || m.role === 'OWNER'))
+        );
+        setAdminGroup(foundAdminGroup || null);
+      }
+
       // Strategic prefetch: Preload group-specific routes after fetching groups
       // This ensures that when users click on group navigation, pages load instantly
       if (groupsData.groups && groupsData.groups.length > 0) {
         try {
           // Import dynamically to avoid circular dependencies
           const { getRoutesByBasePath, analyzeRoutesForPrefetch } = await import("@/lib/cache/url-patterns");
-          
+
           // Analyze and prefetch group-related routes based on actual group data
           const contextData = {
             isAuthenticated,
@@ -139,12 +151,12 @@ export default function DashboardClient() {
             userRole: user?.role || 'USER',
             groups: groupsData.groups
           };
-          
+
           const groupRoutes = getRoutesByBasePath('/groups', contextData, user?.role || 'USER');
-          
+
           // Create prefetch operations for all routes
           const prefetchOperations: Promise<void>[] = [];
-          
+
           for (const route of groupRoutes.filter(route => route.pattern.priority === 'high')) {
             try {
               // Generate concrete URLs for each group
@@ -172,7 +184,7 @@ export default function DashboardClient() {
               console.warn(`⚠️ Dashboard route prefetch preparation failed for ${route.url}:`, routeError);
             }
           }
-          
+
           // Execute all prefetches in parallel with error handling
           await Promise.allSettled(prefetchOperations);
         } catch (prefetchError) {
@@ -304,6 +316,10 @@ export default function DashboardClient() {
   const handleRuleCreated = (newRule: ScoringRule) => {
     setGlobalRules((prev) => [...prev, newRule]);
     toast.success(`Rule "${newRule.name}" created successfully!`);
+  };
+
+  const handleScoreRecorded = () => {
+    fetchDashboardData(); // Refresh data after recording score
   };
 
   const handleViewAllGlobalRules = () => {
@@ -447,8 +463,21 @@ export default function DashboardClient() {
       {/* Recent Groups */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{DASHBOARD.OVERVIEW.YOUR_GROUPS_SECTION}</CardTitle>
+            {adminGroup && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1"
+                onClick={() => setShowScoreModal(true)}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  {ACTIONS.ADD} Record
+                </span>
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {groups.length === 0 ? (
@@ -496,6 +525,19 @@ export default function DashboardClient() {
                 )}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Activities */}
+        <Card className="col-span-1 md:col-span-2 lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              {DASHBOARD.OVERVIEW.RECENT_ACTIVITY}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActivityFeed limit={5} compact />
           </CardContent>
         </Card>
 
@@ -646,7 +688,7 @@ export default function DashboardClient() {
                         </div>
                         <p className="text-sm font-medium">
                           {enhancedGroupStats.topPerformers &&
-                          enhancedGroupStats.topPerformers.length > 0
+                            enhancedGroupStats.topPerformers.length > 0
                             ? `${enhancedGroupStats.topPerformers[0].userName.split(" ")[0]} (${enhancedGroupStats.topPerformers[0].totalPoints})`
                             : "N/A"}
                         </p>
@@ -661,7 +703,7 @@ export default function DashboardClient() {
                         </div>
                         <p className="text-sm font-medium">
                           {enhancedGroupStats.bottomPerformers &&
-                          enhancedGroupStats.bottomPerformers.length > 0
+                            enhancedGroupStats.bottomPerformers.length > 0
                             ? `${enhancedGroupStats.bottomPerformers[0].userName} (${enhancedGroupStats.bottomPerformers[0].totalPoints})`
                             : "N/A"}
                         </p>
@@ -672,69 +714,69 @@ export default function DashboardClient() {
                     {(enhancedGroupStats.topPerformers?.length || 0) > 0 ||
                       ((enhancedGroupStats.bottomPerformers?.length || 0) >
                         0 && (
-                        <div className="space-y-3 pt-2">
-                          <h4 className="font-medium text-sm">
-                            Hiệu suất thành viên
-                          </h4>
+                          <div className="space-y-3 pt-2">
+                            <h4 className="font-medium text-sm">
+                              Hiệu suất thành viên
+                            </h4>
 
-                          {/* Top Performers */}
-                          {enhancedGroupStats.topPerformers &&
-                            enhancedGroupStats.topPerformers.length > 0 && (
-                              <div>
-                                <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                                  <Crown className="h-3 w-3" />
-                                  Top performers
-                                </h5>
-                                <div className="space-y-1">
-                                  {enhancedGroupStats.topPerformers
-                                    .slice(0, 3)
-                                    .map((performer, index) => (
-                                      <div
-                                        key={performer.userId}
-                                        className="flex items-center justify-between text-sm"
-                                      >
-                                        <span className="font-medium">
-                                          {performer.userName}
-                                        </span>
-                                        <div className="text-xs text-muted-foreground">
-                                          {performer.totalRecords} bản ghi •{" "}
-                                          {performer.totalPoints} điểm
+                            {/* Top Performers */}
+                            {enhancedGroupStats.topPerformers &&
+                              enhancedGroupStats.topPerformers.length > 0 && (
+                                <div>
+                                  <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                                    <Crown className="h-3 w-3" />
+                                    Top performers
+                                  </h5>
+                                  <div className="space-y-1">
+                                    {enhancedGroupStats.topPerformers
+                                      .slice(0, 3)
+                                      .map((performer, index) => (
+                                        <div
+                                          key={performer.userId}
+                                          className="flex items-center justify-between text-sm"
+                                        >
+                                          <span className="font-medium">
+                                            {performer.userName}
+                                          </span>
+                                          <div className="text-xs text-muted-foreground">
+                                            {performer.totalRecords} bản ghi •{" "}
+                                            {performer.totalPoints} điểm
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ))}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
 
-                          {/* Bottom Performers */}
-                          {enhancedGroupStats.bottomPerformers &&
-                            enhancedGroupStats.bottomPerformers.length > 0 && (
-                              <div>
-                                <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                                  <TrendingDown className="h-3 w-3" />
-                                  Cần cải thiện
-                                </h5>
-                                <div className="space-y-1">
-                                  {enhancedGroupStats.bottomPerformers
-                                    .slice(0, 3)
-                                    .map((member: any, index: number) => (
-                                      <div
-                                        key={member.userId}
-                                        className="flex items-center justify-between text-sm"
-                                      >
-                                        <span className="font-medium">
-                                          {member.userName}
-                                        </span>
-                                        <div className="text-xs text-muted-foreground">
-                                          {member.totalPoints} điểm
+                            {/* Bottom Performers */}
+                            {enhancedGroupStats.bottomPerformers &&
+                              enhancedGroupStats.bottomPerformers.length > 0 && (
+                                <div>
+                                  <h5 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                                    <TrendingDown className="h-3 w-3" />
+                                    Cần cải thiện
+                                  </h5>
+                                  <div className="space-y-1">
+                                    {enhancedGroupStats.bottomPerformers
+                                      .slice(0, 3)
+                                      .map((member: any, index: number) => (
+                                        <div
+                                          key={member.userId}
+                                          className="flex items-center justify-between text-sm"
+                                        >
+                                          <span className="font-medium">
+                                            {member.userName}
+                                          </span>
+                                          <div className="text-xs text-muted-foreground">
+                                            {member.totalPoints} điểm
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ))}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                        </div>
-                      ))}
+                              )}
+                          </div>
+                        ))}
                   </div>
                 ) : (
                   <div className="text-center py-4">
@@ -799,18 +841,36 @@ export default function DashboardClient() {
                 )}
               </CardContent>
             </Card>
-
-            <Card className="max-w-2xl">
-              <CardHeader>
-                <CardTitle>{DASHBOARD.OVERVIEW.RECENT_ACTIVITY}</CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-[600px] overflow-y-auto">
-                <ActivityFeed limit={10} compact={true} showViewAll={true} />
-              </CardContent>
-            </Card>
           </>
         )}
       </div>
+
+      {/* Modals */}
+      <RuleCreationModal
+        isOpen={showRuleModal}
+        onClose={handleRuleModalClose}
+        onRuleCreated={handleRuleCreated}
+      />
+
+      {adminGroup && (
+        <ScoreRecordingModal
+          isOpen={showScoreModal}
+          onClose={() => setShowScoreModal(false)}
+          onScoreRecorded={handleScoreRecorded}
+          groupId={adminGroup.id}
+          groupName={adminGroup.name}
+          availableRules={
+            adminGroup.groupRules?.map((gr: any) => gr.rule) ||
+            adminGroup.scoringRules ||
+            []
+          }
+          groupMembers={adminGroup.members || []}
+          groups={groups.filter((g: Group) =>
+            g.createdById === user?.id ||
+            g.members?.some((m: any) => m.userId === user?.id && (m.role === 'ADMIN' || m.role === 'OWNER'))
+          )}
+        />
+      )}
 
       {/* Group Selection Dialog for Scoring Rules */}
       <Dialog

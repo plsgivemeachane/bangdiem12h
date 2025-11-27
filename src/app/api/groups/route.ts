@@ -43,6 +43,14 @@ export async function GET(request: NextRequest) {
             scoreRecords: true,
           },
         },
+        groupRules: {
+          include: {
+            rule: true,
+          },
+          where: {
+            isActive: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });

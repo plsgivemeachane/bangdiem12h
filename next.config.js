@@ -93,3 +93,4 @@ export default withSentryConfig(nextConfig, {
   // Enables automatic instrumentation of Vercel Cron Monitors.
   automaticVercelMonitors: true,
 });
+5
