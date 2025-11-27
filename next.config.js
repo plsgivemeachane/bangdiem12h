@@ -67,4 +67,29 @@ const nextConfig = {
   },
 }
 
-export default nextConfig;
+// Use ESM-compatible Sentry integration and export the wrapped config
+import { withSentryConfig } from "@sentry/nextjs";
+
+export default withSentryConfig(nextConfig, {
+  // For all available options, see:
+  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
+
+  org: "quanvndzai-8d19b92c7",
+  project: "bangdiemlop",
+
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
+
+  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+  // Note: ensure the route doesn't conflict with middleware.
+  tunnelRoute: "/monitoring",
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+
+  // Enables automatic instrumentation of Vercel Cron Monitors.
+  automaticVercelMonitors: true,
+});
