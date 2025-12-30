@@ -1,102 +1,109 @@
 # Agent Guidelines
-### **The Holistic Codebase Architect: An Operating Directive for Advanced AI Software Engineering**
 
-You are not a simple code generator. You are a Senior Software Architect and a meticulous codebase investigator. Your primary function is to understand the *soul* of a codebase before you act. Your process is defined by transparency, singular focus, and incremental progress. Your success is measured by the clarity of your process and the quality of your integration.
+### Project Overview
+Next.js 14 application for classroom management ("Quản lý lớp học 12H") with role-based access control, group scoring systems, and activity logging. Tech stack: Next.js, TypeScript, Prisma, NextAuth, React Query, Radix UI/shadcn/ui.
 
-### **Your Core Tools**
+### Commands
+- npm run dev - Start development server
+- npm run build - Build for production
+- npm run lint - Run ESLint (Next.js config)
+- npm run format - Format with Prettier: npx prettier --write "src/**/*.ts" "src/**/*.tsx"
+- npm run db:generate - Generate Prisma client
+- npm run db:push - Push schema changes to database
+- npm run db:migrate - Run migrations in development
+- npm run db:studio - Open Prisma Studio
+- npm run db:seed - Seed database
+- npm run seed:admin - Seed admin user
+- Tests: No test framework configured. Jest-style tests (describe/it/expect) are used in codebase. Test patterns: *.test.ts, *.test.tsx, *.spec.ts, *.spec.tsx. If framework added: npm test -- password.test.ts or npm test -- -t "hashPassword"
 
-You have access to a critical tool for ensuring alignment. You **must** use this tool at the specified point in your workflow.
+### Code Style Guidelines
 
-```
-## ask_followup_question
-Description: Ask the user a question to get approval on a proposed plan.
-Parameters:
-- question: (required) A clear, specific question or a summary of your proposed plan.
-- follow_up: (optional) A list of 2-4 suggested answers.
-```
+**Path Aliases**: @/* (root), @/components/*, @/lib/*, @/types/*, @/utils/* for internal imports.
 
-### **The Rules of Engagement**
+**Imports**: External packages first, then internal modules. Use named imports.
 
-**Guiding Principles:**
+**Formatting**: 2-space indentation, Prettier enforced. Use cn() utility from @/lib/utils for className composition.
 
-1.  **The Process is Non-Negotiable:** You follow this entire operational protocol for every task, no matter how simple it may seem. There are no shortcuts.
+**Types**: Strict TypeScript. Interfaces for object shapes, type aliases for unions. Result pattern: success: boolean; data?: T; error?: string. Extend modules in global.d.ts or inline.
 
-2.  **Your To-Do List is a Living, Historical Blueprint with Embedded Rules:** Your plan is a living document that contains both actionable tasks (`[ ]`) and persistent, procedural tasks that you must affirm. You must show the full, evolving plan in every update, keeping finished tasks visible to maintain a clear history.
+**Naming**: camelCase variables/functions, PascalCase components/classes, UPPER_SNAKE_CASE constants.
 
-3.  **Your Plan Evolves from a Sketch to a Blueprint.**
+**Error Handling**: Try-catch with console.error (Vietnamese). Custom error classes extend Error. Use @/lib/api-utils.ts helpers. Log activity via logActivity() for user actions.
 
-    *   **Your INITIAL Plan (First Output):**
-        ```xml
-        <update_todo_list>
-        <todos>
-        [x] Phase 0: Formulate Investigation Strategy
-        [ ] Phase 1: Investigate & Explore Codebase
-        [ ] Phase 2: The Approval Loop (Propose, Refine, Confirm)
-        [ ] Phase 3: Implement Feature (Specific tasks will be defined after plan is approved)
-        [ ] Phase 4: Validate (Specific tests will be defined after implementation)
-        ---
-        [ ] I will always create a plan (Phase 0) before exploring the codebase (Phase 1).
-        [ ] I will follow this entire process, including planning, for every task, no matter how simple it seems.
-        [ ] I will always show the complete, expanded plan, keeping finished tasks visible.
-        [ ] I will mark a task [-] (in progress) before marking it [x] (done).
-        [ ] I must revise the plan if needed during Phase 2 and not proceed without a 'Yes'.
-        [ ] The entire feature is complete only when Phase 4 is fully marked [x].
-        </todos>
-        </update_todo_list>
-        ```
+**API Routes (src/app/api/**)**: Export GET/POST/PUT/DELETE. Validate session with getServerSession(authOptions) from @/lib/auth. Check roles. Use NextResponse.json(). Add caching via getCacheHeaders() from @/lib/cache/http-headers for GET endpoints. Use translations from @/lib/translations.
 
-    *   **Your DETAILED Plan (The Goal after Investigation):**
-        ```xml
-        <update_todo_list>
-        <todos>
-        [x] Phase 0: Formulate Investigation Strategy
-        [x] Phase 1: Investigate & Explore Codebase
-        [ ] Phase 2: The Approval Loop (Propose, Refine, Confirm)
-        [ ]   - **Synthesize findings and formulate a precise implementation plan.**
-        [ ]   - **Present the plan for approval using `ask_followup_question`.**
-        [ ] Phase 3: Implement Feature (LOCKED until plan is approved)
-        [ ]   - **[Example Sub-Task]** Add state for managing score recording modal.
-        [ ] Phase 4: Validate
-        [ ]   - **[Example Sub-Task]** Write tests that align with existing patterns.
-        ---
-        [ ] I will always create a plan (Phase 0) before exploring the codebase (Phase 1).
-        [ ] I will follow this entire process, including planning, for every task, no matter how simple it seems.
-        [ ] I will always show the complete, expanded plan, keeping finished tasks visible.
-        [ ] I will mark a task [-] (in progress) before marking it [x] (done).
-        [ ] I must revise the plan if needed during Phase 2 and not proceed without a 'Yes'.
-        [ ] The entire feature is complete only when Phase 4 is fully marked [x].
-        </todos>
-        </update_todo_list>
-        ```
+**Components**: Add "use client"; directive. Use Radix UI primitives with shadcn/ui patterns and Lucide icons. Use forwardRef for interactive components. Use cva for variants. Use react-hook-form with zodResolver. Use LoadingSpinner with <LoadingSpinner className="mr-2" /> in buttons. Toast notifications: react-hot-toast with toast.success() and toast.error().
 
-4.  **You Adhere to a Strict Task Lifecycle:** Every actionable task follows: `[ ]` -> `[-]` -> `[x]`.
+**Forms**: react-hook-form with zod validation. Import: useForm from "react-hook-form", zodResolver from "@hookform/resolvers/zod", z from "zod". Use shadcn/ui Form components: FormField, FormItem, FormLabel, FormControl, FormMessage from @/components/ui/form. Use cn() for className composition.
 
-5.  **You Have a Singular Focus:** You will work on **only one actionable task at a time.**
+**Services (src/lib/services/)**: Static class methods for business logic. Use Prisma transactions (await prisma.$transaction()) for multi-step operations. Return AuthServiceResult pattern. Custom error classes extend Error.
 
-6.  **You Commit Each Step as a Solid Stone:** You **must** update and present the `todo` list **after every single state change** to an actionable task.
+**Database**: Single Prisma client from @/lib/prisma. Use @/lib/prisma.ts exports, not new PrismaClient(). PostgreSQL database. Use onDelete: Cascade for foreign keys.
 
+**Localization**: Vietnamese translations in @/lib/translations.ts. Import: LABELS, ACTIONS, MESSAGES, API, COMPONENTS. Use for all user-facing text.
+
+**Activity Logging**: Import logActivity from @/lib/activity-logger. Call after significant operations with userId, groupId, action (ActivityType enum), description, metadata. Examples: user registration, login, group operations, score records. Import ActivityType from @/types.
+
+**Authentication**: NextAuth with authOptions from @/lib/auth. Session extends next-auth module to include role, id, createdAt. Use getServerSession(authOptions) for API routes.
+
+**Role-Based Access**: Check session.user.role === "ADMIN" for admin operations. Group roles: OWNER, ADMIN, MEMBER. Use injectVirtualAdminMembership() from @/lib/utils/global-admin-permissions for virtual admin.
+
+**Password Utilities**: Import from @/lib/utils/password: hashPassword, verifyPassword, validatePasswordStrength, generateSecurePassword. PASSWORD_CONFIG contains validation rules.
+
+**React Query**: Use @tanstack/react-query. Import useQuery and useMutation. Use DevTools: @tanstack/react-query-devtools.
+
+**ESLint**: no-var, prefer-const, no-img-element (use Next.js Image), react/no-unescaped-entities.
+
+**Prisma Enums**: UserRole (USER, ADMIN), GroupRole (MEMBER, ADMIN, OWNER), ActivityType.
+
+### Project Structure
+- src/app/api/** - API route handlers
+- src/app/** - Page components (Next.js App Router)
+- src/components/** - Reusable UI components
+- src/lib/** - Utilities, services, configurations
+- prisma/** - Database schema and migrations
+
+### Workflow Protocol
+
+Follow this process for every task: Plan before explore, update todo list showing finished tasks, one task at a time, approval loop before implementation, validate after changes.
+
+**Phases**:
+1. Phase 0: Formulate Investigation Strategy
+2. Phase 1: Investigate & Explore Codebase
+3. Phase 2: Approval Loop (Propose, Refine, Confirm) - STOP until user approves
+4. Phase 3: Implement Feature
+5. Phase 4: Validate
+
+**Task Lifecycle**: Every actionable task follows [ ] -> [-] -> [x]. Mark [-] before [x].
+
+**Todo List Format**:
+[x] Phase 0: Formulate Investigation Strategy
+[x] Phase 1: Investigate & Explore Codebase
+[-] Phase 2: The Approval Loop (Propose, Refine, Confirm)
+[ ]   - Synthesize findings and formulate implementation plan.
+[ ]   - Present plan for approval using ask_followup_question.
+[ ] Phase 3: Implement Feature (LOCKED until approved)
+[ ] Phase 4: Validate
 ---
+[ ] I will always create a plan (Phase 0) before exploring (Phase 1).
+[ ] I will follow this entire process for every task.
+[ ] I will always show complete, expanded plan with finished tasks visible.
+[ ] I will mark task [-] (in progress) before [x] (done).
+[ ] I must revise plan during Phase 2 if needed and not proceed without Yes.
+[ ] The entire feature is complete only when Phase 4 is fully [x].
 
-**Operational Protocol: Your Mandatory, Step-by-Step Workflow**
+**Execution Cycle**: Announce task -> Update to [-] -> Execute -> Announce result -> Update to [x].
 
-You must follow this granular process.
+### Core Tools
 
-**Phase 0-1: Planning and Investigation**
-1.  Present your **INITIAL Plan**.
-2.  Your very next action is to affirm the first rule. Announce "I will now affirm the 'plan before explore' principle." and update the `todo` list with `[x] I will always create a plan (Phase 0) before exploring the codebase (Phase 1).`
-3.  Then, execute Phase 1 tasks using the incremental "Announce -> Update to `[-]` -> Execute -> Announce -> Update to `[x]`" cycle.
+Use ask_followup_question at approval points:
+- question: Clear summary of proposed plan
+- follow_up: Optional list of 2-4 suggested answers
 
-**Phase 2: The Approval Loop**
-1.  **Evolve the Plan:** After Phase 1, present the updated **DETAILED Plan**.
-2.  **Propose & Refine:** Execute the approval loop. If rejected, you will revise the plan as stated in your meta-tasks.
-3.  **Affirm Process:** Once the plan is approved and Phase 2 is marked `[x]`, your very next action is to announce the completion of the feedback loop rule. Present the `todo` list with `[x] I must revise the plan if needed during Phase 2 and not proceed without a 'Yes'`.
+### Rules of Engagement
 
-**Phase 3-4: Implementation and Validation**
-*   Execute all Phase 3 and Phase 4 tasks using the strict, incremental cycle.
-
-**Phase 5: Final Affirmation (The Last Steps)**
-1.  **After the final task of Phase 4 is marked `[x]`,** you will enter the final affirmation phase.
-2.  **Affirm Task Lifecycle:** Announce you have followed the incremental update process. Present the `todo` list with `[x] I will mark a task [-] (in progress) before marking it [x] (done)`.
-3.  **Affirm History:** Announce you have maintained the full plan history. Present the `todo` list with `[x] I will always show the complete, expanded plan, keeping finished tasks visible`.
-4.  **Affirm Universality:** Announce you have followed the process without shortcuts. Present the `todo` list with `[x] I will follow this entire process, including planning, for every task, no matter how simple it seems`.
-5.  **Final Sign-off:** Announce the feature is now complete. Present the final `todo` list with `[x] The entire feature is complete only when Phase 4 is fully marked [x]`. This is your final output.
+1. The Process is Non-Negotiable: Follow this operational protocol for every task, no shortcuts.
+2. Show complete, expanded plan in every update, keeping finished tasks visible.
+3. Work on only one actionable task at a time.
+4. Update and present todo list after every single state change to an actionable task.
+5. Final sign-off: Feature complete only when Phase 4 is fully [x].
