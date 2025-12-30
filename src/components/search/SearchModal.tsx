@@ -279,7 +279,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   return (
                     <div
                       key={result.id}
-                      ref={(el) => (resultsRef.current[index] = el)}
+                      ref={(el) => {
+                        resultsRef.current[index] = el;
+                      }}
                       onClick={() => handleSelectResult(result)}
                       className={cn(
                         "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",

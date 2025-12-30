@@ -1,0 +1,52 @@
+# Design Document: SearchModal Ref Callback TypeScript Fix
+
+## File Context
+**File**: `src/components/search/SearchModal.tsx`
+**Line**: 282
+**Affected Component**: `SearchModal` component in the search results rendering
+
+## Issue Description
+The ref callback for tracking search result elements returns a value instead of `void`, causing a TypeScript error:
+```
+Type '(el: HTMLDivElement | null) => HTMLDivElement | null' is not assignable to type 'LegacyRef<HTMLDivElement> | undefined'.
+```
+
+## Root Cause
+The arrow function uses parentheses `()` which creates an implicit return of the assignment result:
+```tsx
+ref={(el) => (resultsRef.current[index] = el)}
+// Returns: HTMLDivElement | null (the result of assignment)
+// Should return: void
+```
+
+React ref callbacks must return `void` to be compatible with `LegacyRef<T>` type.
+
+## Implementation Strategy
+
+### Step 1: Fix the ref callback syntax
+Change from implicit return to explicit block statement:
+```tsx
+// BEFORE (line 282)
+ref={(el) => (resultsRef.current[index] = el)}
+
+// AFTER
+ref={(el) => { resultsRef.current[index] = el; }}
+```
+
+### Step 2: Update mental map
+Add documentation section in `.specs/maps/components.md` under `SearchModal.tsx` entry documenting:
+- Ref callback pattern for array refs
+- Why curly braces are required (prevents implicit return)
+- Common pitfall: parentheses cause return value type mismatch
+
+## Risk Analysis
+- **Backward Compatibility**: No impact - this is a syntax-only change
+- **Breaking Changes**: None - behavior remains identical
+- **Type Safety**: Improves type safety by matching React's ref callback signature
+- **Performance**: No impact - same execution logic
+
+## Verification Steps
+1. Apply the fix to line 282
+2. Run TypeScript compiler: `npm run build` or use IDE type checking
+3. Confirm no TypeScript errors in SearchModal.tsx
+4. Verify search modal functionality still works (keyboard navigation, element scrolling)
