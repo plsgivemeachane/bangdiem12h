@@ -6,8 +6,9 @@ import { UserRole, ActivityType } from "@/types";
 // GET /api/admin/users/[id] - Get single user details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
+  const params = await paramsPromise;
   const authReq = await requireAdmin();
   if (!authReq) {
     return NextResponse.json(
@@ -59,8 +60,9 @@ export async function GET(
 // PATCH /api/admin/users/[id] - Update user details and role
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
+  const params = await paramsPromise;
   const authReq = await requireAdmin();
   if (!authReq) {
     return NextResponse.json(
@@ -188,8 +190,9 @@ export async function PATCH(
 // DELETE /api/admin/users/[id] - Delete user
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
+  const params = await paramsPromise;
   const authReq = await requireAdmin();
   if (!authReq) {
     return NextResponse.json(
