@@ -11,8 +11,9 @@ import { ActivityType } from "@/types";
 // PUT /api/admin/users/[id]/password - Reset user password
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
+  const params = await paramsPromise;
   const authReq = await requireAdmin();
   if (!authReq) {
     return NextResponse.json(

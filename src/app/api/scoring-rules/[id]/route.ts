@@ -9,8 +9,9 @@ import { API } from "@/lib/translations";
 // DELETE endpoint for deleting individual scoring rules
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
+  const params = await paramsPromise;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -135,8 +136,9 @@ export async function DELETE(
 // PATCH endpoint for partial updates (e.g., activation/deactivation)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
 ) {
+  const params = await paramsPromise;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
